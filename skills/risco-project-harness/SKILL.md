@@ -83,9 +83,11 @@ Walk the workspace root and gather:
 Render **two artifacts**:
 
 1. **A compact text summary in the conversation** — 1–3 sentences per section, the full destructive-ops list, the consent prompt. This keeps the terminal flow fast.
-2. **A full HTML report at `<workspace_root>/audit-YYYY-MM-DD-HHMM.html`** using `references/audit-report-template.html`. Self-contained (inline CSS, no CDN). Includes color-coded action tables, collapsible legacy-folder sections, highlighted destructive ops, and the consent prompt. **Gitignored** (per-run artifact).
+2. **A full HTML report at `<workspace_root>/02-DOCS/audits/audit-YYYY-MM-DD-HHMM.html`** using `references/audit-report-template.html`. Self-contained (inline CSS, no CDN). Includes color-coded action tables, collapsible legacy-folder sections, highlighted destructive ops, and the consent prompt. **Gitignored** (per-run artifact).
 
-The text summary points to the HTML: `"Full audit at ./audit-XXX.html — open it to review details, then reply 'yes, proceed' or 'adjust'."`
+If `02-DOCS/audits/` does not exist, create it (with `.gitkeep`) before writing — even on first run, before Phase 4 builds the rest of `02-DOCS/`. Same for `02-DOCS/` itself: the audits subdirectory is the only piece allowed to materialize during Phase 2; the rest waits until APPLY. Never write the audit HTML at the workspace root.
+
+The text summary points to the HTML: `"Full audit at ./02-DOCS/audits/audit-XXX.html — open it to review details, then reply 'yes, proceed' or 'adjust'."`
 
 The HTML must contain:
 
@@ -211,7 +213,7 @@ If any of these occur, stop and report:
 - `references/agents-md-template.md` — root `AGENTS.md` template.
 - `references/tools-readme-template.md` — `01-TOOLS/README.md` catalog template.
 - `references/audit-report-template.md` — text summary format for the in-conversation audit summary.
-- `references/audit-report-template.html` — HTML format for the full per-run audit artifact written to workspace root.
+- `references/audit-report-template.html` — HTML format for the full per-run audit artifact written to `02-DOCS/audits/`.
 - `references/wiki-protocol.md` — embedded protocol for the `02-DOCS/` wiki layer (initialization, ingest, query, lint, **Continuous Improvement**: Maintenance Pass, Micro-Improve, Deep Improve).
 - `references/wiki-raw-template.md` — format for `02-DOCS/raw/<topic>/*.md`.
 - `references/wiki-article-template.md` — format for `02-DOCS/wiki/<topic>/*.md`.
