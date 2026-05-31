@@ -1,0 +1,7 @@
+.DS_Store
+node_modules/
+.env
+.env.local
+*.log
+
+# Per-tool ignores already exist inside each skill's _TEMPLATE/.gitignore.
