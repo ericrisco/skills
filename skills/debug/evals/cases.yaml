@@ -1,0 +1,74 @@
+skill: debug
+
+# Prompts that MUST load the `debug` skill. `debug` is the on-demand rsc-sdd
+# diagnosis discipline: reproduce -> isolate -> hypothesize -> fix -> verify,
+# refusing any fix before ONE confirmed root cause is reproduced and isolated.
+# It is callable from any phase (most often mid-implement). It does NOT build a
+# planned feature (implement), run the lint/test gate (verify), or read a clean
+# diff adversarially (review).
+should_trigger:
+  - prompt: "This test was green yesterday and now it's red — figure out why before changing anything."
+    why: "A regression with an unknown cause is the loop's entry point: reproduce the red, bisect to the introducing change, then fix the cause — not patch blindly."
+
+  - prompt: "The checkout endpoint throws a 500 sometimes but not always. Track it down."
+    why: "An intermittent failure is a flake to measure (k/N) and a shared-state/race/order cause to isolate — exactly the reproduce->isolate discipline debug owns."
+
+  - prompt: "It works on my laptop but fails in CI. What's going on?"
+    why: "Environment-dependent failure means environment is the variable to isolate; debug reproduces where it actually fails before proposing a cause."
+
+  - prompt: "I added a try/except and the error stopped, but I think the real problem is still there."
+    why: "Swallowing the symptom while the cause survives is the canonical anti-pattern debug exists to correct: find and fix the cause, prove it with a test."
+
+  - prompt: "Our go test -race flags a data race intermittently. Find the root cause and fix it."
+    why: "A flaky race is reproduce-as-a-rate plus isolate-the-shared-state; debug owns the method and pulls the -race/-count mechanics from the go stack skill."
+
+  - prompt: "The fix I shipped last week didn't stick — the bug is back. Why?"
+    why: "A returned bug means the prior change addressed a symptom, not the cause; debug resumes at reproduce and demands a regression test as proof this time."
+
+  - prompt: "Something's wrong with the date calculation but I can't reproduce it reliably."
+    why: "Inability to reproduce is itself the finding; debug's first step is to pin a reliable repro (or measured rate) before any speculative edit — likely a timezone/time cause."
+
+  - prompt: "A test in the FastAPI suite fails for a reason I don't understand. Help me diagnose it, don't just patch it."
+    why: "An unexplained failing test mid-implement is the textbook hand-off into debug's reproduce->isolate->hypothesize loop, delegating pytest/pdb mechanics to fastapi."
+
+# NEAR-MISS prompts that must NOT load `debug`. Each routes to a sibling that
+# exists in this repo. The recurring trap: building, gating, reviewing, or
+# clarifying is NOT root-cause diagnosis of a confirmed defect.
+should_not_trigger:
+  - prompt: "Implement task 3 from the plan: add the /orders endpoint, test-first."
+    route_to: "implement"
+    why: "Building a planned feature with an expected failing test is implement's red->green->refactor; there is no mystery defect to diagnose, so debug does not apply."
+
+  - prompt: "Run lint, type-check and the full suite and tell me if this change is ready to merge."
+    route_to: "verify"
+    why: "Running the whole quality gate to confirm 'done' is verify; it reports failures and hands them to debug, but orchestrating the gate itself is not diagnosis."
+
+  - prompt: "Read this diff adversarially and find design or correctness smells the tests didn't catch."
+    route_to: "review"
+    why: "Adversarially reading a clean, passing diff for latent smells is review; debug starts from a concrete reproduced failure, not a code-reading hunt."
+
+  - prompt: "The spec says 'idempotent' but never defines what duplicate means — resolve the ambiguity."
+    route_to: "clarify"
+    why: "An unclear/contradictory requirement is not a code defect; clarify de-risks the spec. Debugging cannot fix an ambiguity that has no reproducible failure."
+
+  - prompt: "Cross-check the constitution, spec, plan and tasks for contradictions before we write code."
+    route_to: "analyze"
+    why: "Pre-implementation consistency checking across SDD artifacts is analyze; there is no running failure to reproduce, so it is not debug's loop."
+
+# One end-to-end scenario with a rubric to grade WITH vs WITHOUT the skill. A
+# skill-guided answer refuses to fix before reproducing and isolating a single
+# confirmed cause; an ungrounded answer tends to guess-and-patch, paper over a
+# flake with sleep/retry, or claim 'fixed' on a vanished symptom with no test.
+capability:
+  - scenario: "Mid-implement, a FastAPI integration test for the orders endpoint fails intermittently (~3 of 10 runs) with a 500. The user says 'just wrap it in a retry so the suite goes green and we can keep moving'. Diagnose it properly."
+    must_include:
+      - "Reads the accompaniment level from 02-DOCS/wiki/harness/user-profile.md and adapts verbosity, while keeping the diagnosis method unchanged by the dial."
+      - "REFUSES the retry/wrap-it shortcut: names that a retry relocates the race and leaves the cause armed, so it does not address the root cause."
+      - "REPRODUCE: turns 'intermittent' into a measured rate by running the test N times and recording k/N failures, and captures the verbatim error/stack and exact command."
+      - "Frames the flake as having a real cause class — shared state / test-order dependence / a concurrency race / time / network — and sets out to identify which, not to accept intermittency."
+      - "ISOLATE: binary-searches the surface one variable at a time (e.g. forcing the failing order with the stack's run flags, shrinking to a minimal failing case), delegating the -count/-x/run-flag and async mechanics to the fastapi stack skill rather than reinventing them."
+      - "HYPOTHESIZE: states ONE falsifiable root cause ('X because Y; changing Z flips the result') before touching the fix."
+      - "FIX: encodes the bug as a test that fails for the RIGHT reason first (e.g. a transactional-rollback fixture or deterministic ordering), then makes the smallest change to the CAUSE — not a sleep/retry/timeout bump."
+      - "VERIFY: re-runs the repro until the failure rate is zero (not merely lower), confirms the new test is green and the surrounding suite stayed green, then hands the whole-gate re-run back to verify."
+      - "Logs the non-obvious cause (the race/order dependence) to 02-DOCS/wiki/sdd/decisions.md and resumes implement at the interrupted task; does not declare 'done' itself."
+      - "Never disables/skips/deletes the failing test to make the suite green, and does not claim 'fixed' on a vanished symptom without a regression test."

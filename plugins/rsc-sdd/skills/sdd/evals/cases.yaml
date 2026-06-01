@@ -1,0 +1,73 @@
+skill: sdd
+
+# Cases for the rsc-sdd "sdd" dispatcher / front door.
+# sdd states the SDD method, reads the accompaniment dial from
+# 02-DOCS/wiki/harness/user-profile.md, and ROUTES to the right phase skill in
+# the chain constitution -> specify -> clarify -> plan -> tasks -> analyze ->
+# implement -> verify -> review -> ship (debug/worktrees/parallel on demand).
+# It does NOT perform a single phase itself and is NOT the workspace harness.
+
+should_trigger:
+  - prompt: "I want to build this feature properly, spec-driven, from idea to shipped. Where do I start?"
+    why: "Canonical SDD entry: explicit 'spec-driven' + 'idea to shipped' is exactly what the dispatcher routes — it should name the method and hand off to constitution/specify, not start coding."
+
+  - prompt: "Quiero llevar esta idea a producción haciéndolo bien, paso a paso."
+    why: "Spanish 'de la idea a producción, haciéndolo bien, paso a paso' is the intent->shipped loop the dispatcher governs; it should place the request on the phase map and route to specify."
+
+  - prompt: "I'm somewhere in the middle of building a feature and I've lost track of which step I'm on. Can you orient me?"
+    why: "Non-obvious: no SDD jargon, but 'which step am I on' is precisely the dispatcher's 'which phase are you in' job — it asks the one orienting question (is there a written spec?) and routes."
+
+  - prompt: "Run the full sdd flow on this new authentication requirement."
+    why: "Direct request to run the chained flow — the dispatcher owns the flow and routes the first phase; it should not try to do every phase inline itself."
+
+  - prompt: "I have a one-paragraph idea for a notifications feature. Take it all the way to a PR the disciplined way."
+    why: "Fuzzy idea + 'all the way to a PR' + 'disciplined' implies the whole chain; the dispatcher should start at specify and explain the gates rather than jumping to implementation."
+
+  - prompt: "Before we touch code, I want a proper process: decide what and why, write it down, then build. Set that up."
+    why: "Describes SDD by definition (what/why before how, write it down) without the acronym — a deliberately non-obvious trigger the dispatcher must claim and route from."
+
+  - prompt: "What's the right order to do this feature in, and which phase skill handles each part?"
+    why: "Asks for the phase map and the per-phase ownership — the dispatcher's core deliverable; it should produce the chain and the routing rule."
+
+should_not_trigger:
+  - prompt: "Write the spec for the new export-to-CSV feature."
+    route_to: "specify"
+    why: "A concrete request to PRODUCE the spec is a single phase the dispatcher hands off — specify owns writing specs and asking the focused questions. sdd only routes."
+
+  - prompt: "Set this repo's non-negotiable engineering principles and stack canon."
+    route_to: "constitution"
+    why: "Capturing project-wide non-negotiables is the constitution phase, which runs once per project. The dispatcher would point here, but the work itself belongs to the constitution skill."
+
+  - prompt: "All the code is written and tests pass — open the PR and merge it."
+    route_to: "ship"
+    why: "Closing the branch (PR/merge/cleanup, Eric-only authorship) is the ship phase. No dispatching needed; this is squarely ship's job."
+
+  - prompt: "Audita mi proyecto y monta el 01-TOOLS y el 02-DOCS."
+    route_to: "harness"
+    why: "Workspace control plane (01-TOOLS/02-DOCS scaffolding/audit) is the harness, not the SDD engineering flow. sdd writes its artifacts INTO 02-DOCS but does not build the harness."
+
+  - prompt: "There's a failing test and I don't know why — help me find the root cause before I change anything."
+    route_to: "debug"
+    why: "Root-cause diagnosis of a specific failure is the on-demand debug phase. The dispatcher references it, but a direct 'find the root cause' request goes straight to debug, not through routing."
+
+  - prompt: "Scaffold a new Next.js app with the App Router and Tailwind."
+    route_to: "nextjs"
+    why: "A concrete stack build with a named framework is the nextjs stack skill. sdd is process, not stack; it would defer build specifics to nextjs rather than fire itself."
+
+capability:
+  - scenario: "A developer at accompaniment level L1 says: 'I've got a rough idea for a feature and I want to build it the spec-driven way, end to end. Where do I begin?' Show how the dispatcher opens the engagement."
+    must_include:
+      - "States the SDD method in brief: decide what & why before how, write it down, each artifact gates the next ('the artifact is the contract')"
+      - "Reads (or notes it should read) 02-DOCS/wiki/harness/user-profile.md for the accompaniment dial and, at L1, gives a one-line why per step rather than long explanations"
+      - "Presents the chained phase map: constitution -> specify -> clarify -> plan -> tasks -> analyze -> implement -> verify -> review -> ship, with debug/worktrees/parallel on demand"
+      - "Applies the invoke rule: a fuzzy idea with no spec on disk routes to specify (and notes constitution runs once per project if not yet present)"
+      - "Does NOT itself write the spec or start coding — it hands off to the specify phase skill (../specify/SKILL.md)"
+      - "Notes that artifacts will be written under 02-DOCS/wiki/sdd/ (specs/, plans/, decisions.md) and indexed in the root CLAUDE.md Knowledge map"
+      - "Defers concrete stack tooling (test runner, build, framework idioms) to the relevant stack skill rather than prescribing it here"
+
+  - scenario: "A user says: 'It's a tiny copy change in the footer — do I really have to run this whole spec/plan/tasks ceremony?' Show how the dispatcher handles the skip case honestly."
+    must_include:
+      - "Applies the skip rule: a one-line, low-risk change does not need the full chain, and says so explicitly"
+      - "Still requires a verification step after the change (the method serves shipping, not ceremony, but evidence before claiming done remains)"
+      - "Does not abandon the method for genuinely risky work — distinguishes trivial from non-trivial and is honest about which this is"
+      - "If git authorship comes up, notes ship enforces Eric-only authorship (no Co-Authored-By Claude, no generated-with footer)"
