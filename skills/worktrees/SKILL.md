@@ -53,7 +53,8 @@ Run this in order. Each check prevents a class of "lost work" you can't easily u
 1. **Read the accompaniment dial.** Open `02-DOCS/wiki/harness/user-profile.md` for the technical +
    accompaniment level (L0..L3) — it sets how much you narrate and whether you confirm before acting
    (see the dial table below). No profile yet → assume non-technical, explain what a worktree is in
-   one plain sentence before making one.
+   one plain sentence before making one. No `02-DOCS/` at all (a worktree can be created in any git
+   repo with no rsc harness present) → skip the dial, assume non-technical, and proceed.
 2. **Confirm you're in a git repo.** `git rev-parse --is-inside-work-tree`. If not, there's nothing
    to isolate with git — tell the user; don't fabricate a worktree.
 3. **Check the current branch.** `git rev-parse --abbrev-ref HEAD`. On `main`/`master` with work
@@ -76,8 +77,9 @@ Only once the tree state is understood and the user's WIP is accounted for do yo
 
 ## Creating the workspace — native first, git fallback
 
-**Prefer the native worktree tool when it's available in your environment.** It creates an isolated
-worktree under `.claude/worktrees/`, switches the session into it, and tracks it for clean exit —
+**Prefer the native worktree tool when it's available in your environment.** An `EnterWorktree`-style
+tool typically creates an isolated worktree (often under something like `.claude/worktrees/`, though
+the exact location is tool-dependent), switches the session into it, and tracks it for clean exit —
 which is exactly the lifecycle this skill wants, with no manual path management.
 
 - **Enter:** create/enter the worktree (e.g. an `EnterWorktree`-style native tool, named for the

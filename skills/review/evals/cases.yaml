@@ -18,11 +18,11 @@ should_trigger:
 
 should_not_trigger:
   - prompt: "Run lint, type-check and the test suite on my branch and tell me if it's green."
-    route_to: "secure-coding"
-    why: "Running the gates to green is the verify phase, not review. No verify sibling exists in this repo yet, so the closest correct routing for an automated-gate request is the security/quality gate skill; the point is it is NOT review — review judges an already-green diff."
+    route_to: "verify"
+    why: "Running the gates to green is the verify phase, not review — the verify skill owns exactly 'lint/type/test before merge', 'run the checks', 'are we green'. Review judges an already-green diff; this routes out to verify."
   - prompt: "The code's been reviewed and approved. Open the PR and merge it into main."
-    route_to: "harness"
-    why: "Closing the branch / PR / merge with Eric-only authorship is the ship phase. With no ship sibling present, this routes to the workspace-control skill; either way it is post-review, not review."
+    route_to: "ship"
+    why: "Closing the branch / opening the PR / merge with Eric-only authorship is the ship phase — the ship skill owns 'open the PR', 'merge into main', 'close the branch'. It is post-review, not review, so it routes out to ship."
   - prompt: "Do a security threat-model of this endpoint that fetches a user-supplied URL — what's the SSRF risk?"
     route_to: "secure-coding"
     why: "A deep OWASP/SSRF threat-model is owned by secure-coding. Review folds its findings in but defers the dedicated security pass; this is explicitly routed out in 'When NOT to use'."

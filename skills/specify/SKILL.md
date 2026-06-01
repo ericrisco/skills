@@ -45,11 +45,11 @@ Write these sections into `02-DOCS/wiki/sdd/specs/<slug>.md` using `references/s
 | Section | Holds | Watch for |
 | --- | --- | --- |
 | Problem & why | The pain, the cost of not solving it, the trigger | A "solution" disguised as a problem |
-| Goals / non-goals | What success delivers; what is explicitly out of scope | Non-goals missing — scope drifts without them |
+| Goals | What success delivers, in outcome terms | A "goal" that's actually a HOW |
+| Non-goals / out of scope | What is explicitly NOT done now — adjacent work, deferred features | Silence — unsaid scope becomes assumed scope |
 | Users & context | Who acts, their context, what they're trying to achieve | An imagined user no one asked for |
 | Behaviour | What the system does, in observable terms, incl. main + edge + error paths | A verb that's actually a HOW ("queries", "caches") |
 | Acceptance criteria | Testable, binary checks that say "done" | Vague critera ("works well", "is fast") |
-| Out of scope | Adjacent things deliberately not done now | Silence — unsaid scope becomes assumed scope |
 | Points to clarify | Open questions, assumptions made, decisions deferred | Pretending there are none |
 
 ### Acceptance criteria carry the weight
@@ -92,7 +92,7 @@ A passwordless email link removes the password entirely.
 - A user can sign in with only their email, via a one-time link.
 - No password is ever stored or required.
 
-## Non-goals
+## Non-goals / out of scope
 - Social login (Google/Apple) — deferred.
 - Replacing existing sessions for already-signed-in users.
 
@@ -133,9 +133,10 @@ Note what is *absent*: no token format, no table, no email provider, no framewor
 ## Project grounding (02-DOCS + CLAUDE.md)
 
 - Read `02-DOCS/wiki/sdd/constitution.md` first — its principles are inherited constraints, not things to re-decide. If it's missing, note that the project has no constitution yet and suggest the `constitution` phase before continuing (you can still draft a spec, but flag the absence).
+- **No constitution yet?** Still write the spec, but inherit nothing — lean harder on the wiki and the user's answers, and record every constraint you would have inherited as a *point to clarify* instead of assuming it.
 - Write the spec to `02-DOCS/wiki/sdd/specs/<slug>.md`. Create the directory if absent.
 - Add a row under the `## Knowledge map` section of the root `CLAUDE.md` linking the new spec under the `sdd/specs` topic (additive only — never delete existing rows). Create `CLAUDE.md` if absent.
-- Log the spec's creation and any significant scoping decision to `02-DOCS/wiki/harness/decisions.md` (append-only), so the harness keeps a trace of why scope landed where it did.
+- Log the spec's creation and any significant scoping decision to `02-DOCS/wiki/sdd/decisions.md` (append-only), so the chain keeps a trace of why scope landed where it did. This is the canonical SDD decisions log shared with `constitution` and `plan` — not the harness's own `02-DOCS/wiki/harness/decisions.md`.
 
 ## Next in the chain
 

@@ -11,7 +11,7 @@ interfaces, the data flow, the way you'll prove it works, and the things most li
 It is the engineering counterpart of the spec: a spec a human signed off on becomes a plan an
 engineer (or an agent) can execute without re-deciding the shape of the system halfway through.
 
-`plan` sits fifth in the SDD chain:
+`plan` sits fourth in the SDD chain:
 
 ```text
 constitution → specify → clarify → [ plan ] → tasks → analyze → implement → verify → review → ship
@@ -145,7 +145,7 @@ List what is most likely to be wrong, ranked. For each risk: the trigger, the im
 mitigation or the spike that would retire it. Separately, log any decision still genuinely open
 (and what input would close it). Honesty here is the whole point — a plan that claims zero risk is
 the riskiest plan. Significant design decisions taken during planning also get appended to
-`02-DOCS/wiki/sdd/decisions.md` (the harness decision log), so later phases can trace the *why*.
+`02-DOCS/wiki/sdd/decisions.md` (the SDD decisions log), so later phases can trace the *why*.
 
 ## Adapting to the dial
 

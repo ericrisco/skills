@@ -41,7 +41,7 @@ should_not_trigger:
     route_to: "analyze"
     why: "The pre-implementation consistency gate over all four artifacts is `analyze`; `tasks` produces the list that analyze audits, it doesn't audit."
 
-  - prompt: "Start executing the task list — write the code for T-004 and get its test green."
+  - prompt: "Start executing the task list — write the code for T004 and get its test green."
     route_to: "implement"
     why: "Executing tasks and writing runtime code (red → green → refactor) is `implement`; `tasks` writes no code, only the list."
 
@@ -66,7 +66,7 @@ capability:
     must_include:
       - "Confirms the inputs first: plan, spec, AND constitution must exist; if the plan were missing it would STOP and route to `plan` rather than slice from intent."
       - "Reads 02-DOCS/wiki/harness/user-profile.md for the accompaniment level and adapts verbosity (L0 table-only … L3 explain the slicing/dependencies)."
-      - "Emits numbered stable IDs (T-001…) with the five well-formed fields: ID, imperative title, done-check, depends-on, and a trace to a spec section."
+      - "Emits sequential zero-padded stable IDs (T001, T002… — no hyphen, GitHub Spec Kit canon) with the six well-formed fields: ID, a separate [P] marker field after the ID, imperative title, done-check, depends-on, and a trace to a spec section."
       - "Every done-check is a LITERAL runnable command or checkable observation (e.g. `pytest tests/auth/test_login.py` green; `alembic upgrade head` applies; bad password → 401) — never 'login works'."
       - "Orders by dependency (migration/schema → data → service → API), so no task precedes what it depends on; marks `[P]` only on file/state-disjoint tasks and defaults to sequential when unsure."
       - "Uses TDD-shaped slicing: a failing-test task before its implementation task, whose done-check is 'the test that was red is now green'."
