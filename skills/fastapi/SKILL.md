@@ -1,13 +1,6 @@
 ---
 name: fastapi
-description: >
-  Use when building, reviewing, testing, securing or deploying a FastAPI / async Python
-  service. Triggers: creating endpoints/routers, Pydantic v2 models (Create/Update/Response),
-  dependency injection, async SQLAlchemy 2.0 + Alembic, OAuth2/JWT auth + RBAC, pytest +
-  httpx ASGITransport tests, CORS / rate limiting / secret handling, uvicorn/gunicorn +
-  structured logging + healthchecks + graceful shutdown, pyproject + ruff + mypy strict + uv.
-  Any .py file importing fastapi, pydantic, sqlalchemy, starlette, or a pyproject.toml
-  declaring those.
+description: "Use when building, reviewing, testing, securing or deploying a FastAPI / async Python service. Triggers: creating endpoints/routers, Pydantic v2 models (Create/Update/Response), dependency injection, async SQLAlchemy 2.0 + Alembic, OAuth2/JWT auth + RBAC, pytest + httpx ASGITransport tests, CORS / rate limiting / secret handling, uvicorn/gunicorn + structured logging + healthchecks + graceful shutdown, pyproject + ruff + mypy strict + uv. Any .py file importing fastapi, pydantic, sqlalchemy, starlette, or a pyproject.toml declaring those."
 origin: risco
 ---
 

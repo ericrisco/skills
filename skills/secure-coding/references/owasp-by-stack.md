@@ -8,6 +8,20 @@ classes. Versions assumed: Python 3.12+, Pydantic v2, SQLAlchemy 2.0,
 FastAPI ≥0.115, Next.js 15 App Router / React 19, Zod ≥3.23, Go 1.22+
 (`http.ServeMux`, `log/slog`), PostgreSQL 16.
 
+## Contents
+
+- [A01 — Broken Access Control / IDOR](#a01--broken-access-control--idor)
+- [A02 — Cryptographic Failures](#a02--cryptographic-failures)
+- [A03 — Injection](#a03--injection)
+- [A04 — Insecure Design](#a04--insecure-design)
+- [A05 — Security Misconfiguration](#a05--security-misconfiguration)
+- [A06 — Vulnerable & Outdated Components](#a06--vulnerable--outdated-components)
+- [A07 — Identification & Authentication Failures](#a07--identification--authentication-failures)
+- [A08 — Software & Data Integrity (supply chain)](#a08--software--data-integrity-supply-chain)
+- [A09 — Logging & Monitoring Failures](#a09--logging--monitoring-failures)
+- [A10 — SSRF (Server-Side Request Forgery)](#a10--ssrf-server-side-request-forgery)
+- [Index — category → fastest fix](#index--category--fastest-fix)
+
 ## A01 — Broken Access Control / IDOR
 
 What: a row or function is reachable by a caller who should not see it.

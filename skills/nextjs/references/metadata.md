@@ -4,7 +4,7 @@ Deep dive behind the "Metadata & SEO" section of `SKILL.md`. This is the **build
 how the App Router emits `<title>`, `<meta>`, OpenGraph/Twitter tags, `sitemap.xml`, and
 `robots.txt`. For the *content/strategy* layer — keyword research, JSON-LD schema choice, GEO
 (getting cited by AI engines), and Core Web Vitals as a ranking signal — see
-`../marketing/references/seo-geo.md`. Sources: the Next.js `generate-metadata`,
+`../../marketing/references/seo-geo.md`. Sources: the Next.js `generate-metadata`,
 `metadata/sitemap`, `metadata/robots`, and `metadata/opengraph-image` API docs.
 
 The Metadata API works the same on Next.js 15 and 16. `metadata`/`generateMetadata` are
@@ -187,7 +187,7 @@ export default function robots(): MetadataRoute.Robots {
 
 For the **AI-crawler** stance (allowing retrieval/citation bots like `OAI-SearchBot`/`PerplexityBot`
 while optionally opting out of training crawlers like `GPTBot`/`ClaudeBot`/`Google-Extended`), the
-per-bot `robots.txt` policy lives in `../marketing/references/seo-geo.md` — keep the `robots.ts`
+per-bot `robots.txt` policy lives in `../../marketing/references/seo-geo.md` — keep the `robots.ts`
 `rules` array in sync with the policy decided there.
 
 ## What to verify on review
@@ -201,7 +201,7 @@ per-bot `robots.txt` policy lives in `../marketing/references/seo-geo.md` — ke
 
 ## See Also
 
-- `../marketing/references/seo-geo.md` — keyword research, JSON-LD schema, GEO (AI-engine citation),
+- `../../marketing/references/seo-geo.md` — keyword research, JSON-LD schema, GEO (AI-engine citation),
   per-engine optimization, and the SEO/GEO QA gate. This file emits the tags; that file decides the
   strategy and content structure behind them.
 - `performance.md` — Core Web Vitals (LCP/CLS/INP), a direct ranking signal.

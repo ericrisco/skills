@@ -3,6 +3,20 @@
 Goroutines, channels, context, errgroup, sync primitives, pipelines, and leak/race
 prevention - the depth behind the SKILL.md essentials. Go 1.22+.
 
+## Contents
+
+- [Mental model](#mental-model)
+- [Context](#context)
+- [Channels and select](#channels-and-select)
+- [Goroutine leaks](#goroutine-leaks)
+- [Worker pool](#worker-pool)
+- [errgroup](#errgroup)
+- [Retry with backoff](#retry-with-backoff)
+- [Pipelines](#pipelines)
+- [sync primitives](#sync-primitives)
+- [Race detector](#race-detector)
+- [Checklist](#checklist)
+
 ## Mental model
 
 "Don't communicate by sharing memory; share memory by communicating." Prefer passing values

@@ -8,6 +8,20 @@ This protocol is **embedded inside `harness`** — no external
 skill required. When the parent skill (`SKILL.md`) reaches Phase 4 step 8
 ("Build `02-DOCS/`"), follow this document.
 
+## Contents
+
+- [The paradigm — chaos in, knowledge out](#the-paradigm--chaos-in-knowledge-out)
+- [Architecture](#architecture) · [Format split: markdown for state, HTML for surfaces](#format-split-markdown-for-state-html-for-surfaces)
+- [Initialization](#initialization)
+- [Ingest](#ingest) · [Fetch](#fetch-raw) · [Compile](#compile-wiki) · [Cascade Updates](#cascade-updates) · [Post-Ingest](#post-ingest)
+- [Inbox Sweep — "el agente sale a pasear"](#inbox-sweep--el-agente-sale-a-pasear)
+- [Query](#query)
+- [Lint](#lint) · [Deterministic Checks](#deterministic-checks-auto-fix) · [Heuristic Checks](#heuristic-checks-report-only)
+- [Continuous Improvement](#continuous-improvement) — Maintenance Pass / Micro-Improve / Deep Improve
+- [Conventions](#conventions)
+- [How autonomous improvement interacts with this protocol](#how-autonomous-improvement-interacts-with-this-protocol)
+- [How `harness` uses this protocol](#how-harness-uses-this-protocol)
+
 ## The paradigm — chaos in, knowledge out
 
 `02-DOCS/` is the **chaos→knowledge engine** of the workspace. The contract,
