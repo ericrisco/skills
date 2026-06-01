@@ -7,7 +7,8 @@ concurrently, backfill `display_name`.
 > Using Drizzle, Kysely, Django, or another migration runner not shown here? The engine-level rules
 > below (expand–contract, `CONCURRENTLY` outside a txn, `NOT VALID` then `VALIDATE`, batched backfill)
 > are identical regardless of runner — translate the raw-SQL recipes into your tool's directives. For
-> the per-tool workflow/wiring of those runners, see the sibling `database-migrations` skill.
+> the per-tool workflow/wiring of those runners, consult that runner's own documentation; the
+> engine-level recipes here are what those directives must ultimately emit.
 
 ## Principles
 
@@ -255,7 +256,7 @@ CREATE INDEX CONCURRENTLY IF NOT EXISTS "ix_users_avatar_url" ON "users" ("avata
 Prisma checksums every migration file: once applied, editing it triggers `P3006` on every environment
 where the original already ran — create a new migration instead. ORM-surface traps
 (`updateMany` returning a count, `@updatedAt` skipped on bulk writes, serverless connection
-exhaustion) live in `prisma-patterns`.
+exhaustion) are out of scope for this engine-level skill — see Prisma's own documentation.
 
 ## Rollback reality
 

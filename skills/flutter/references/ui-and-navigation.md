@@ -245,7 +245,7 @@ scroll bars — reach for slivers instead.
 dependencies:
   go_router: ^17.2.0
 dev_dependencies:
-  go_router_builder: ^3.0.0
+  go_router_builder: ^4.0.0
   build_runner: ^2.4.0
 ```
 

@@ -29,7 +29,7 @@ have()  { command -v "$1" >/dev/null 2>&1; }
 warn()  { printf '%s[skip]%s %s\n' "$YELLOW" "$RESET" "$*"; }
 fail()  { printf '%s[fail]%s %s\n' "$RED" "$RESET" "$*"; failed=1; }
 ok()    { printf '%s[ ok ]%s %s\n' "$GREEN" "$RESET" "$*"; }
-info()  { printf '----- %s\n' "$*"; }
+info()  { printf -- '----- %s\n' "$*"; }
 
 # Must run from a module root.
 if [ ! -f go.mod ]; then

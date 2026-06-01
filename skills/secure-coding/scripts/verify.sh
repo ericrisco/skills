@@ -182,7 +182,7 @@ if [ -f pubspec.yaml ]; then
   # pub.dev has no CVE feed; `dart pub outdated` only flags stale versions.
   # This step is INFORMATIONAL and never sets FAILED.
   if need dart "https://dart.dev/get-dart"; then
-    dart pub outdated --mode=null-safety || true
+    dart pub outdated || true
     info "dart deps: review outdated packages above (no CVE feed; advisory only)"
   fi
 fi

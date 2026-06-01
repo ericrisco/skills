@@ -103,7 +103,8 @@ server_idle_timeout = 600
 
 Sizing: `default_pool_size ≈ cores × 2..4`; the **sum** of all app-side pool maxima must stay below the
 server's `max_connections`. Serverless functions should set `connection_limit=1` per instance and rely
-on the external pooler — see `prisma-patterns` for the `DATABASE_URL` parameters.
+on the external pooler — set the `connection_limit=1` and `pgbouncer=true` `DATABASE_URL` parameters
+per your client's documentation (e.g. Prisma's `?connection_limit=1&pgbouncer=true`).
 
 ## VACUUM & autovacuum
 

@@ -17,7 +17,7 @@ origin: risco
 
 Write, review, test, secure, and ship idiomatic Go HTTP services.
 
-Targets **Go 1.22+** (1.25/1.26 current at time of writing): enhanced `net/http` routing
+Targets **Go 1.22+** (Go 1.26 is the current stable release): enhanced `net/http` routing
 (`mux.HandleFunc("GET /users/{id}", h)` + `r.PathValue`), `log/slog` structured
 logging, and fixed loop-variable semantics (no more `tt := tt`).
 
@@ -33,13 +33,14 @@ logging, and fixed loop-variable semantics (no more `tt := tt`).
 
 **When NOT to use (delegate):**
 
-- Generic cross-language error envelopes / React error boundaries -> `error-handling`
-  (this skill keeps only the Go half).
-- HTTP contract design / REST resource naming / status-code taxonomy -> `api-design`.
-- Language-agnostic abuse/authz review -> `secure-coding` / `security-review` (this skill
-  keeps Go-specific controls: SQL params, server timeouts, `govulncheck`, TLS defaults).
-- Containerfile / k8s / CI pipeline authoring -> `deployment` (ships only a Docker note + `ldflags`).
+- Language-agnostic abuse/authz review, threat modeling, OWASP-class bugs -> `secure-coding`
+  (this skill keeps Go-specific controls: SQL params, server timeouts, `govulncheck`, TLS defaults).
+- Containerfile / k8s / CI pipeline authoring -> `deployment` (this skill ships only a Docker note + `ldflags`).
+- Recording per-project conventions in a workspace wiki -> `harness` (see "Project grounding" below).
 - Non-service Go (CLI tooling, codegen, ML): patterns apply, but the HTTP/production half is irrelevant.
+
+Go error handling and HTTP contract design (status-code taxonomy, REST resource naming) live
+**here**, not in a separate skill — this skill is the canonical authority for both in Go.
 
 ## Decision rules
 
@@ -153,7 +154,7 @@ inside `for _, tt := range tests` the line `// tt := tt` is obsolete - DELETE it
 
 ## Errors
 
-The Go half that `error-handling` delegates here.
+Go error handling is owned here — the sentinel/typed/wrap/classify model below is canonical.
 
 **Sentinel vs typed.** Sentinels for identity; typed errors for data.
 
@@ -460,11 +461,11 @@ brand study, technical conventions are *recorded, not gated* — never block the
 
 ## See Also
 
-- `error-handling` - cross-language error envelopes and boundary mapping (the non-Go half).
-- `api-design` - HTTP contract design, REST resource naming, status-code taxonomy.
-- `secure-coding` / `security-review` - language-agnostic authz and abuse review.
-- `deployment` - Docker multi-stage, GitHub Actions CI, k8s/Coolify shipping.
-- `backend-patterns` - caching, queues, repository concepts (language-agnostic).
+Sibling skills (all resolve under `skills/`):
+
+- [`secure-coding`](../secure-coding/SKILL.md) - threat modeling and language-agnostic authz/abuse/OWASP review (this skill keeps the Go-specific controls).
+- [`deployment`](../deployment/SKILL.md) - Docker multi-stage, GitHub Actions CI, Coolify/Vercel/Hetzner shipping (this skill ships only the Docker note + `ldflags`).
+- [`harness`](../harness/SKILL.md) - the `02-DOCS/` workspace wiki where per-project Go conventions are recorded (see "Project grounding").
 
 Local references (read when):
 

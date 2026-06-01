@@ -34,6 +34,27 @@ PASSED=0; SKIPPED=0; FAILED=0
 
 have() { command -v "$1" >/dev/null 2>&1; }
 
+# Detect-or-skip: a real Python project has a project manifest or at least one *.py
+# under TARGET. With neither, there is nothing to verify, so SKIP (exit 0) instead of
+# letting pytest report "no tests collected" as a FAIL. This guards only the empty case;
+# inside a real project every tool still runs and real failures still surface.
+python_project_present() {
+  if [ -f "$TARGET/pyproject.toml" ] || [ -f "$TARGET/setup.py" ] || [ -f "$TARGET/setup.cfg" ]; then
+    return 0
+  fi
+  # Any .py file under TARGET (bash 3.2: use find, no globstar).
+  if [ -n "$(find "$TARGET" -type f -name '*.py' -print -quit 2>/dev/null)" ]; then
+    return 0
+  fi
+  return 1
+}
+
+if ! python_project_present; then
+  warn "SKIP: no Python project found under '${TARGET}' (no pyproject.toml/setup.py/setup.cfg and no *.py)"
+  ok "verify.sh: ok (nothing to verify)"
+  exit 0
+fi
+
 # Do we have uv? When yes, tools run through `uv run`, which can resolve a tool from the
 # project venv even if it is not on PATH.
 USE_UV=0

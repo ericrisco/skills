@@ -11,17 +11,20 @@ scale, performance defaults, and observability. For the container image and CI/C
 # Dev: one process, autoreload on file change.
 uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
 
-# Prod: gunicorn process manager + uvicorn workers.
+# Prod: gunicorn process manager + uvicorn workers (install the `uvicorn-worker` package).
 # Worker count rule of thumb: (2 * CPU cores) + 1
 gunicorn app.main:app \
-  --worker-class uvicorn.workers.UvicornWorker \
+  -k uvicorn_worker.UvicornWorker \
   --workers 5 --timeout 30 --graceful-timeout 30 \
   --bind 0.0.0.0:8000 --forwarded-allow-ips '*'
 ```
 
 Never run `--reload` in prod: it watches the filesystem, spawns a reloader process, and
 disables key optimizations. gunicorn gives you a battle-tested process manager (restart on
-crash, graceful reload). `uvicorn app.main:app --workers 5` is a fine gunicorn-free alternative.
+crash, graceful reload). The worker class lives in the standalone `uvicorn-worker` package
+(`pip install uvicorn-worker`) — the old `uvicorn.workers.UvicornWorker` was deprecated in
+uvicorn 0.30 and only emits a warning today. `uvicorn app.main:app --workers 5` is a fine
+gunicorn-free alternative.
 `--timeout` kills a worker stuck on a single request; `--graceful-timeout` is the drain window on
 shutdown. For async workloads the `(2×CPU)+1` formula is a starting point — profile real
 concurrency, since one async worker handles many in-flight requests.
@@ -243,7 +246,7 @@ COPY app ./app
 USER appuser
 EXPOSE 8000
 HEALTHCHECK --interval=30s --timeout=3s CMD python -c "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8000/health').status==200 else 1)"
-CMD ["uv", "run", "gunicorn", "app.main:app", "--worker-class", "uvicorn.workers.UvicornWorker", "--workers", "5", "--bind", "0.0.0.0:8000"]
+CMD ["uv", "run", "gunicorn", "app.main:app", "-k", "uvicorn_worker.UvicornWorker", "--workers", "5", "--bind", "0.0.0.0:8000"]
 ```
 
 A slim base, a non-root user, a frozen lockfile install, an explicit `EXPOSE`, and a

@@ -22,7 +22,7 @@ Build production LLM agents that are model-agnostic by construction — a thin p
 
 - One-shot throwaway prompt, no tools, no eval, no production path → just call the SDK directly.
 - Pure prompt-wording improvement with no architecture → that's prompt engineering, not this.
-- Anthropic-SDK-specific tuning (caching internals, thinking, batch) in a file that *only* imports `anthropic` → defer to the **`claude-api`** skill; this skill stays multi-provider.
+- Anthropic-SDK-specific tuning (caching internals, thinking, batch) in a file that *only* imports `anthropic` → defer to a dedicated Anthropic-SDK skill if your environment provides one (e.g. `claude-api`); this skill stays multi-provider.
 - Workspace scaffolding (`01-TOOLS`/`02-DOCS` layout) → **`harness`**.
 - Picking *which* coding agent (Claude Code vs Aider) → agent-eval territory, not this.
 - No retrieval, no tools, no loop, no evals at all → you don't need an agent; say so.
@@ -460,8 +460,7 @@ brand study, technical conventions are *recorded, not gated* — never block the
 
 ## See Also
 
-- `../claude-api/SKILL.md` — Anthropic-SDK-specific tuning (caching internals, thinking, batch) when a file only imports `anthropic`.
 - `../harness/SKILL.md` — workspace `01-TOOLS`/`02-DOCS` scaffolding.
-- `../deep-research/SKILL.md` — the research-harness fan-out / verify pattern.
 - Stack siblings the examples target: `../fastapi/SKILL.md`, `../nextjs/SKILL.md`, `../go/SKILL.md`, `../postgresdb/SKILL.md`, `../flutter/SKILL.md`; plus `../secure-coding/SKILL.md` and `../deployment/SKILL.md` for hardening and shipping the agent service.
+- External skills (no sibling in this repo; use if your environment provides them): `claude-api` — Anthropic-SDK-specific tuning (caching internals, thinking, batch) when a file only imports `anthropic`; `deep-research` — the research-harness fan-out / verify pattern.
 - ECC analogues (external, no links): `agent-harness-construction`, `eval-harness`, `cost-aware-llm-pipeline`, `mcp-server-patterns`, `context-budget`.

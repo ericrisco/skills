@@ -82,9 +82,11 @@ mux.HandleFunc("GET /documents/{id}", func(w http.ResponseWriter, r *http.Reques
 ### TS (Next.js 15 App Router — Route Handler / Server Action)
 
 ```ts
-// BAD — returns the row from params.id, assuming a session exists.
-export async function GET(_req: Request, { params }: { params: { id: string } }) {
-  const doc = await db.document.findUnique({ where: { id: params.id } });
+// BAD — returns the row from the id, assuming a session exists.
+// Next.js 15: params is a Promise — await it (sync access is a removed-shim path).
+export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  const doc = await db.document.findUnique({ where: { id } });
   return Response.json(doc);
 }
 
@@ -92,11 +94,12 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
 import { auth } from "@/auth";
 import { notFound } from "next/navigation";
 
-export async function GET(_req: Request, { params }: { params: { id: string } }) {
+export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   const session = await auth();
   if (!session) notFound();
   const doc = await db.document.findFirst({
-    where: { id: params.id, ownerId: session.user.id },
+    where: { id, ownerId: session.user.id },
   });
   if (!doc) notFound();
   return Response.json(doc);

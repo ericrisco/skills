@@ -114,18 +114,20 @@ def get_doc(doc_id: int, db: Session = Depends(get_db),
 
 ```ts
 // TS — Next.js 15 App Router Route Handler / Server Action
-// BAD — trusts params.id and assumes a session exists.
-export async function GET(_req: Request, { params }: { params: { id: string } }) {
-  return Response.json(await db.document.findUnique({ where: { id: params.id } }));
+// BAD — trusts the id and assumes a session exists.
+export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params; // Next.js 15: params is a Promise — await it.
+  return Response.json(await db.document.findUnique({ where: { id } }));
 }
 // GOOD — auth() guard + ownership scope + notFound().
 import { auth } from "@/auth";
 import { notFound } from "next/navigation";
-export async function GET(_req: Request, { params }: { params: { id: string } }) {
+export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   const session = await auth();
   if (!session) notFound();
   const doc = await db.document.findFirst({
-    where: { id: params.id, ownerId: session.user.id },
+    where: { id, ownerId: session.user.id },
   });
   if (!doc) notFound();
   return Response.json(doc);

@@ -21,7 +21,7 @@ validate and delegate; they never own business logic, raw SQL, or secrets.**
 Pinned stack: Python 3.12+, FastAPI 0.136+, Starlette 0.46+, Pydantic v2 (2.7+) +
 pydantic-settings 2.x, SQLAlchemy 2.0 async, Alembic 1.13+, asyncpg 0.30 / psycopg 3,
 httpx 0.28+, pytest 8 + pytest-asyncio 0.24+ (`asyncio_mode=auto`), ruff 0.7+, mypy 1.13+
-strict, uv 0.5+, uvicorn 0.32+ / gunicorn 23+, PyJWT 2.9, argon2-cffi 23+, pip-audit 2.7+,
+strict, uv 0.5+, uvicorn 0.32+ / gunicorn 23+ + uvicorn-worker 0.3+, PyJWT 2.9, argon2-cffi 23+, pip-audit 2.7+,
 PostgreSQL 16.
 
 ## When to use
@@ -527,7 +527,7 @@ coverage gate).
 ```bash
 # Worker count rule of thumb: (2 * CPU cores) + 1
 gunicorn app.main:app \
-  --worker-class uvicorn.workers.UvicornWorker \
+  -k uvicorn_worker.UvicornWorker \
   --workers 5 --timeout 30 --graceful-timeout 30 \
   --bind 0.0.0.0:8000 --forwarded-allow-ips '*'
 ```

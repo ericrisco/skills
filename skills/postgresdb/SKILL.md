@@ -23,7 +23,7 @@ example is runnable.
 
 **When NOT to use:**
 
-- ORM-API ergonomics (Prisma `updateMany` count trap, SQLAlchemy session lifecycle) → `prisma-patterns` / a SQLAlchemy skill. This skill owns the **SQL the ORM emits and the engine behavior underneath**.
+- ORM-API ergonomics (Prisma `updateMany` count trap, SQLAlchemy session lifecycle) → your ORM's own docs. This skill owns the **SQL the ORM emits and the engine behavior underneath**.
 - Non-Postgres engines (MySQL/SQLite/ClickHouse) — different MVCC, locking, planner.
 - App-layer caching / Redis / Kafka as products; only Postgres-as-queue via `SKIP LOCKED` is in scope.
 - Cloud-vendor console clicks — we give the SQL/params, not the RDS/Cloud SQL UI path.
@@ -366,4 +366,5 @@ brand study, technical conventions are *recorded, not gated* — never block the
 - [references/query-optimization.md](references/query-optimization.md) — EXPLAIN, joins, concurrency, JSONB/FTS/pgvector.
 - [references/migrations.md](references/migrations.md) — zero-downtime DDL, lock-impact table, per-ORM.
 - [references/operations-and-security.md](references/operations-and-security.md) — roles, RLS, pooling, vacuum, partitioning, backups.
-- Sibling skills: `prisma-patterns` (Prisma ORM surface traps), `database-migrations` (multi-ORM migration workflow), `harness` (scaffolds the `01-TOOLS/POSTGRES` operational tool). Stack siblings: `fastapi`, `nextjs`, `go`, `flutter`, `secure-coding`, `deployment`.
+- Sibling skills: [`harness`](../harness/SKILL.md) (scaffolds the `01-TOOLS/POSTGRES` operational tool). Stack siblings: [`fastapi`](../fastapi/SKILL.md), [`nextjs`](../nextjs/SKILL.md), [`go`](../go/SKILL.md), [`flutter`](../flutter/SKILL.md), [`secure-coding`](../secure-coding/SKILL.md), [`deployment`](../deployment/SKILL.md).
+- Out of scope here (consult your ORM's own documentation): ORM-surface traps like Prisma's `updateMany` count / serverless connection exhaustion, and per-tool migration-runner wiring. This skill covers the engine-level SQL and migration mechanics those tools sit on top of.

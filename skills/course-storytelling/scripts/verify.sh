@@ -165,7 +165,7 @@ while IFS= read -r f; do
   file_has "$f" "$ANALOGY_RE"     || printf '%s\n' "$f" >> "$NA"
   file_has "$f" "$APPLICATION_RE" || printf '%s\n' "$f" >> "$NP"
   file_has "$f" "$SOWHAT_RE"      || printf '%s\n' "$f" >> "$NW"
-done < "$LESSONS"
+done < "$LESSONS" || true   # read returns 1 at EOF; harmless under set -e
 
 report_files() {
   label="$1"; listfile="$2"
@@ -198,7 +198,7 @@ while IFS= read -r f; do
   if [ "$dense" -ge 12 ] && ! file_has "$f" "$ANALOGY_RE"; then
     printf '%s (%s abstract nouns, no analogy)\n' "$f" "$dense" >> "$JARGON_HITS"
   fi
-done < "$LESSONS"
+done < "$LESSONS" || true   # read returns 1 at EOF; harmless under set -e
 n_jargon="$(count_lines "$JARGON_HITS")"
 if [ "$n_jargon" -gt 0 ]; then
   warn "jargon/abstraction-dense lessons with no grounding analogy ($n_jargon file(s)):"

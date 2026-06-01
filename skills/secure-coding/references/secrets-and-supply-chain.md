@@ -128,7 +128,7 @@ different artifact than the one you locked (A08 integrity).
 | osv-scanner | `osv-scanner --lockfile=pnpm-lock.yaml` | OSV id + severity + introduced/fixed range; lockfile-aware, multi-ecosystem | Upgrade; `overrides` for a transitive |
 | npm audit | `npm audit --omit=dev --audit-level=high` | severity + path through the dep tree | `npm audit fix`, or `overrides` for transitive |
 | govulncheck | `govulncheck ./...` | only vulns your code **calls** (reachability) + the call trace | Upgrade; `go mod replace` for a transitive |
-| dart | `dart pub outdated --mode=null-safety` | outdated (no CVE feed) — advisory only | Upgrade to latest resolvable |
+| dart | `dart pub outdated` | outdated (no CVE feed) — advisory only | Upgrade to latest resolvable |
 
 `govulncheck`'s reachability advantage: it won't flag a CVE in a function your
 code never invokes, cutting false positives that `osv-scanner` (which matches
