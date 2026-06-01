@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Deep Improve — {{RUN_DATE}}</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+  :root {
+    --bg: #fafbfc; --panel: #ffffff; --panel-2: #f4f6f9; --border: #e5e7eb;
+    --text: #1a1d23; --muted: #6b7280; --accent: #2563eb;
+    --good: #16a34a; --warn: #d97706; --bad: #dc2626; --info: #0891b2;
+    --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #0f1115; --panel: #161a22; --panel-2: #1d2230; --border: #2a3140;
+            --text: #e6e8ee; --muted: #8b94a8; --accent: #7aa2f7;
+            --good: #9ece6a; --warn: #e0af68; --bad: #f7768e; --info: #7dd3fc; }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; padding: 32px 24px; background: var(--bg); color: var(--text); font-family: var(--sans); font-size: 14px; line-height: 1.6; max-width: 1100px; margin-left: auto; margin-right: auto; }
+  h1 { font-size: 26px; margin: 0 0 6px; font-weight: 600; }
+  h2 { font-size: 14px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); margin: 30px 0 12px; font-weight: 600; }
+  h3 { font-size: 16px; margin: 0 0 6px; font-weight: 600; }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  code { font-family: var(--mono); font-size: 12px; background: var(--panel-2); padding: 1px 5px; border-radius: 4px; }
+  .meta { color: var(--muted); font-family: var(--mono); font-size: 12px; margin-bottom: 24px; }
+  .summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; }
+  .summary .stat { background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 14px 16px; }
+  .summary .v { font-size: 22px; font-weight: 600; }
+  .summary .l { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; margin-top: 6px; }
+  .cards { display: grid; gap: 12px; }
+  .card { background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 14px 16px; }
+  .card .row { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 4px; }
+  .card .reason { color: var(--muted); font-size: 13px; }
+  .card .meta-line { font-family: var(--mono); font-size: 11px; color: var(--muted); margin-top: 6px; }
+  .tag { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 11px; font-family: var(--mono); font-weight: 600; }
+  .tag.rewrite { background: rgba(96, 165, 250, 0.15); color: var(--accent); }
+  .tag.gap-filled { background: rgba(34, 197, 94, 0.15); color: var(--good); }
+  .tag.stale { background: rgba(217, 119, 6, 0.15); color: var(--warn); }
+  .tag.conflict { background: rgba(220, 38, 38, 0.15); color: var(--bad); }
+  .empty { color: var(--muted); font-style: italic; }
+  details summary { cursor: pointer; padding: 6px 0; color: var(--muted); font-size: 13px; }
+  pre.diff { font-family: var(--mono); font-size: 12px; background: var(--panel-2); padding: 12px; border-radius: 6px; overflow-x: auto; border: 1px solid var(--border); margin-top: 8px; }
+</style>
+</head>
+<body>
+  <h1>Deep Improve — {{RUN_DATE}}</h1>
+  <div class="meta">{{TRIGGER}} · duration {{DURATION_SECONDS}}s · workspace <code>{{WORKSPACE_ROOT}}</code></div>
+
+  <h2>Summary</h2>
+  <div class="summary">
+    <div class="stat"><div class="v">{{ARTICLES_REWRITTEN}}</div><div class="l">Articles rewritten</div></div>
+    <div class="stat"><div class="v">{{GAPS_FILLED}}</div><div class="l">Gaps filled</div></div>
+    <div class="stat"><div class="v">{{ARCHIVES_FLAGGED}}</div><div class="l">Archives flagged stale</div></div>
+    <div class="stat"><div class="v">{{CONFLICTS_FLAGGED}}</div><div class="l">Conflicts flagged</div></div>
+    <div class="stat"><div class="v">{{LINKS_FIXED}}</div><div class="l">Internal links fixed</div></div>
+    <div class="stat"><div class="v">{{SEE_ALSO_ADDED}}</div><div class="l">See Also added</div></div>
+  </div>
+
+  <h2>Articles rewritten</h2>
+  <div class="cards">
+    {{REWRITES_CARDS}}
+    <!-- Each:
+    <div class="card">
+      <div class="row">
+        <h3><span class="tag rewrite">REWRITE</span> <a href="../topic/article.md">{title}</a></h3>
+        <span>{old_score} → {new_score}</span>
+      </div>
+      <div class="reason">{one-line reason: "Score below 1.2 due to 3 broken links and stale Updated date"}</div>
+      <div class="meta-line">Topic: {topic} · Previous version: <code>../topic/_archive/{slug}__{YYYY-MM-DD}.md</code></div>
+      <details>
+        <summary>Show what changed</summary>
+        <pre class="diff">{compact summary of the rewrite, not a full diff}</pre>
+      </details>
+    </div>
+    -->
+  </div>
+
+  <h2>Gaps filled</h2>
+  <div class="cards">
+    {{GAPS_CARDS}}
+    <!-- Each:
+    <div class="card">
+      <div class="row">
+        <h3><span class="tag gap-filled">FILLED</span> <a href="../topic/new-article.md">{title}</a></h3>
+        <span class="meta-line">{N} raw sources</span>
+      </div>
+      <div class="reason">{why this gap got picked, e.g. "Mentioned in 5 articles since 2026-02-10"}</div>
+    </div>
+    -->
+  </div>
+
+  <h2>Archives flagged stale</h2>
+  <div class="cards">
+    {{STALE_CARDS}}
+    <!-- Each:
+    <div class="card">
+      <div class="row">
+        <h3><span class="tag stale">STALE</span> <a href="../topic/archive.html">{title}</a></h3>
+        <span class="meta-line">{N} of {M} sources updated since archived {date}</span>
+      </div>
+    </div>
+    -->
+  </div>
+
+  <h2>Conflicts flagged (need human resolution)</h2>
+  <div class="cards">
+    {{CONFLICTS_CARDS}}
+    <!-- Each:
+    <div class="card">
+      <div class="row">
+        <h3><span class="tag conflict">CONFLICT</span> Between <a href="...">{article A}</a> and <a href="...">{article B}</a></h3>
+      </div>
+      <div class="reason">{one-line description of the disagreement}</div>
+    </div>
+    -->
+  </div>
+
+  <footer style="margin-top: 40px; color: var(--muted); font-size: 11px; font-family: var(--mono); border-top: 1px solid var(--border); padding-top: 16px;">
+    Generated by harness · Deep Improve · {{RUN_DATE}}.
+    Checked into git as a historical record of autonomous changes.
+  </footer>
+</body>
+</html>

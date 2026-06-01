@@ -1,0 +1,72 @@
+skill: harness
+
+# >=5 realistic, VARIED prompts that MUST invoke the harness skill.
+# Includes non-obvious phrasings and cases where the user never names the tool.
+should_trigger:
+  - prompt: "Control the harness of this workspace — audit 01-TOOLS and 02-DOCS and tell me what's drifted."
+    why: "Names the harness control plane and its two layers (01-TOOLS / 02-DOCS) directly; this is the core ongoing-control job of the skill."
+
+  - prompt: "Gestiona el arnés de mi proyecto: tengo carpetas 00-TOOLS, 03-NOTES y 04-LEGACY sueltas y quiero la estructura canónica."
+    why: "Spanish trigger 'gestiona el arnés' plus legacy XX-* numbered folders to migrate into the canonical 01-TOOLS/02-DOCS layout — squarely the migration/control behavior the skill owns."
+
+  - prompt: "My repo uses Stripe and Mailjet but there's no operational tooling for them. Set up connection-ready folders with a test_connection for each."
+    why: "Detecting external provider integrations in code and scaffolding 01-TOOLS/<PROVIDER>/ tools (with test_connection, .env.example) is exactly the provider-detection scaffolding the harness performs; does not name the skill."
+
+  - prompt: "I've been dumping PDFs, CSVs and screenshots into a folder for weeks. Process the inbox and turn it into a proper knowledge base I can query."
+    why: "This is the 02-DOCS Inbox Sweep / chaos->knowledge engine embedded in the harness ('procesa el inbox'); the user describes the behavior without naming the skill."
+
+  - prompt: "Generate a root CLAUDE.md and AGENTS.md for this workspace with a Knowledge map that the other skills can read."
+    why: "Generating root CLAUDE.md/AGENTS.md and the Knowledge map index is an explicit harness responsibility (Phase 4 APPLY step 1)."
+
+  - prompt: "Sal a pasear por mi carpeta de documentos, clasifica todo lo que haya y enlázalo en la wiki."
+    why: "'Sal a pasear' / 'the agent goes for a walk' is the skill's own phrase for the Inbox Sweep that extracts, classifies by content and cross-links into the wiki — a non-obvious phrasing mapped to the 02-DOCS engine."
+
+  - prompt: "This project grew organically and is a mess. Can you give it a real control plane so an agent can operate it reliably?"
+    why: "Describes a brownfield workspace needing the canonical control-plane apparatus (01-TOOLS + 02-DOCS + Knowledge map) without naming any layer — the brownfield-first 'When to use' case."
+
+# >=4 NEAR-MISS prompts that must NOT invoke harness; each routes to the genuinely correct sibling.
+should_not_trigger:
+  - prompt: "I want to add a single Sentry tool folder to 01-TOOLS. Just copy the template and wire it up."
+    route_to: "none"
+    why: "SKILL.md 'Do NOT use' is explicit: adding a single tool is a manual `cp -r 01-TOOLS/_TEMPLATE 01-TOOLS/<X>` — the full SCAN/AUDIT/APPLY harness is overkill, no skill needed."
+
+  - prompt: "Refactor the runtime database layer in my FastAPI service to use async SQLAlchemy sessions."
+    route_to: "fastapi"
+    why: "Refactoring runtime application code is explicitly out of harness scope ('this skill is operational tooling only, never runtime'); FastAPI service runtime work routes to the fastapi skill."
+
+  - prompt: "Bootstrap a brand-new project from scratch — gauge me, draft my profile, and scaffold the first version."
+    route_to: "init"
+    why: "First-contact bootstrap / gauging the user / drafting the profile is the `/rsc-core:init` front door; harness is the ONGOING control after bootstrap, not the kickoff."
+
+  - prompt: "Walk me through choosing and configuring where to deploy my app — Hetzner vs Vercel vs Fly, with the actual deploy commands."
+    route_to: "deployment"
+    why: "Harness defers concrete deploy mechanics to /rsc-ops:deployment; the user wants the deploy specifics and commands, which deployment owns."
+
+  - prompt: "Design a normalized Postgres schema with the right indexes and write the migration SQL."
+    route_to: "postgresdb"
+    why: "Pure database schema/SQL design is the postgresdb skill's domain; harness only detects a Postgres provider to scaffold operational tooling, it does not author schemas or migrations."
+
+  - prompt: "Build me a Next.js dashboard page that lists users from an API route."
+    route_to: "nextjs"
+    why: "Building application UI/routes is runtime app code — out of harness scope and squarely the nextjs skill's job."
+
+# 1-2 concrete tasks the skill should guide, each with a checkable rubric.
+capability:
+  - scenario: "User points the agent at an organically-grown workspace (a Next.js subproject, a .env referencing STRIPE_SECRET_KEY and MAILJET_API_KEY, plus legacy 00-TOOLS/ and 03-NOTES/ folders) and asks: 'Control the harness — get this to the canonical structure.'"
+    must_include:
+      - "Runs the five phases in order SCAN -> AUDIT -> CONSENT -> APPLY -> VERIFY, and never writes anything before rendering the AUDIT and obtaining consent."
+      - "Detects providers from evidence (Stripe, Mailjet) and proposes 01-TOOLS/<PROVIDER>/ folders only because grep found imports/env_vars/deps — no speculative tools."
+      - "Renders the AUDIT as both a compact in-conversation summary AND a full HTML report at 02-DOCS/audits/audit-YYYY-MM-DD-HHMM.html (gitignored), listing tools-to-create, legacy-folder per-file classification, ambiguous files, root-file plan, and a separate bold destructive-ops section."
+      - "Requires explicit consent ('yes, proceed' / 'go' / 'proceed'); treats silence/'ok'/'sure' as NO; and requires a SEPARATE second exact-string consent (quoting the path, e.g. 'yes, delete 00-TOOLS') before deleting any legacy folder."
+      - "Writes only .env.example (never a real .env, never fills credentials), merges existing CLAUDE.md/AGENTS.md additively (never overwrites user content), and leaves AMBIGUOUS files in place (preserving the legacy folder)."
+      - "Treats node_modules/.venv/.next/__pycache__/.git/dist/build/.dart_tool and all subproject runtime internals as out of scope — read for detection only, never moved or modified."
+      - "VERIFY runs `bash -n` on every generated test_connection.sh as a syntax gate, checks python3 availability, and prints a final report of files written, folders deleted (with consent quote), and ambiguous files preserved."
+
+  - scenario: "User drops a pile of mixed raw files (PDF invoice, a CSV export, screenshots, a .txt of meeting notes) into 02-DOCS/inbox/ and says: 'Process the inbox and build my knowledge base.'"
+    must_include:
+      - "Runs the Inbox Sweep ('the agent goes for a walk') per references/wiki-protocol.md rather than inventing an ad-hoc structure."
+      - "Multiformat ingest (per references/ingest-formats.md): converts each input to raw/ markdown while preserving the original in _originals/ (or equivalent), handling PDF/image/CSV/txt."
+      - "Classifies content by inferred topic (e.g. finanzas/, legal/, crm/) — never hardcodes software-doc topics — and compiles into wiki/<topic>/ with cross-links (See Also)."
+      - "Maintains the canonical wiki artifacts: wiki/index.md (with Score column), wiki/log.md, wiki/gaps.md, wiki/scores.json."
+      - "Triggers a Maintenance Pass after the sweep (deterministic lint, score recomputation, gap detection, See Also sweep) and notes Micro-Improve / Deep Improve cadence."
+      - "Indexes the result in the root CLAUDE.md ## Knowledge map so other skills can read it."

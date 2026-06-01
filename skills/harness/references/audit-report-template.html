@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Audit — harness — {{TODAY}}</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+  :root {
+    --bg: #fafbfc; --panel: #ffffff; --panel-2: #f4f6f9; --border: #e5e7eb;
+    --text: #1a1d23; --muted: #6b7280; --accent: #2563eb;
+    --create: #16a34a; --merge: #d97706; --skip: #6b7280;
+    --good: #16a34a; --warn: #d97706; --bad: #dc2626;
+    --danger-bg: #fef2f2; --danger-border: #fca5a5;
+    --consent-bg: #ecfdf5; --consent-border: #6ee7b7;
+    --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #0f1115; --panel: #161a22; --panel-2: #1d2230; --border: #2a3140;
+            --text: #e6e8ee; --muted: #8b94a8; --accent: #7aa2f7;
+            --create: #9ece6a; --merge: #e0af68; --skip: #8b94a8;
+            --good: #9ece6a; --warn: #e0af68; --bad: #f7768e;
+            --danger-bg: #2a1316; --danger-border: #7f1d1d;
+            --consent-bg: #0c2920; --consent-border: #166534; }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; padding: 32px 24px 80px; background: var(--bg); color: var(--text); font-family: var(--sans); font-size: 14px; line-height: 1.6; max-width: 1100px; margin-left: auto; margin-right: auto; }
+  h1 { font-size: 26px; margin: 0 0 6px; font-weight: 600; }
+  h2 { font-size: 13px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin: 32px 0 12px; font-weight: 600; }
+  h3 { font-size: 16px; margin: 18px 0 8px; font-weight: 600; }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  code { font-family: var(--mono); font-size: 12px; background: var(--panel-2); padding: 1px 5px; border-radius: 4px; }
+  .meta { color: var(--muted); font-family: var(--mono); font-size: 12px; margin-bottom: 24px; }
+  .stack { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
+  .stack .card { background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 12px 14px; }
+  .stack .name { font-weight: 600; }
+  .stack .path { font-family: var(--mono); font-size: 12px; color: var(--muted); margin-top: 4px; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; background: var(--panel); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+  th { text-align: left; padding: 10px 12px; background: var(--panel-2); border-bottom: 1px solid var(--border); color: var(--muted); font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; }
+  td { padding: 10px 12px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  tr:last-child td { border-bottom: none; }
+  td.evidence { font-family: var(--mono); font-size: 11px; color: var(--muted); }
+  .action { display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: 11px; font-family: var(--mono); font-weight: 700; }
+  .action.create { background: rgba(34, 197, 94, 0.15); color: var(--create); }
+  .action.merge  { background: rgba(217, 119, 6, 0.15); color: var(--merge); }
+  .action.skip   { background: rgba(107, 114, 128, 0.15); color: var(--skip); }
+  details { background: var(--panel); border: 1px solid var(--border); border-radius: 8px; margin-bottom: 10px; }
+  details summary { cursor: pointer; padding: 12px 14px; font-weight: 600; }
+  details[open] summary { border-bottom: 1px solid var(--border); }
+  details .body { padding: 14px; }
+  .class { padding: 1px 7px; border-radius: 4px; font-family: var(--mono); font-size: 11px; font-weight: 700; }
+  .class.tooling { background: rgba(96, 165, 250, 0.15); color: var(--accent); }
+  .class.docs { background: rgba(34, 197, 94, 0.15); color: var(--good); }
+  .class.ambiguous { background: rgba(217, 119, 6, 0.15); color: var(--warn); }
+  .danger { background: var(--danger-bg); border: 1px solid var(--danger-border); border-radius: 8px; padding: 16px 18px; }
+  .danger h2 { margin-top: 0; color: var(--bad); }
+  .never-list { font-family: var(--mono); font-size: 12px; color: var(--muted); line-height: 1.9; }
+  .consent { position: sticky; bottom: 16px; background: var(--consent-bg); border: 2px solid var(--consent-border); border-radius: 10px; padding: 18px 22px; margin-top: 36px; font-size: 15px; }
+  .consent .yes { font-family: var(--mono); background: var(--panel); padding: 3px 10px; border-radius: 4px; border: 1px solid var(--border); font-weight: 600; }
+  ul.sources { list-style: none; padding: 0; margin: 0; }
+  ul.sources li { padding: 4px 0; font-family: var(--mono); font-size: 12px; }
+</style>
+</head>
+<body>
+  <h1>Audit — harness</h1>
+  <div class="meta">{{TODAY}} · workspace <code>{{WORKSPACE_ROOT}}</code></div>
+
+  <h2>1. Stack detected</h2>
+  <div class="stack">
+    {{STACK_CARDS}}
+    <!-- Each: <div class="card"><div class="name">FastAPI (Python 3.11)</div><div class="path">myapp-backend/</div></div> -->
+  </div>
+
+  <h2>2. Tools to create in <code>01-TOOLS/</code></h2>
+  <table>
+    <thead>
+      <tr><th>Tool</th><th>Category</th><th>Evidence</th><th>Action</th></tr>
+    </thead>
+    <tbody>
+      {{TOOLS_ROWS}}
+      <!-- Each: <tr><td><strong>STRIPE</strong></td><td>pagos</td><td class="evidence">backend/app/services/billing.py:1 · pyproject.toml dep · frontend dep</td><td><span class="action create">CREATE</span></td></tr> -->
+    </tbody>
+  </table>
+
+  <h2>3. Legacy <code>XX-*</code> folders detected</h2>
+  {{LEGACY_FOLDERS_DETAILS}}
+  <!-- Each: <details><summary>00-TOOLS/ · 42 files · TOOLING: 35 · DOCS: 5 · AMBIGUOUS: 2 (deletion blocked)</summary><div class="body"><table>...rows with <span class="class tooling">TOOLING</span> etc...</table></div></details> -->
+
+  <h2>4. Documentation → <code>02-DOCS/</code> (embedded protocol)</h2>
+  <ul class="sources">
+    {{WIKI_SOURCES_LIST}}
+    <!-- Each: <li><a href="...">path</a></li> -->
+  </ul>
+
+  <h2>5. Root files</h2>
+  <table>
+    <thead><tr><th>File</th><th>State</th><th>Action</th></tr></thead>
+    <tbody>
+      <tr><td><code>CLAUDE.md</code></td><td>{{CLAUDE_MD_STATE}}</td><td>{{CLAUDE_MD_ACTION}}</td></tr>
+      <tr><td><code>AGENTS.md</code></td><td>{{AGENTS_MD_STATE}}</td><td>{{AGENTS_MD_ACTION}}</td></tr>
+    </tbody>
+  </table>
+
+  <h2>6. Files I will NEVER touch</h2>
+  <div class="never-list">
+    <code>01-TOOLS/**/.env</code> · <code>01-TOOLS/**/keys/</code> · <code>*.p8</code> · <code>*.p12</code> · <code>*.jks</code> · service account JSONs<br>
+    <code>node_modules/</code> · <code>.next/</code> · <code>.venv/</code> · <code>.pytest_cache/</code> · <code>__pycache__/</code> · <code>.dart_tool/</code> · <code>build/</code> · <code>dist/</code><br>
+    Any <code>.git/</code> · subproject internals beyond their declarative root.
+  </div>
+
+  <h2>7. Subproject git state</h2>
+  <div>{{GIT_STATUS_HTML}}</div>
+
+  <div class="danger" style="margin-top: 24px;">
+    <h2 style="color: var(--bad); letter-spacing: 0.08em;">8. Destructive operations</h2>
+    <table>
+      <thead><tr><th>Operation</th><th>When</th></tr></thead>
+      <tbody>
+        {{DESTRUCTIVE_OPS_ROWS}}
+        <!-- Each: <tr><td><code>Delete 00-TOOLS/</code></td><td>NEVER this run (AMBIGUOUS present)</td></tr> -->
+      </tbody>
+    </table>
+    <p style="margin: 12px 0 0; font-size: 13px; color: var(--muted);">
+      Every deletion requires a <strong>second consent quoting the exact path</strong>. The first consent ("yes, proceed") does NOT authorize deletions.
+    </p>
+  </div>
+
+  <div class="consent">
+    <strong>Proceed?</strong> Respond with the literal string:
+    <ul style="margin: 8px 0 0;">
+      <li><span class="yes">yes, proceed</span> — run the plan as-is (no legacy folder deletions yet).</li>
+      <li><span class="yes">adjust</span> — drop or add something from the plan.</li>
+    </ul>
+    <div style="margin-top: 10px; font-size: 12px; color: var(--muted);">
+      Any other response (including "ok", "sure", "sounds good", silence) is interpreted as do NOT proceed.
+    </div>
+  </div>
+</body>
+</html>

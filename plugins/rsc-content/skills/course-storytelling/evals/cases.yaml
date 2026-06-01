@@ -1,0 +1,50 @@
+skill: course-storytelling
+
+should_trigger:
+  - prompt: "This lesson on database indexing is technically correct but my students just nod and forget it the next day. Can you make it actually land?"
+    why: "Core trigger: correct-but-doesn't-click teaching content, explicit 'make it land' intent. This is exactly the abstract/forgettable-lesson case the skill owns."
+  - prompt: "I'm teaching idempotency in my backend course and it stays super abstract. Help me reframe it with an epiphany bridge and a sticky name students can repeat."
+    why: "Names the Expert Secrets / Epiphany Bridge methodology and the 'name the concept' + grounding goals — the skill's explicit trigger phrases."
+  - prompt: "I have the full transcript and slides for module 3 of my course. The teaching feels flat — I want it rebuilt so the realization happens in the student, not just stated on the slide."
+    why: "Ingests course material (transcript/slides), flat/forgettable teaching, wants the insight arrived-at not stated — the skill's narrative-rebuild workflow, not a visual or audit task."
+  - prompt: "Help me sequence my whole onboarding course so each module builds belief toward one core idea instead of being a random list of topics."
+    why: "Belief-building narrative spine + Big Domino sequencing across a course — the skill owns the teaching narrative arc, not just per-slide design."
+  - prompt: "My learners keep resisting this concept — they think 'this won't work for my stack' before I even explain it. How do I get them past that so the lesson actually sticks?"
+    why: "Non-obvious phrasing: doesn't name the tool. This is a vehicle false-belief that must be broken before teaching — the skill's break-the-false-belief-first non-negotiable."
+  - prompt: "Can you turn this dry explanation of OAuth flows into something memorable with a real-world analogy and a story so people don't tune out?"
+    why: "Grounding an abstraction with a concrete analogy + story to make teaching memorable — story-selling/grounded-analogy core, without naming Brunson explicitly."
+
+should_not_trigger:
+  - prompt: "Take my landed OAuth lesson and build a Marp slide deck with speaker notes and a clean layout."
+    route_to: "presentations"
+    why: "This is turning finished teaching into a deck — slide visuals/layout/export. The skill explicitly delegates deck-building to presentations."
+  - prompt: "Write the landing-page copy and launch email sequence to sell my course."
+    route_to: "marketing"
+    why: "Sales/landing copy for the course is marketing's domain. The skill teaches; it never bolts a pitch on, and explicitly defers selling words to marketing."
+  - prompt: "Audit module 14 of my course for gaps, redundancy, anachronisms, and outdated stack references, and give me a written report."
+    route_to: "review-content"
+    why: "Diagnostic content-audit pass with a written report. The skill says run review-content first and bring findings here; it rebuilds, it does not audit."
+  - prompt: "Design a color system, typography scale, and diagram style for my course slides."
+    route_to: "design"
+    why: "Pure visual system / pixels. The skill defers the visual layer to design; it owns narrative, not aesthetics."
+  - prompt: "Fact-check whether the historical claims in my lesson about the origins of TCP are actually accurate, with sources."
+    route_to: "deep-research"
+    why: "Pure fact-checking/research of subject matter, not reframing teaching. The skill forbids inventing proof and defers verification to deep-research."
+
+capability:
+  - scenario: "A learner profile already exists and is complete in 02-DOCS/wiki/teaching/. The user gives a flat, definition-only lesson on 'idempotency' for a mid-level backend course and asks to make it land."
+    must_include:
+      - "Cites/loads the learner + audience profile first (e.g. references 02-DOCS/wiki/teaching/learner.md and false-beliefs.md) before reframing"
+      - "Names the specific false belief being broken and tags it vehicle, internal, or external, breaking it before teaching the concept"
+      - "Produces an Epiphany Bridge story with the beats backstory -> desire -> wall -> epiphany -> new opportunity -> result, so the realization happens in the student rather than being stated"
+      - "Coins a short, sticky, ownable name for the concept plus a concrete analogy from the learner's world (not the discipline's jargon)"
+      - "Follows the seven-beat landing recipe: hook -> story -> mental model -> grounded analogy -> proof/demo -> application(do-this-now) -> so-what"
+      - "Ends on a future-paced so-what and includes a do-this-now application, not a summary"
+      - "Marks any proof/metric the user did not supply as [[NEEDS PROOF]] instead of inventing a case study or number"
+  - scenario: "User asks to make a lesson land but no learner profile exists yet (no CLAUDE.md Knowledge map / no 02-DOCS/wiki/teaching/)."
+    must_include:
+      - "Treats the profile as ABSENT and STOPS rather than reframing into a void"
+      - "Interviews the user with a focused batch of questions (not all at once) covering learner level/prior-knowledge/pains/desires/false-beliefs, audience, target transformation, and constraints"
+      - "States it will persist the profile into 02-DOCS/wiki/teaching/ (learner.md, audience.md, transformation.md, false-beliefs.md, constraints.md, index.md) and raw inputs into 02-DOCS/raw/teaching/"
+      - "Will add/update a ## Knowledge map link in the root CLAUDE.md (additive, create if absent)"
+      - "Only proceeds to reframe after the profile is complete, OR if the user insists on skipping, emits a clearly-labelled DRAFT (ungrounded — not learner-checked)"
