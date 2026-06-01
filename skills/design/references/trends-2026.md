@@ -48,7 +48,7 @@ Source: [Figma](https://www.figma.com/resource-library/web-design-trends/) (2026
 ## Motion (2026)
 
 - **Motion earns its keep by guiding, not flashing.** The cycle has moved away from bouncy micro-interactions toward *believable* motion: progress that reports real wait time, transitions that preserve continuity.
-- **Native CSS scroll-driven animation** (`animation-timeline: view()/scroll()`) is the default engine — zero JS, no CLS — behind an `@supports` feature query and a `prefers-reduced-motion` guard (see `motion-and-interaction.md`). Safari support is still landing as of June 2026, so the feature query is load-bearing.
+- **Native CSS scroll-driven animation** (`animation-timeline: view()/scroll()`) is the default engine — zero JS, no CLS — behind an `@supports (animation-timeline: view())` feature query and a `prefers-reduced-motion` guard (see `motion-and-interaction.md`). As of June 2026 it ships in Chromium (115+) and Safari (18+, full in Safari 26); Firefox has it implemented but still behind a flag, so the `@supports` query is load-bearing for the graceful fallback.
 - **Still true:** purpose gate (guide / communicate / preserve), compositor-only properties (`transform`/`opacity`/`filter`), enter ~250ms / exit ~150ms, reduced-motion honored.
 
 Source: [Tubik — UI trends 2026](https://blog.tubikstudio.com/ui-design-trends-2026/) (2026), [Envato](https://elements.envato.com/learn/ux-ui-design-trends) (2026).

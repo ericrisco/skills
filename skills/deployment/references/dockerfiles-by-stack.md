@@ -7,7 +7,7 @@ Complete, runnable, hardened multi-stage Dockerfiles for every stack in this rep
 ```dockerfile
 # syntax=docker/dockerfile:1
 # ---- builder: uv resolves & installs into /app/.venv ----
-FROM ghcr.io/astral-sh/uv:0.5-python3.13-bookworm-slim AS builder
+FROM ghcr.io/astral-sh/uv:0.11-python3.13-bookworm-slim AS builder
 WORKDIR /app
 ENV UV_COMPILE_BYTECODE=1 UV_LINK_MODE=copy
 # Deps layer first: cache survives source edits (--no-install-project skips your code).
@@ -59,13 +59,14 @@ Image size: ~70–90 MB.
 - `uv sync --frozen` requires a committed `uv.lock`; CI fails fast if the lock is stale.
 - Keep `--no-install-project` on the deps layer so editing your source code never busts the cached dependency layer.
 - `gunicorn`/`uvicorn`/`urllib` must resolve on `PATH` — that's why `/app/.venv/bin` is prepended.
+- Keep the builder on **`-bookworm-slim`** to match the Debian 12 runtime: uv 0.11+ defaults its derived images to Debian 13 (Trixie), but the venv (with any compiled C-extension wheels) is copied into `gcr.io/distroless/python3-debian12`, so a Trixie builder's newer glibc can fail at runtime. Bump the runtime to a `debian13` distroless tag in the same change if you ever move the builder to Trixie.
 
-## Go (1.24, static + distroless)
+## Go (1.26, static + distroless)
 
 ```dockerfile
 # syntax=docker/dockerfile:1
 # ---- builder: static binary, cached module + build caches ----
-FROM golang:1.24-bookworm AS builder
+FROM golang:1.26-bookworm AS builder
 WORKDIR /src
 RUN --mount=type=cache,target=/go/pkg/mod \
     --mount=type=bind,source=go.sum,target=go.sum \
@@ -126,13 +127,13 @@ export default nextConfig;
 ```dockerfile
 # syntax=docker/dockerfile:1
 # ---- deps: install once, cache on lockfile ----
-FROM node:22-bookworm-slim AS deps
+FROM node:24-bookworm-slim AS deps
 WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci
 
 # ---- builder: compile the standalone server ----
-FROM node:22-bookworm-slim AS builder
+FROM node:24-bookworm-slim AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
@@ -141,7 +142,7 @@ ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 RUN npm run build
 
 # ---- runner: minimal, non-root ----
-FROM node:22-bookworm-slim AS runner
+FROM node:24-bookworm-slim AS runner
 WORKDIR /app
 ENV NODE_ENV=production
 RUN groupadd -g 1001 nodejs && useradd -u 1001 -g nodejs nextjs

@@ -143,11 +143,14 @@ if [ -f package.json ]; then
     elif [ -f package-lock.json  ]; then LOCK="package-lock.json"
     elif [ -f yarn.lock          ]; then LOCK="yarn.lock"
     fi
+    # OSV-Scanner v2 reorganized the CLI under `scan source` (`-L`/`--lockfile`
+    # for a specific lockfile, `-r`/`--recursive` for a tree). The base `scan`
+    # command stays backward-compatible across the v2 major.
     if [ -n "$LOCK" ]; then
-      if osv-scanner --lockfile="$LOCK"; then ok "node deps: no known vulns (osv-scanner $LOCK)"
+      if osv-scanner scan source -L "$LOCK"; then ok "node deps: no known vulns (osv-scanner $LOCK)"
       else bad "node deps: vulnerabilities reported by osv-scanner"; fi
     else
-      if osv-scanner --recursive .; then ok "node deps: no known vulns (osv-scanner recursive)"
+      if osv-scanner scan source -r .; then ok "node deps: no known vulns (osv-scanner recursive)"
       else bad "node deps: vulnerabilities reported by osv-scanner"; fi
     fi
   elif [ -f pnpm-lock.yaml ] && have pnpm; then
@@ -162,9 +165,15 @@ if [ -f package.json ]; then
     else
       warn "yarn classic has no severity-gated audit; install osv-scanner instead"
     fi
-  elif need npm "https://nodejs.org/"; then
+  elif [ -f package-lock.json ] && have npm; then
+    # `npm audit` REQUIRES a lockfile (it errors ENOLOCK without one) — that's
+    # why this branch is gated on package-lock.json, not just package.json.
     if npm audit --omit=dev --audit-level=high; then ok "node deps: no high+ vulns (npm audit)"
     else bad "node deps: high+ vulnerabilities reported by npm audit"; fi
+  elif [ ! -f package-lock.json ] && [ ! -f pnpm-lock.yaml ] && [ ! -f yarn.lock ]; then
+    warn "package.json but no lockfile; commit a lockfile or install osv-scanner to audit node deps"
+  else
+    warn "no usable node auditor found (install osv-scanner, or use npm/pnpm/yarn with their lockfile)"
   fi
 fi
 

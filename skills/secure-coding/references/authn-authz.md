@@ -3,7 +3,9 @@
 Pick the session model, verify tokens correctly, authorize per-object, hash
 with Argon2id, and store tokens where XSS can't reach them. Versions: FastAPI
 ≥0.115 / Python 3.12+, Auth.js v5 (`next-auth@5`) on Next.js 15, Go 1.22+,
-Dart 3 / Flutter stable.
+Dart 3 / Flutter stable. (Auth.js moved under the Better Auth team in late 2025
+and is still patched; the `auth()` patterns below remain valid — for *new*
+projects, weigh Better Auth too. The controls here are library-agnostic.)
 
 ## Sessions vs JWT — pick this when
 
@@ -181,9 +183,11 @@ def verify_csrf(request: Request):
 ## Password hashing — Argon2id
 
 Concrete params (tune `memory_cost` up until a hash takes ~0.5s on prod
-hardware): `time_cost=3, memory_cost=65536 (64 MiB), parallelism=4`. Verify on
-login and rehash transparently when params change. bcrypt with `cost>=12` is an
-acceptable fallback. Never SHA-256/MD5.
+hardware): `time_cost=3, memory_cost=65536 (64 MiB), parallelism=4`. These sit
+above the OWASP Password Storage minimums (`m=19456, t=2, p=1` **or** `m=47104,
+t=1, p=1`) — meet or exceed the floor on every axis. Verify on login and rehash
+transparently when params change. bcrypt with `cost>=12` is an acceptable
+fallback. Never SHA-256/MD5.
 
 ```python
 # GOOD — argon2-cffi: hash, verify, transparent rehash.

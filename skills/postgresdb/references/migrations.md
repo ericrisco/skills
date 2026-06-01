@@ -6,9 +6,10 @@ concurrently, backfill `display_name`.
 
 > Using Drizzle, Kysely, Django, or another migration runner not shown here? The engine-level rules
 > below (expand–contract, `CONCURRENTLY` outside a txn, `NOT VALID` then `VALIDATE`, batched backfill)
-> are identical regardless of runner — translate the raw-SQL recipes into your tool's directives. For
-> the per-tool workflow/wiring of those runners, consult that runner's own documentation; the
-> engine-level recipes here are what those directives must ultimately emit.
+> are identical regardless of runner — translate the raw-SQL recipes into your tool's directives. The
+> per-tool workflow/wiring of those runners lives in each runner's own upstream documentation (they are
+> external tools, not companion skills); the engine-level recipes here are what those directives must
+> ultimately emit.
 
 ## Principles
 
@@ -182,10 +183,12 @@ ALTER TABLE users DROP COLUMN IF EXISTS avatar_url;
 ### golang-migrate
 
 golang-migrate wraps each migration file in a single transaction by default, and `CONCURRENTLY` cannot
-run in a transaction. There is no per-file "disable transaction" flag in the `postgres`/`pgx` driver,
-so the honest, canonical approach is: **put the concurrent-index statement in its own migration file
-and apply that step out-of-band**, or switch to a tool that supports a no-transaction directive
-(`dbmate` `-- migrate:up transaction:false`, `atlas`, or `tern`) for that one step.
+run in a transaction. The `postgres`/`pgx` driver exposes only a driver-level `x-multi-statement` /
+`TransactionsEnabled=false` toggle (set when constructing the driver, applied to the whole run) — there
+is no per-file "disable transaction" directive. So the honest, canonical approach is: **put the
+concurrent-index statement in its own migration file and apply that step out-of-band**, or switch to a
+tool that supports a per-file no-transaction directive (`dbmate` `-- migrate:up transaction:false`,
+`atlas`, or `tern`) for that one step.
 
 ```bash
 # create the pair

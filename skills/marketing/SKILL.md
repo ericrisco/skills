@@ -1,6 +1,6 @@
 ---
 name: marketing
-description: "Use when writing the WORDS for a landing page, marketing site, or launch — value proposition, hero/headline, section-by-section landing copy, microcopy, CTAs, email and launch sequences, channel-adapted messaging (X/LinkedIn/newsletter), and SEO-aware copy structure. Grounds every output in the project's brand study under 02-DOCS; if that study is missing or incomplete, it STOPS and interviews the user first. Triggers: 'write the landing copy', 'write the hero', 'value proposition', 'rewrite this CTA', 'write the launch emails', 'turn features into benefits', 'adapt this for LinkedIn/X', 'this copy sounds like AI', 'marketing copy'. NOT the pixels (that's `design`) and NOT the build (that's `nextjs`)."
+description: "Use when writing the WORDS for a landing page, marketing site, or launch — value proposition, hero/headline, section-by-section landing copy, microcopy, CTAs, email and launch sequences, channel-adapted messaging (X/LinkedIn/newsletter), SEO-aware copy structure, and SEO/GEO optimization (technical SEO, JSON-LD schema, and getting cited by AI engines like ChatGPT/Perplexity/Gemini/Claude). Grounds every output in the project's brand study under 02-DOCS; if that study is missing or incomplete, it STOPS and interviews the user first. Triggers: 'write the landing copy', 'write the hero', 'value proposition', 'rewrite this CTA', 'write the launch emails', 'turn features into benefits', 'adapt this for LinkedIn/X', 'this copy sounds like AI', 'marketing copy', 'seo', 'geo', 'ai search', 'schema', 'json-ld', 'get cited by ChatGPT', 'rank on Google', 'keyword research', 'meta description', 'AI Overview'. NOT the pixels (that's `design`) and NOT the build (that's `nextjs`)."
 origin: risco
 ---
 
@@ -25,7 +25,7 @@ Do NOT use when (delegate or decline):
 
 - Choosing type/color/spacing/layout/motion, or the section visual anatomy → `design`.
 - Implementing the page in React/Next.js (Metadata API, rendering, components) → `nextjs`.
-- A deep technical SEO audit or keyword research program → `seo` (this skill only writes SEO-aware *copy structure*).
+- Implementing schema/Metadata in React/Next.js code → `nextjs` (this skill specifies the title/description/JSON-LD; `nextjs` renders it). Technical SEO, GEO, schema, and keyword research themselves are owned here → `references/seo-geo.md`.
 - Capturing or persisting a project's brand/voice profile → that is THIS skill's brand-grounding step, persisted under `02-DOCS` per `harness`.
 - Long-form articles, blog posts, or social content systems with no landing/web surface → that is a content job, not landing copy; this skill stays on landings, web pages, and the launch/email/channel copy around them.
 
@@ -62,7 +62,7 @@ These are constraints, not preferences. Violating any one is a defect.
 7. **Match the voice samples.** Every line must plausibly come from the brand's own writing. If it reads like a different author, rewrite.
 8. **The ban-list is enforced everywhere.** Hype words and AI tells are defects, not style. (See ban-list below; `scripts/verify.sh` greps for them.)
 9. **No invented proof.** Never fabricate metrics, customers, quotes, or credentials. Mark `[[NEEDS PROOF]]` and ask.
-10. **SEO-aware structure, not keyword stuffing.** One `<h1>`, scannable subheads that answer queries, benefit in the first 160 chars. Defer keyword research to `seo`.
+10. **SEO-aware structure, not keyword stuffing.** One `<h1>`, scannable subheads that answer queries, benefit in the first 160 chars. Keyword stuffing *lowers* AI citation — full technical SEO/GEO is in `references/seo-geo.md`.
 
 ## Copy workflow (the one pass)
 
@@ -136,9 +136,36 @@ When the task is bigger than the page — a launch, an email sequence, cross-cha
 - **Email sequences:** welcome email inside 5 minutes of opt-in (highest open rate of the whole flow); 4-touch starter cadence Day 1 welcome → Day 4 educational → Day 8 case study → Day 12 soft pitch; nurture runs 7–10 emails every 1–2 weeks. One purpose per email. Hold promo language ("free", "limited time") out of early emails to protect deliverability and trust.
 - **Launch:** sequence the beats (tease → reveal → proof → urgency → recap), one claim per beat, every claim traceable to the brand study's proof.
 - **Channel adaptation:** adapt the *format* to the platform, never resize the same copy. X opens with the sharpest claim; LinkedIn expands just enough for outsiders; newsletter does real work in the first screen.
-- **SEO-aware structure:** one `<h1>`, scannable subheads as query answers, benefit in the first 160 chars; defer keyword research to `seo`.
+- **SEO-aware structure:** one `<h1>`, scannable subheads as query answers, benefit in the first 160 chars; full technical SEO/GEO in `references/seo-geo.md`.
 
 Full email templates, subject-line patterns, launch arc, X/LinkedIn/newsletter adaptation, SEO-aware structure → `references/campaigns-and-channels.md`.
+
+## SEO & GEO
+
+The skill body keeps copy *SEO-aware* (one `<h1>`, query-answering subheads, benefit in the first
+160 chars). When the task is the visibility layer itself — ranking on Google/Bing **and getting
+cited by AI engines** — go to `references/seo-geo.md`. It owns technical + on-page SEO, JSON-LD
+schema, per-engine GEO, and keyword/SERP research.
+
+- **SEO** = rank in traditional results (**Google, Bing**). **GEO** (Generative Engine
+  Optimization) = get *cited* inside an AI answer (**ChatGPT, Perplexity, Gemini/AI Overviews,
+  Claude, Copilot**). GEO sits on top of SEO; do both.
+- **The insight that reframes it:** AI engines don't rank pages, they **cite sources**. Being one of
+  the few sources an answer is built from is the new "ranking #1" — you optimize to be *quoted and
+  attributed*, not clicked.
+- **GEO and this skill agree.** The top GEO moves (Princeton, KDD 2024) are *cite sources, add
+  statistics, add quotations, authoritative tone* — the same "specificity beats adjectives, no
+  invented proof, one claim per asset" discipline already enforced above. Keyword stuffing *lowers*
+  AI citation (~−10%). The proof rule is absolute: **never fabricate the stat or quote that earns
+  the lift** — mark `[[NEEDS PROOF]]` and source it.
+- **Audit first, free, no API:** `python3 scripts/seo_audit.py "https://yoursite.com"` reports
+  title/description lengths, single-`<h1>`, JSON-LD count, load time, robots/AI-bot access, sitemap.
+- **Crawler reality (2026):** `OAI-SearchBot`/`Claude-SearchBot`/`PerplexityBot` (+ the `*-User`
+  fetchers) earn citations; `GPTBot`/`ClaudeBot` are *training* crawlers — independently
+  controllable. **INP replaced FID** in Core Web Vitals (Mar 2024; ≤ 200 ms good).
+
+Full GEO method table, robots.txt template, schema library, per-engine factors, keyword workflow,
+and SEO/GEO QA gate → `references/seo-geo.md`. Implementing schema/Metadata in code → `nextjs`.
 
 ## The ban-list
 
@@ -201,5 +228,4 @@ first on every use and ground all copy in it. Site and visual conventions belong
 - `../design/SKILL.md` — the pixels: visual system, layout, section anatomy, motion, design QA.
 - `../nextjs/SKILL.md` — the build: App Router, Metadata API, React 19 rendering.
 - `harness` — the `02-DOCS` Karpathy-wiki convention this skill persists the brand study into.
-- `seo` — deep technical SEO and keyword research (this skill enforces SEO-aware copy structure only).
-- References: `references/brand-grounding.md`, `references/copy-frameworks.md`, `references/landing-copy.md`, `references/campaigns-and-channels.md`.
+- References: `references/brand-grounding.md`, `references/copy-frameworks.md`, `references/landing-copy.md`, `references/campaigns-and-channels.md`, `references/seo-geo.md` (technical SEO + GEO + schema + keyword research).

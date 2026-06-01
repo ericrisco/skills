@@ -12,6 +12,8 @@
 #     4. Passive-voice flags (heuristic: "is/are/was/were/be/been + past participle").
 #     5. Structure heuristics on HTML/JSX/MD pages: missing <h1>, more than one <h1>,
 #        no obvious CTA verb.
+#     5b. JSON-LD/schema presence: landing-style pages (<section>) with no
+#         application/ld+json get a GEO/SEO warning (detect-or-skip; see seo-geo.md).
 #     6. Brand-grounding presence: warns if no 02-DOCS/wiki/brand/ study is found.
 #
 #   Every finding is a WARNING by default (copy is judgement, not pass/fail).
@@ -48,8 +50,8 @@ warn() { printf '%s[warn]%s %s\n' "$YELLOW" "$NC" "$*"; warn_count=$((warn_count
 fail() { printf '%s[fail]%s %s\n' "$RED"    "$NC" "$*"; fail_count=$((fail_count + 1)); }
 
 usage() {
-  # print the header comment block (lines 2..40), stripping the leading "# "
-  sed -n '2,40p' "$0" | sed 's/^# \{0,1\}//'
+  # print the header comment block (lines 2..34), stripping the leading "# "
+  sed -n '2,34p' "$0" | sed 's/^# \{0,1\}//'
 }
 
 # --- arg parse --------------------------------------------------------------
@@ -160,7 +162,9 @@ else
   printf '%s\n' "$h1_files" | while IFS= read -r f; do
     [ -z "$f" ] && continue
     case "$f" in *.tsx|*.jsx|*.html|*.htm|*.vue|*.svelte) : ;; *) continue ;; esac
-    n="$(grep -c '<h1' "$f" 2>/dev/null || printf '0')"
+    # count occurrences, not matching lines: two <h1> on one line must still trip this.
+    n="$(grep -o '<h1' "$f" 2>/dev/null | wc -l | tr -dc '0-9')"
+    [ -z "$n" ] && n=0
     if [ "$n" -gt 1 ]; then
       printf '%s[warn]%s multiple <h1> in one page (should be exactly one): %s\n' "$YELLOW" "$NC" "$f"
       printf '%s\n' "$f" >> "$H1_HITS"
@@ -185,6 +189,27 @@ else
   done
   n_cta="$(count_lines "$CTA_HITS")"
   if [ "$n_cta" -gt 0 ]; then warn_count=$((warn_count + n_cta)); else ok "CTA check: every landing page has a CTA verb"; fi
+fi
+
+# --- 5b. JSON-LD / schema presence on landing-style pages (GEO signal) -------
+# Detect-or-skip: only judges pages that already look like landing pages (<section>).
+# A landing page with no application/ld+json is a missed GEO/SEO opportunity (warn),
+# not a failure. Pages without <section> are not inspected (skip), so non-web repos
+# never trip this. See references/seo-geo.md for the schema templates.
+SCHEMA_HITS="$TMPDIR_V/schema"; : > "$SCHEMA_HITS"
+schema_pages="$(search '<section' | sed 's/:.*//' | sort -u)"
+if [ -z "$schema_pages" ]; then
+  skip "JSON-LD check: no landing-style pages (<section>) to inspect"
+else
+  printf '%s\n' "$schema_pages" | while IFS= read -r f; do
+    [ -z "$f" ] && continue
+    if ! grep -iE 'application/ld\+json' "$f" >/dev/null 2>&1; then
+      printf '%s[warn]%s landing page has no JSON-LD schema (add FAQPage/Article — see seo-geo.md): %s\n' "$YELLOW" "$NC" "$f"
+      printf '%s\n' "$f" >> "$SCHEMA_HITS"
+    fi
+  done
+  n_schema="$(count_lines "$SCHEMA_HITS")"
+  if [ "$n_schema" -gt 0 ]; then warn_count=$((warn_count + n_schema)); else ok "JSON-LD check: every landing page carries schema markup"; fi
 fi
 
 # --- 6. brand-grounding presence --------------------------------------------

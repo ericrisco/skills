@@ -394,7 +394,7 @@ Compute `cost_usd` from the dated pricing table — never hardcode a price in bu
 |---|---|---|---|
 | anthropic:claude-haiku-4-5 | 1.00 | 5.00 | cheap/fast; caching −90% read, batch −50% |
 | anthropic:claude-sonnet-4-6 | 3.00 | 15.00 | default; 1M-token context flat-rate |
-| anthropic:claude-opus-4-8 | 5.00 | 25.00 | Opus 4.7 baseline; confirm 4.8 at runtime |
+| anthropic:claude-opus-4-8 | 5.00 | 25.00 | flagship Opus (4.8, May 2026); re-verify the id |
 | openai:gpt-5.5 | 5.00 | 30.00 | flagship; >272K prompt billed 2× in / 1.5× out |
 | openai:gpt-5.4 | 2.50 | 15.00 | cached input −90% |
 | openai:gpt-5.2-codex | 1.75 | 14.00 | code-tuned |

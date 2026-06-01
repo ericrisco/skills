@@ -1,6 +1,6 @@
 # Motion & Interaction
 
-Motion intent and budget, current-first. CSS is the default engine; reach for a JS library only when CSS cannot express the animation. Deep mechanics (springs, layout animations, `AnimatePresence` internals) live in `motion-ui` and `motion-foundations`.
+Motion intent and budget, current-first. CSS is the default engine; reach for a JS library only when CSS cannot express the animation. Deep mechanics (springs, layout animations, `AnimatePresence` internals) live in the external *motion-ui* and *motion-foundations* references (not repo skills) — this skill owns intent + budget and defers mechanics outward.
 
 ## Purpose gate
 
@@ -107,7 +107,7 @@ Guard scroll-driven animation behind a `@supports (animation-timeline: view())` 
 @keyframes drift { to { translate: 0 -40px; } }
 ```
 
-Browser support note (verified June 2026): scroll-driven timelines ship in Chromium and Firefox; Safari support is still landing, so the `@supports` query is load-bearing, not cosmetic. Where `animation-timeline` is unsupported, the feature query is skipped entirely and the element renders in its default (visible, un-drifted) state — a graceful, non-broken fallback.
+Browser support note (verified June 2026): scroll-driven timelines (`animation-timeline` with `scroll()`/`view()`) now ship in Chromium (Chrome/Edge 115+) and Safari (18+, full support in Safari 26). Firefox has it implemented but still behind a flag (`layout.css.scroll-driven-animations.enabled`), so it is off by default for most users. That gap is exactly why the `@supports (animation-timeline: view())` query is load-bearing, not cosmetic: where the feature is unsupported (Firefox today, older engines), the feature query is skipped entirely and the element renders in its default (visible, un-drifted) state — a graceful, non-broken fallback. Always gate scroll-driven effects behind that `@supports` guard.
 
 ## Performance budget
 
@@ -172,11 +172,11 @@ export function Toast({ open, message }: { open: boolean; message: string }) {
 }
 ```
 
-Once you are in `motion/react`, defer the mechanics (spring config, variants, `layoutId` shared transitions) to `motion-foundations` and `motion-ui`.
+Once you are in `motion/react`, defer the mechanics (spring config, variants, `layoutId` shared transitions) to the external *motion-foundations* and *motion-ui* references.
 
 ## See Also
 
 - `visual-system.md` — the easing and duration tokens these animations consume.
-- `motion-ui` — production motion patterns and library mechanics.
-- `motion-foundations` — spring physics and timing theory.
+- *motion-ui* — production motion patterns and library mechanics (external reference, not a repo skill).
+- *motion-foundations* — spring physics and timing theory (external reference, not a repo skill).
 - `../../nextjs/SKILL.md` — Client vs Server Component boundaries for animated UI.

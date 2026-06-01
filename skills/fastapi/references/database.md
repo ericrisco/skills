@@ -344,4 +344,4 @@ backstop that stops one slow query from holding a connection forever.
 ## See Also
 
 - [`production.md`](production.md) — worker/pool math, health checks, graceful shutdown.
-- `backend-patterns` — repository/service layering and persistence boundaries.
+- [`postgresdb`](../../postgresdb/SKILL.md) — engine-level schema/index design, EXPLAIN, expand-contract migrations, PgBouncer pooling beneath this async layer.

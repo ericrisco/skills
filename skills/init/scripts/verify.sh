@@ -39,8 +39,8 @@ skip() { printf '%s[skip]%s %s\n' "$YELLOW" "$NC" "$*"; skip_count=$((skip_count
 warn() { printf '%s[warn]%s %s\n' "$YELLOW" "$NC" "$*"; warn_count=$((warn_count + 1)); }
 
 usage() {
-  # print the header comment block (lines 2..30), stripping the leading "# "
-  sed -n '2,30p' "$0" | sed 's/^# \{0,1\}//'
+  # print the header comment block (lines 2..24), stripping the leading "# "
+  sed -n '2,24p' "$0" | sed 's/^# \{0,1\}//'
 }
 
 # --- arg parse --------------------------------------------------------------

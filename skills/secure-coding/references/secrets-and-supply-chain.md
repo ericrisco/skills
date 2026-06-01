@@ -125,7 +125,7 @@ different artifact than the one you locked (A08 integrity).
 | Tool | Command | A finding looks like | Fix |
 |---|---|---|---|
 | pip-audit | `pip-audit` | `Name Version ID Fix-Versions` row per vuln | Upgrade to a fix version; use constraints for a transitive |
-| osv-scanner | `osv-scanner --lockfile=pnpm-lock.yaml` | OSV id + severity + introduced/fixed range; lockfile-aware, multi-ecosystem | Upgrade; `overrides` for a transitive |
+| osv-scanner | `osv-scanner scan source -L pnpm-lock.yaml` | OSV id + severity + introduced/fixed range; lockfile-aware, multi-ecosystem (v2 CLI) | Upgrade; `overrides` for a transitive |
 | npm audit | `npm audit --omit=dev --audit-level=high` | severity + path through the dep tree | `npm audit fix`, or `overrides` for transitive |
 | govulncheck | `govulncheck ./...` | only vulns your code **calls** (reachability) + the call trace | Upgrade; `go mod replace` for a transitive |
 | dart | `dart pub outdated` | outdated (no CVE feed) — advisory only | Upgrade to latest resolvable |

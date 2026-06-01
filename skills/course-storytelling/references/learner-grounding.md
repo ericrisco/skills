@@ -180,4 +180,4 @@ If a `## Knowledge map` section already exists (e.g. from `marketing`/`design`),
 - `../SKILL.md` — the runtime grounding mechanism (hard STOP) that uses this checklist.
 - `brunson-frameworks.md` — consumes the typed false beliefs and the transformation.
 - `course-analysis.md` — uses the "do after" + transformation to sequence the spine.
-- `harness` — the canonical `02-DOCS` wiki protocol and article templates.
+- `../../harness/SKILL.md` — the canonical `02-DOCS` wiki protocol and article templates.

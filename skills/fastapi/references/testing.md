@@ -346,4 +346,4 @@ before the (slower) test job.
 
 - [`database.md`](database.md) — the engine/session wiring these fixtures build on.
 - [`security.md`](security.md) — `create_access_token` and `get_current_user` used by the auth fixtures.
-- `python-testing` (ECC) — language-agnostic pytest discipline and fixture design.
+- `superpowers:test-driven-development` — red/green/refactor discipline these tests follow.

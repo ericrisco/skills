@@ -145,7 +145,7 @@ Reassurance line near the table: "Cancel anytime · 30-day money-back · no card
 
 ## FAQ
 
-Answer the blockers that actually stop the sale, in the reader's words, with a direct first sentence. Skip filler questions. If you add `FAQPage` JSON-LD, the on-page copy must match the markup exactly (that's `seo`/`design` territory — write the honest answers here).
+Answer the blockers that actually stop the sale, in the reader's words, with a direct first sentence. Skip filler questions. If you add `FAQPage` JSON-LD, the on-page copy must match the markup exactly (the schema itself is in `seo-geo.md` — write the honest answers here). FAQPage is also the single highest-leverage GEO schema for getting cited by AI engines.
 
 ```text
 Q: Do I need to change my CI pipeline?

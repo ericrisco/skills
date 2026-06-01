@@ -188,7 +188,7 @@ export function track(event: Event, props: Record<string, string | number> = {})
 
 ## SEO-aware structure constraint
 
-Enforce the structural constraints here; defer keyword research and technical audits to `seo`.
+Enforce the structural constraints here; defer keyword research, GEO, and technical audits to the `../marketing/SKILL.md` sibling (it carries SEO/GEO + keyword intent).
 
 - Exactly one `<h1>`; linear heading order.
 - Semantic landmarks (`header`/`nav`/`main`/`section`/`footer`).
@@ -198,5 +198,5 @@ Enforce the structural constraints here; defer keyword research and technical au
 ## See Also
 
 - `copywriting-frameworks.md` — the words for every section above.
-- `seo` — deep technical SEO and keyword research.
+- `../../marketing/SKILL.md` — deep SEO/GEO, keyword research, and SEO-aware copy structure.
 - `../../nextjs/SKILL.md` — App Router Metadata API and rendering specifics.

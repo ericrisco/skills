@@ -395,7 +395,7 @@ See Also: `secure-coding`.
 - `next/font` — self-host, `display: "swap"`, subset → zero CLS + no extra round-trip.
 - `next/dynamic` for heavy client islands; `optimizePackageImports`; `@next/bundle-analyzer`.
 - Kill waterfalls with parallel `Promise.all` / split sibling fetches into parallel children; PPR/streaming, reserve space to avoid CLS.
-- Long lists: `content-visibility: auto` + `contain-intrinsic-size`; virtualize (`@tanstack/react-virtual`) past ~50 rows. Warm assets with `react-dom` `preload`/`preconnect`; use narrow store selectors (Zustand) to cut re-renders.
+- Long lists: `content-visibility: auto` + virtualize (`@tanstack/react-virtual`) past ~50 rows; warm assets with `react-dom` `preload`/`preconnect`; narrow store selectors (Zustand) cut re-renders. Full lever→metric map in `references/performance.md`.
 - Core Web Vitals targets: **LCP < 2.5s, CLS < 0.1, INP < 200ms** (INP replaced FID).
 
 ## Anti-patterns → STOP
@@ -436,8 +436,10 @@ See Also: `secure-coding`.
 
 Run `bash scripts/verify.sh` from the Next.js project root. It runs ESLint, `tsc --noEmit`,
 Vitest, and `next build`, skipping any tool not installed (a missing tool is a yellow warning, never
-a failure). The lint/type/test steps are read-only; the final `next build` writes the `.next/`
-output directory. No installs, no network mutations. Safe to re-run.
+a failure). It reads the installed Next.js major version and only falls back to `next lint` on
+**v15 and earlier** — `next lint` was removed in v16, so on a v16 repo a missing ESLint is a SKIP,
+never a false failure. The lint/type/test steps are read-only; the final `next build` writes the
+`.next/` output directory. No installs, no network mutations. Safe to re-run.
 
 ## References
 

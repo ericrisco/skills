@@ -1693,7 +1693,7 @@ providers:
         SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
         set -a; source "$SCRIPT_DIR/.env"; set +a
         : "${PINECONE_API_KEY:?PINECONE_API_KEY not set}"
-        N=$(curl -fsS https://api.pinecone.io/indexes -H "Api-Key: $PINECONE_API_KEY" -H "X-Pinecone-API-Version: 2024-07" | python3 -c 'import json,sys; print(len(json.load(sys.stdin).get("indexes",[])))')
+        N=$(curl -fsS https://api.pinecone.io/indexes -H "Api-Key: $PINECONE_API_KEY" -H "X-Pinecone-API-Version: 2025-10" | python3 -c 'import json,sys; print(len(json.load(sys.stdin).get("indexes",[])))')
         echo "OK — Pinecone indexes: $N."
       README.md: |
         # PINECONE

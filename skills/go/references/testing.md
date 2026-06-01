@@ -253,23 +253,29 @@ and become permanent regression cases on the next plain `go test`.
 
 ## Benchmarks
 
-`b.N` is chosen by the framework. Reset the timer after setup; report allocations; vary input
-size with sub-benchmarks.
+Prefer `for b.Loop() { ... }` (Go 1.24+) as the benchmark idiom: it runs the loop exactly once
+per benchmark, auto-resets the timer after setup and stops it before teardown (so setup/teardown
+never count toward the measurement), and keeps the call's parameters and results alive so the
+compiler can't optimize the benchmarked work away — no manual `b.ResetTimer()` and no sink variable
+needed. Report allocations; vary input size with sub-benchmarks.
 
 ```go
 func BenchmarkRender(b *testing.B) {
 	for _, n := range []int{10, 100, 1000} {
 		b.Run(fmt.Sprintf("size=%d", n), func(b *testing.B) {
-			tmpl := makeTemplate(n)
+			tmpl := makeTemplate(n) // setup — excluded from timing by b.Loop
 			b.ReportAllocs()
-			b.ResetTimer()
-			for range b.N {
+			for b.Loop() {
 				_ = Render(tmpl)
 			}
 		})
 	}
 }
 ```
+
+Legacy pattern (pre-1.24, still valid): `for range b.N` with an explicit `b.ResetTimer()` after
+setup — `b.N` is chosen by the framework, which calls the function repeatedly while ramping up. Use
+`b.Loop` for new benchmarks; reach for the `b.N` form only when targeting an older toolchain.
 
 Run `go test -bench=Render -benchmem`. Output columns are `ns/op` (time), `B/op` (bytes
 allocated), `allocs/op` (allocation count) - watch allocations, they drive GC pressure. Use
@@ -326,6 +332,7 @@ DON'T:
 - Test private functions directly - if a private function needs its own test, it probably
   wants to be its own exported package.
 - `time.Sleep` to "wait" for concurrency - synchronize on a channel, a `sync.WaitGroup`, or
-  the `testing/synctest` experiment (controls a fake clock for concurrent code) instead.
+  the stable `testing/synctest` package (GA since Go 1.25; controls a fake clock for
+  concurrent code) instead.
 - Paper over a flaky test with `-count` or retries - a flake is a real bug (a race, a leaked
   goroutine, a timing assumption); find and fix it.

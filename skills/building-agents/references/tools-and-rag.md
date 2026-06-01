@@ -248,10 +248,13 @@ CREATE TABLE IF NOT EXISTS chunks (
     id        bigserial PRIMARY KEY,
     doc_id    text NOT NULL,
     content   text NOT NULL,
-    embedding vector(1536) NOT NULL,
+    embedding vector(1536) NOT NULL,  -- MUST match your embed model's dimension
     meta      jsonb NOT NULL DEFAULT '{}',
     ts        tsvector GENERATED ALWAYS AS (to_tsvector('english', content)) STORED
 );
+-- 1536 = OpenAI text-embedding-3-small. Switch models, switch this number:
+-- gemini-embedding-001 defaults to 3072 (or set output dimensionality). A mismatch
+-- is a hard insert error, so pin the dimension to the model in your config.
 CREATE INDEX IF NOT EXISTS chunks_hnsw ON chunks USING hnsw (embedding vector_cosine_ops);
 CREATE INDEX IF NOT EXISTS chunks_ts   ON chunks USING gin (ts);
 CREATE INDEX IF NOT EXISTS chunks_meta ON chunks USING gin (meta);

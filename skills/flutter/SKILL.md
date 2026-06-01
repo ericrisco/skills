@@ -14,7 +14,7 @@ immutable models, a **dio** data layer, and explicit `Result<T, Failure>` error 
 **Material 3**. Escape hatches exist and are first-class: use **Bloc/Cubit** instead of Riverpod when
 the team already runs Bloc, and raw `http`/`get_it` are allowed — but **pick one of each per app, never
 mix two**. Pinned versions this skill targets: **Flutter 3.44 / Dart 3.12**, **Riverpod 3.0**,
-**go_router 17.2.x** (+ `go_router_builder`), **freezed 3.x** / `json_serializable`, **dio 5.x**,
+**go_router 17.2.x** (+ `go_router_builder 4.3.x`), **freezed 3.x** / `json_serializable`, **dio 5.x**,
 **mocktail 1.x**. When you load this skill inside the user's repo, it touches only the `pubspec.yaml`
 subproject — never the FastAPI/Go/Next.js siblings.
 
@@ -218,11 +218,10 @@ final name = ref.watch(userControllerProvider.select((u) => u.valueOrNull?.name)
 ```
 
 `ref.watch` rebuilds on change; `ref.read` is for callbacks only; `ref.listen` is for side-effects.
-Riverpod 3 unifies the Notifier/AsyncNotifier APIs, merges `autoDispose`/`family` into the single
-`@riverpod` annotation, exposes one `Ref` type, adds automatic retry with backoff, a `Mutation` API for
-side-effects, and `@Riverpod(keepAlive: true)`. Legacy `StateProvider`/`ChangeNotifierProvider` live in
-`package:riverpod/legacy.dart` — **do not use them in new code**. Wrap the app root in `ProviderScope`.
-Codegen setup, `Mutation`, family-as-arg, persistence and the DI graph →
+Riverpod 3 unifies Notifier/AsyncNotifier, merges `autoDispose`/`family` into the single `@riverpod`
+annotation, exposes one `Ref` type, and adds automatic retry, a `Mutation` API, and `@Riverpod(keepAlive: true)`.
+Legacy `StateProvider`/`ChangeNotifierProvider` live in `package:riverpod/legacy.dart` — **not for new code**.
+Wrap the app root in `ProviderScope`. Codegen, `Mutation`, family-as-arg, persistence and the DI graph →
 `references/architecture-and-state.md`. Testing → `references/testing.md`.
 
 ## State management: Bloc/Cubit (the alternative)

@@ -18,11 +18,12 @@ async FastAPI service on Python 3.12+. The mental model: **the app is a thin asy
 layer over typed dependencies, a service/repository core, and explicit DB sessions. Routes
 validate and delegate; they never own business logic, raw SQL, or secrets.**
 
-Pinned stack: Python 3.12+, FastAPI 0.136+, Starlette 0.46+, Pydantic v2 (2.7+) +
-pydantic-settings 2.x, SQLAlchemy 2.0 async, Alembic 1.13+, asyncpg 0.30 / psycopg 3,
-httpx 0.28+, pytest 8 + pytest-asyncio 0.24+ (`asyncio_mode=auto`), ruff 0.7+, mypy 1.13+
-strict, uv 0.5+, uvicorn 0.32+ / gunicorn 23+ + uvicorn-worker 0.3+, PyJWT 2.9, argon2-cffi 23+, pip-audit 2.7+,
-PostgreSQL 16.
+Pinned stack: Python 3.12+, FastAPI 0.136+, Starlette 1.0+ (FastAPI 0.136 requires it;
+avoid <1.0.1, GHSA-86qp-5c8j-p5mr), Pydantic v2 (2.7+) + pydantic-settings 2.x,
+SQLAlchemy 2.0 async, Alembic 1.13+, asyncpg 0.30 / psycopg 3, httpx 0.28+,
+pytest 8 + pytest-asyncio 1.0+ (`asyncio_mode=auto`), ruff 0.7+, mypy 1.13+ strict,
+uv 0.5+, uvicorn 0.32+ / gunicorn 23+ + uvicorn-worker 0.3+, PyJWT 2.10+, argon2-cffi 23+,
+pip-audit 2.7+, PostgreSQL 16. (All lower bounds; install the latest in each line.)
 
 ## When to use
 
@@ -37,7 +38,7 @@ PostgreSQL 16.
 
 - Django / Flask / DRF apps → not this skill.
 - Sync WSGI services, data-science notebooks, CLI-only scripts with no HTTP surface.
-- Pure REST contract questions (status codes, URL naming, versioning, cursor vs offset) → **See Also `api-design`**.
+- Pure REST contract questions (status codes, URL naming, versioning, cursor vs offset) → general REST-design territory, not this skill (this skill covers the FastAPI *implementation* of those contracts).
 - Frontend/Next.js, Go, Flutter work → their own skills.
 - Generic secure-coding rules not specific to Python/FastAPI → **See Also `secure-coding`**.
 - Container/Compose/CI deploy mechanics → **See Also `deployment`** (this skill keeps only a Docker *note*).
@@ -412,7 +413,9 @@ def register_exception_handlers(app: FastAPI) -> None:
         )
 ```
 
-`→ See Also error-handling` (ECC) for cross-language typed-error theory.
+Keep this envelope identical across every handler — one `code`/`message`/`details` shape so
+clients parse errors once. **See Also `secure-coding`** for why error responses must never leak
+internals (stack traces, SQL, secrets).
 
 ## Async SQLAlchemy 2.0 (essentials)
 
@@ -596,9 +599,8 @@ brand study, technical conventions are *recorded, not gated* — never block the
 
 ## See Also
 
-- `api-design` — REST contract (status codes, URL naming, pagination semantics, versioning).
-- `secure-coding` — language-agnostic injection/secret/authz hardening.
-- `deployment` — Dockerfile, Compose, CI/CD, container runtime.
-- `error-handling` — cross-language typed-error theory.
+- [`secure-coding`](../secure-coding/SKILL.md) — language-agnostic injection / secret / authz hardening behind this skill's security rules.
+- [`postgresdb`](../postgresdb/SKILL.md) — engine-level schema design, indexing, EXPLAIN, zero-downtime migrations, PgBouncer (below the SQLAlchemy layer this skill drives).
+- [`deployment`](../deployment/SKILL.md) — Dockerfile, Compose, CI/CD, container runtime (this skill keeps only a Docker note).
 - References: [`references/testing.md`](references/testing.md), [`references/database.md`](references/database.md), [`references/security.md`](references/security.md), [`references/production.md`](references/production.md).
 - Verify gate: [`scripts/verify.sh`](scripts/verify.sh).

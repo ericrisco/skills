@@ -443,7 +443,7 @@ from functools import lru_cache
 MODEL_REGISTRY: dict[str, str] = {
     "default": "anthropic:claude-sonnet-4-6",
     "cheap":   "anthropic:claude-haiku-4-5",
-    "smart":   "anthropic:claude-opus-4-8",   # (as of 2026-06; verify before quoting)
+    "smart":   "anthropic:claude-opus-4-8",   # Opus 4.8 (current as of 2026-06); ids rot — re-verify
 }
 
 

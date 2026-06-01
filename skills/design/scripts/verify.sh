@@ -71,15 +71,25 @@ done
 have() { command -v "$1" >/dev/null 2>&1; }
 
 # search wrapper: ripgrep if present, else portable grep -rnE. Both print file:line.
+# Excludes build/vendor dirs and this script itself so it never matches its own
+# source (e.g. the `transition: all` strings in its comments). Patterns passed
+# here MUST be POSIX-ERE (no PCRE lookaheads) so the grep fallback behaves the
+# same as the rg path — see note on the img-alt check below.
+SELF_NAME="$(basename "$0")"
 search() {
   [ "$#" -gt 0 ] || return 1
   if have rg; then
-    rg -n --no-heading "$@"
+    # rg already ignores .gitignore'd paths (node_modules, .next, dist); also skip self.
+    rg -n --no-heading --glob "!$SELF_NAME" "$@"
   else
     # last arg is the pattern; everything before are paths/globs we ignore for grep.
     # `${*: -1}` (last positional) is supported on bash 3.2; the space before -1 is required.
     local pattern="${*: -1}"
-    grep -rnE "$pattern" . 2>/dev/null
+    grep -rnE \
+      --exclude="$SELF_NAME" \
+      --exclude-dir=node_modules --exclude-dir=.git --exclude-dir=.next \
+      --exclude-dir=dist --exclude-dir=build --exclude-dir=.next \
+      "$pattern" . 2>/dev/null
   fi
 }
 
@@ -163,27 +173,34 @@ static_checks() {
   if have rg; then
     while IFS= read -r line; do
       [ -n "$line" ] && warn "multiple <h1> in one file: $line"
-    done < <(rg -c '<h1' --glob '*.{tsx,jsx,html,vue,svelte}' . 2>/dev/null | awk -F: '$NF>1' || true)
+    done < <(rg -c '<h1' --glob "!$SELF_NAME" --glob '*.{tsx,jsx,html,vue,svelte}' . 2>/dev/null | awk -F: '$NF>1' || true)
   else
     while IFS= read -r f; do
       [ -z "$f" ] && continue
+      case "$f" in */"$SELF_NAME"|"./$SELF_NAME") continue ;; esac
       if [ "$(grep -c '<h1' "$f" 2>/dev/null || echo 0)" -gt 1 ]; then warn "multiple <h1> in one file: $f"; fi
-    done < <(grep -rl '<h1' . 2>/dev/null || true)
+    done < <(grep -rl --exclude-dir=node_modules --exclude-dir=.git --exclude-dir=.next '<h1' . 2>/dev/null || true)
   fi
 
-  # 2. transition: all / transition-all
-  hits="$(search 'transition:\s*all|transition-all' 2>/dev/null || true)"
+  # 2. transition: all / transition-all  ([[:space:]] is POSIX; \s is not portable in ERE)
+  hits="$(search 'transition:[[:space:]]*all|transition-all' 2>/dev/null || true)"
   if [ -n "$hits" ]; then warn "transition: all / transition-all found:"; printf '%s\n' "$hits" | head -n 5; fi
 
-  # 3. hardcoded hex when a token system exists
+  # 3. hardcoded hex when a token system exists (\b is not portable in ERE; a
+  #    3-8 char hex run after # is a sufficient heuristic without the boundary).
   if search '@theme|--color-' >/dev/null 2>&1; then
-    hits="$(search '#[0-9a-fA-F]{3,8}\b' 2>/dev/null | grep -E '\.(tsx|jsx|css)' || true)"
+    hits="$(search '#[0-9a-fA-F]{3,8}' 2>/dev/null | grep -E '\.(tsx|jsx|css)' || true)"
     if [ -n "$hits" ]; then warn "hardcoded hex colors despite a token system (heuristic):"; printf '%s\n' "$hits" | head -n 5; fi
   fi
 
-  # 4. <img> / <Image without alt
-  hits="$(search '<img(?![^>]*\balt=)|<Image(?![^>]*\balt=)' 2>/dev/null || true)"
-  if [ -n "$hits" ]; then warn "image without alt= found:"; printf '%s\n' "$hits" | head -n 5; fi
+  # 4. <img> / <Image without alt.
+  #    POSIX ERE (the grep fallback) has NO lookahead, so we do it in two
+  #    lookahead-free stages that behave identically under rg and grep:
+  #    find single-line image tags, then drop the ones that carry alt=.
+  #    Heuristic: tags split across multiple lines are not caught (acceptable —
+  #    this is a fast lint, not an AST), and it never errors on either engine.
+  hits="$(search '<(img|Image)[^>]' 2>/dev/null | grep -iE '\.(tsx|jsx|html|vue|svelte)' | grep -vE '\balt=' || true)"
+  if [ -n "$hits" ]; then warn "image without alt= found (single-line tags):"; printf '%s\n' "$hits" | head -n 5; fi
 
   # 5. animations present but no prefers-reduced-motion anywhere
   if search '@keyframes|animation:|animate-' >/dev/null 2>&1; then

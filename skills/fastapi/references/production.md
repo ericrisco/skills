@@ -3,7 +3,7 @@
 Shipping an async FastAPI service: ASGI server + worker math, structured JSON logging with
 request correlation, liveness vs readiness probes, graceful shutdown, pagination and caching at
 scale, performance defaults, and observability. For the container image and CI/CD pipeline,
-**See Also `deployment`** — this file keeps only a Docker *note*.
+**See Also [`deployment`](../../deployment/SKILL.md)** — this file keeps only a Docker *note*.
 
 ## ASGI server
 
@@ -164,8 +164,8 @@ async def keyset_page(db: AsyncSession, after: UUID | None, limit: int) -> tuple
 
 Always include a unique tiebreaker (`id`) in the `ORDER BY` so the ordering is total and stable.
 `COUNT(*)` for a total is expensive on large tables — make it optional or approximate. Return a
-`meta`/`links` envelope; see `api-design` for cursor encoding and link semantics (do not
-re-derive them here).
+`meta`/`links` envelope with the encoded cursor and a `next`/`prev` link; the contract here is
+a REST-design concern, while the keyset SQL above is the FastAPI-side implementation.
 
 ## Caching
 
@@ -257,5 +257,5 @@ A slim base, a non-root user, a frozen lockfile install, an explicit `EXPOSE`, a
 
 - [`database.md`](database.md) — pool sizing vs worker count, pgbouncer, statement timeouts.
 - [`security.md`](security.md) — TLS, proxy headers, security headers, secret injection.
-- `deployment` — Dockerfile, Compose, CI/CD, container runtime.
-- `api-design` — cursor/pagination contract and response envelopes.
+- [`deployment`](../../deployment/SKILL.md) — Dockerfile, Compose, CI/CD, container runtime.
+- [`postgresdb`](../../postgresdb/SKILL.md) — connection-pool ceilings, PgBouncer modes, partitioning at scale.

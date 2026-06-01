@@ -1,6 +1,6 @@
 ---
 name: course-storytelling
-description: "Use when you have course / lesson / module content and you need the teaching to LAND — so grounded, named, and emotionally resonant that the student loves the teacher. Ingests slides/transcripts/notes/outline, extracts the concepts AND the existing narrative spine, finds the abstract/jargon-heavy/ungrounded gaps, then reframes each concept with Russell Brunson's Expert Secrets methodology (Epiphany Bridge, the three false beliefs — vehicle/internal/external, the Big Domino, named mental models, the Hero's Two Journeys, the Attractive Character, story-selling, grounding analogies, future-pacing). Profiles the LEARNER and the AUDIENCE first (hard gate) and persists it under 02-DOCS. Outputs a per-concept 'landing recipe' and a reworked narrative spine. Triggers: 'make this lesson land', 'teach this concept', 'storytelling for my course', 'expert secrets', 'epiphany bridge', 'mental models for teaching', 'this lesson is too abstract', 'my students aren't getting it', 'name this concept', 'add a story to this module'. NOT the slide visuals (that's `presentations`/`design`) and NOT a content review pass (that's `review-content`)."
+description: "Use when you have course / lesson / module content and you need the teaching to LAND — so grounded, named, and emotionally resonant that the student loves the teacher. Ingests slides/transcripts/notes/outline, extracts the concepts AND the existing narrative spine, finds the abstract/jargon-heavy/ungrounded gaps, then reframes each concept with Russell Brunson's Expert Secrets methodology (Epiphany Bridge, the three false beliefs — vehicle/internal/external, the Big Domino, named mental models, the Hero's Two Journeys, the Attractive Character, story-selling, grounding analogies, future-pacing). Profiles the LEARNER and the AUDIENCE first (hard gate) and persists it under 02-DOCS. Outputs a per-concept 'landing recipe' and a reworked narrative spine. Triggers: 'make this lesson land', 'teach this concept', 'storytelling for my course', 'expert secrets', 'epiphany bridge', 'mental models for teaching', 'this lesson is too abstract', 'my students aren't getting it', 'name this concept', 'add a story to this module'. NOT the slide visuals (that's `presentations`/`design`) and NOT a content-audit/review pass (that's a separate review-content step — run it first, bring findings here)."
 origin: risco
 ---
 
@@ -8,7 +8,7 @@ origin: risco
 
 *Take a concept the student would forget and turn it into one they can't unhear. Profile the learner first, then run every concept through the Expert Secrets machine: epiphany story → named model → grounded analogy → proof → do-this-now → the so-what.*
 
-This skill owns **the teaching narrative**: extracting what a course actually teaches, finding where it stays abstract, and rebuilding each concept so the realization happens *in the student*, emotionally, not just on the slide. It borrows Russell Brunson's *Expert Secrets* frameworks as a **teaching methodology** (this is method, not text reproduction). The sibling `presentations` skill turns the result into a deck; `marketing` owns sales words; `design` owns pixels; `review-content` audits an existing lesson for gaps.
+This skill owns **the teaching narrative**: extracting what a course actually teaches, finding where it stays abstract, and rebuilding each concept so the realization happens *in the student*, emotionally, not just on the slide. It borrows Russell Brunson's *Expert Secrets* frameworks as a **teaching methodology** (this is method, not text reproduction). The sibling `presentations` skill turns the result into a deck; `marketing` owns sales words; `design` owns pixels; a content-audit/review-content pass audits an existing lesson for gaps before you bring it here.
 
 ## When to use / When NOT to use
 
@@ -24,7 +24,7 @@ Do NOT use when (delegate or decline):
 
 - Designing the slide visuals, layout, or exporting a deck → `presentations` (+ `design` for the visual system).
 - Writing sales/landing copy for the course → `marketing`.
-- Auditing an existing lesson for gaps/redundancy/anachronisms with a written report → `review-content` (run it first; bring its findings here).
+- Auditing an existing lesson for gaps/redundancy/anachronisms with a written report → a content-audit/review-content pass (run it first; bring its findings here).
 - Pure fact-checking or research of the subject matter → `deep-research`.
 
 **Teaching ≠ selling.** Brunson's frameworks here serve comprehension and retention. The "sale" you're closing is *belief in the idea and trust in the teacher* — never bolt a pitch onto a lesson.
@@ -198,6 +198,6 @@ Create/update both as decisions are made and refresh their `CLAUDE.md` links. Re
 - `../marketing/SKILL.md` — the WORDS that sell the course (value prop, landing copy, launch emails). This skill teaches; that one sells.
 - `../presentations/SKILL.md` — turn the landed lesson into a deck (Marp/Slidev/PPTX, speaker notes).
 - `../design/SKILL.md` — the visual system and pixels behind the slides/diagrams.
-- `review-content` — audit an existing lesson/module/notebook for gaps, redundancy, anachronisms, and storytelling problems (run it first; bring its report here).
-- `harness` — the `02-DOCS` Karpathy-wiki convention this skill persists the teaching profile into.
+- A content-audit / review-content pass — audit an existing lesson/module/notebook for gaps, redundancy, anachronisms, and storytelling problems (run it first; bring its report here). This skill rebuilds; that pass diagnoses.
+- `../harness/SKILL.md` — the `02-DOCS` Karpathy-wiki convention this skill persists the teaching profile into.
 - References: `references/brunson-frameworks.md`, `references/learner-grounding.md`, `references/mental-models.md`, `references/course-analysis.md`, `references/concept-landing-recipe.md`.

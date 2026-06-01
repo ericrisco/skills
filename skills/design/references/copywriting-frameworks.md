@@ -124,7 +124,7 @@ The `marketing` skill is the canonical owner of voice and distribution; this ban
 
 ## SEO-aware copy
 
-A structural constraint, not a keyword strategy — defer depth to `seo`.
+A structural constraint, not a keyword strategy — defer depth (keyword research, GEO, technical SEO) to the `marketing` sibling skill, which carries SEO/GEO.
 
 - Title 50–60 characters; meta description 120–160.
 - Put the primary keyword in the `<h1>` naturally, not stuffed.
@@ -135,5 +135,4 @@ A structural constraint, not a keyword strategy — defer depth to `seo`.
 
 - `landing-anatomy-and-cro.md` — where each piece of copy lands on the page.
 - `brand-grounding.md` — where the voice/positioning that drives this copy is captured and persisted.
-- `marketing` — canonical owner of voice, full landing copy, launch and channel adaptation.
-- `seo` — keyword research and technical SEO.
+- `../../marketing/SKILL.md` — canonical owner of voice, full landing copy, launch, channel adaptation, and SEO/GEO + keyword research.

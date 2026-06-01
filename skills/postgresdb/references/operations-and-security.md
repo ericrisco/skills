@@ -85,8 +85,10 @@ the highest reuse, but with hard caveats:
 - No session state across statements: `SET`/`SET search_path`, session-level `SET TIME ZONE`, and
   `LISTEN`/`NOTIFY` do not survive. Use `SET LOCAL` inside a transaction instead.
 - **Session** advisory locks (`pg_advisory_lock`) leak across clients — use `pg_advisory_xact_lock`.
-- Prepared statements need PG14 protocol-level prepared statements **and** PgBouncer ≥ 1.21 with
+- Prepared statements need a driver using **protocol-level** prepared statements (libpq `PQprepare`,
+  JDBC `PreparedStatement`, etc. — not text `PREPARE`) **and** PgBouncer ≥ 1.21 with
   `max_prepared_statements > 0`; older combinations error with "prepared statement already exists".
+  (Protocol-level `DEALLOCATE`/close requires PG17+; before that PgBouncer cannot deallocate them.)
 
 ```ini
 ; pgbouncer.ini

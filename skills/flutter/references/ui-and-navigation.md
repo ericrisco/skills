@@ -3,7 +3,7 @@
 Back to [`../SKILL.md`](../SKILL.md).
 
 Widget composition, Material 3 theming and design tokens, responsive/adaptive layout,
-slivers, the **typed go_router** API (go_router 17.2.x + `go_router_builder`), and
+slivers, the **typed go_router** API (go_router 17.2.x + `go_router_builder` 4.3.x), and
 accessibility. All code targets **Flutter 3.44 / Dart 3.12**, Material 3.
 
 ## Widget composition
@@ -245,8 +245,8 @@ scroll bars — reach for slivers instead.
 dependencies:
   go_router: ^17.2.0
 dev_dependencies:
-  go_router_builder: ^4.0.0
-  build_runner: ^2.4.0
+  go_router_builder: ^4.3.0   # generator only; pins go_router ^17.2.0 as its own dev dep — no runtime cap on your app
+  build_runner: ^2.6.0
 ```
 
 Route classes are generated from `@TypedGoRoute` annotations; each mixes in `$RouteName`:

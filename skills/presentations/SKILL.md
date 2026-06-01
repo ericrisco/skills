@@ -96,6 +96,50 @@ Deep recipes for each → `references/markdown-decks.md` and `references/pptx-py
 9. **Verify** with `scripts/verify.sh` (lint deck sources, dry export, import check) and the QA gate below.
 10. **Record deck conventions** in `02-DOCS/wiki/stack/presentations.md` (Project grounding, below).
 
+## Worked example — storyboard → theme → export (Markdown pipeline)
+
+One end-to-end pass, brand study already complete. Read this once and you rarely need to round-trip the
+references for a standard Markdown deck.
+
+**1. Storyboard the spine** (assertion headlines only — read top-to-bottom, they ARE the pitch; →
+`references/storytelling-and-decks.md`). Thesis: *"Onboarding v2 is why we can raise now."*
+
+```text
+1 Onboarding v2 cut churn 40%          (title)
+2 One in three users never finished setup   (problem — make it ache)
+3 We rebuilt the first run as one screen      (solution, one visual)
+4 Activation rose 28pts in six weeks          (proof — chart, one series)
+5 TAM is $12B, growing 24%/yr                 (market, stated assumptions)
+6 The ask: $2M to make this the default path  (CTA — one ask)
+```
+
+**2. Theme from design tokens.** Pull OKLCH palette + type scale from `02-DOCS/wiki/stack/design.md` into a
+Marp CSS theme (full theme → `references/markdown-decks.md`). The load-bearing move is mapping tokens to
+variables *once*, never hand-picking hex per slide:
+
+```css
+/* @theme brand — generated from 02-DOCS/wiki/stack/design.md */
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:wght@700&family=Inter:wght@400;600&display=swap');
+:root { --brand: oklch(0.62 0.19 264); --ink: oklch(0.18 0.03 264);
+        --surface: oklch(0.98 0.005 264); --accent: oklch(0.74 0.17 52); }
+section { background: var(--surface); color: var(--ink); font-family: Inter, sans-serif; font-size: 26px; }
+h1 { font-family: Fraunces, serif; font-size: 44px; } strong { color: var(--accent); }
+```
+
+Write the spine into `deck.md` with `marp: true`, `theme: brand`, `size: 16:9`, talk track in `<!-- notes -->`.
+
+**3. Export to PDF + PPTX** and verify fonts embed (gotchas → `references/markdown-decks.md`):
+
+```bash
+npx @marp-team/marp-cli@latest deck.md --theme ./theme.css --pdf --pdf-outlines --pdf-notes
+npx @marp-team/marp-cli@latest deck.md --theme ./theme.css --pptx     # image-per-slide; NOT editable text
+pdffonts deck.pdf            # every font must read 'emb yes'
+./scripts/verify.sh          # lint + dry export + QA checklist
+```
+
+If the client will *edit* the slides, this is the wrong pipeline — rebuild with python-pptx (→
+`references/pptx-python.md`), whose `build_deck.py` emits the same six slides as native editable shapes/charts.
+
 ## Tooling & current versions (verified 2026-06)
 
 - **Marp** — `@marp-team/marp-cli`. Run pinned: `npx @marp-team/marp-cli@latest deck.md --pdf`. Exports HTML / PDF / PPTX / PNG / JPEG. Needs a Chromium-family browser (Chrome/Edge/Firefox) for PDF/PPTX/image export. `--pptx` is image-per-slide; `--pptx-editable` is **experimental** and needs LibreOffice (`soffice`). `--notes` / a `.txt` output exports speaker notes. Node 18+. (→ `references/markdown-decks.md`)

@@ -36,7 +36,7 @@ The study is **COMPLETE** only when every dimension below is filled with real, s
 - [ ] **5. Proof & credibility** — real metrics, named customers/logos, quantified testimonials, certifications, guarantees, or traction the brand can stand behind. Mark anything aspirational as `[[NEEDS PROOF]]`, never present it as fact.
 - [ ] **6. Offers & primary CTA** — what the visitor is being asked to do (sign up, book a demo, buy, join waitlist); the primary CTA verb; any secondary CTA; pricing model if relevant.
 - [ ] **7. Channels** — where this brand actually publishes (landing page, X, LinkedIn, newsletter, email, ads); the priority order; any per-channel constraints.
-- [ ] **8. SEO keywords** — the primary keyword/theme and 3–5 secondary keywords or query phrases the audience actually searches. (Depth = `seo`; this captures intent only.)
+- [ ] **8. SEO keywords** — the primary keyword/theme and 3–5 secondary keywords or query phrases the audience actually searches. (This captures intent only; the keyword/SERP workflow and technical SEO/GEO live in `seo-geo.md`.)
 
 ## Question script (ask in batches, never all at once)
 

@@ -23,10 +23,10 @@ Pin actions by major tag (`@v4`) for routine use. For supply-chain hardening —
 
 ```yaml
 - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.2.2
-- uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+- uses: aquasecurity/trivy-action@57a97c7e7821a5776cebc9bb87c984fa69cba8f1 # v0.35.0
 ```
 
-A moving tag trusts the action's maintainer forever. In a 2026 supply-chain incident, `trivy-action`'s tags were force-pushed to credential-stealing malware; a SHA pin would have pinned the known-good commit and ignored the malicious force-push. SHA-pin every third-party action you can't fully trust to never be compromised.
+A moving tag trusts the action's maintainer forever. In the March 2026 `trivy-action` supply-chain incident ([GHSA-69fq-xp46-6x23](https://github.com/aquasecurity/trivy/security/advisories/GHSA-69fq-xp46-6x23) / CVE-2026-33634), an attacker force-pushed 76 of 77 version tags to credential-stealing malware. The advisory's named known-safe reference is `v0.35.0` — commit `57a97c7e7821a5776cebc9bb87c984fa69cba8f1`, the single clean tag still pointing at the genuine `master` HEAD; that exact SHA pin would have stayed on the known-good commit and ignored the malicious force-push. SHA-pin every third-party action you can't fully trust to never be compromised, and re-pin from the advisory's safe ref — not the latest tag — after any incident.
 
 ## Caching
 
@@ -34,10 +34,10 @@ Use each setup action's built-in cache; key custom caches on the lockfile hash s
 
 ```yaml
 - uses: actions/setup-node@v4
-  with: { node-version: 22, cache: npm }
+  with: { node-version: 24, cache: npm }
 - uses: actions/setup-go@v5
-  with: { go-version: "1.24", cache: true }
-- uses: astral-sh/setup-uv@v6
+  with: { go-version: "1.26", cache: true }
+- uses: astral-sh/setup-uv@v8
   with: { enable-cache: true }
 - uses: actions/cache@v4
   with:

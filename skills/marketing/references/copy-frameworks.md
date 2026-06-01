@@ -150,7 +150,7 @@ If a line would be out of character for the brand's samples, rewrite it — matc
 
 ## SEO-aware copy structure
 
-A structural constraint on the words, not a keyword strategy — defer depth to `seo`.
+A structural constraint on the words, not a keyword strategy — full technical SEO/GEO depth in `seo-geo.md`.
 
 - Put the primary keyword in the `<h1>` naturally, not stuffed.
 - `<h2>`/`<h3>` subheads double as answers to likely search queries.
@@ -163,4 +163,4 @@ A structural constraint on the words, not a keyword strategy — defer depth to 
 - `landing-copy.md` — where each piece of copy lands on the page.
 - `campaigns-and-channels.md` — the copy beyond the page (email, launch, channels).
 - `../../design/SKILL.md` — the visual treatment of every section.
-- `seo` — keyword research and technical SEO.
+- `seo-geo.md` — technical SEO, GEO (AI-engine citation), JSON-LD schema, keyword research.

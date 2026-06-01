@@ -131,6 +131,7 @@ Prefer **direct imports** over barrel files (`import debounce from "lodash/debou
 `import { debounce } from "lodash"`). Lazy-load heavy client-only islands:
 
 ```tsx
+"use client"; // ssr: false only works in a Client Component — it errors in a Server Component (App Router)
 import dynamic from "next/dynamic";
 
 // client-only heavy lib (charts, editors) — skip SSR, code-split it out of the initial bundle

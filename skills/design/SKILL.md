@@ -22,10 +22,10 @@ Use when:
 Do NOT use when (delegate or decline):
 
 - Pure backend/data/infra work with no UI surface → decline; there is nothing to design.
-- Dense internal operational tooling used daily (not a sales page) → apply product-domain judgment and do NOT force a landing composition (`frontend-design-direction`).
-- Native iOS/SwiftUI Liquid Glass material → `liquid-glass-design` (this skill ships the *web* glass approximation only).
-- Deep motion code mechanics (springs, `AnimatePresence` internals, layout animations) → `motion-ui` / `motion-foundations` (this skill sets motion *intent + budget*).
-- Deep keyword research or a technical SEO audit → `seo` (this skill only enforces SEO-aware *structure*).
+- Dense internal operational tooling used daily (not a sales page) → apply product-domain judgment and do NOT force a landing composition (the *frontend-design-direction* lens, an external reference — not a repo skill).
+- Native iOS/SwiftUI Liquid Glass material → the *liquid-glass-design* reference (external; this skill ships the *web* glass approximation only).
+- Deep motion code mechanics (springs, `AnimatePresence` internals, layout animations) → the *motion-ui* / *motion-foundations* references (external; this skill sets motion *intent + budget*).
+- Deep keyword research, GEO, or a technical SEO audit → the `../marketing/SKILL.md` sibling (it owns SEO-aware structure + keyword/intent; this skill only enforces SEO-aware *structure* in markup).
 
 **Tool vs. landing page:** A SaaS operations tool should be dense, quiet, and scannable — never paint a marketing skin on a tool that needs repeated daily use.
 
@@ -342,14 +342,19 @@ keep outputs consistent with them.
 
 ## See Also
 
-- `marketing` — the WORDS: value prop, hero/section copy, microcopy, launch. Co-owns the `02-DOCS/wiki/brand/` study (it owns the words dimensions; this skill owns the visual ones).
+**Sibling skills in this repo** (these resolve to real skills you can invoke):
+
+- `../marketing/SKILL.md` — the WORDS: value prop, hero/section copy, microcopy, launch, and SEO-aware copy structure + keyword/intent capture. Co-owns the `02-DOCS/wiki/brand/` study (it owns the words dimensions; this skill owns the visual ones). Hand off deep keyword/SEO/GEO work here.
 - `../nextjs/SKILL.md` — the BUILD: App Router / React 19 stack implementation.
 - `../flutter/SKILL.md` — mirror the brand tokens into a Flutter app.
-- `frontend-design-direction` — product-domain design direction.
-- `make-interfaces-feel-better` — polish-pass details.
-- `motion-ui`, `motion-foundations` — motion code mechanics (springs, `AnimatePresence`).
-- `seo` — deep technical SEO + keyword work.
-- `product-lens` — validate the "why" before you build.
-- `liquid-glass-design` — native iOS 26 Liquid Glass (this skill = web glass only).
-- `harness` — the `02-DOCS` wiki protocol the brand study follows.
-- References: `references/brand-grounding.md`, `references/research-method.md`, `references/trends-2026.md`, `references/visual-system.md`, `references/landing-anatomy-and-cro.md`, `references/copywriting-frameworks.md`, `references/motion-and-interaction.md`.
+- `../harness/SKILL.md` — the `02-DOCS` wiki protocol the brand study follows.
+
+**External / inspiration references** (NOT skills in this repo — names of well-known craft references and external skill ecosystems, cited for direction, not invocable here):
+
+- *frontend-design-direction* — product-domain design direction (e.g. dense internal tools vs sales pages); fold its judgment in via the DIRECTION BRIEF rather than expecting a sibling skill.
+- *make-interfaces-feel-better* — polish-pass micro-detail thinking; this skill's "Premium details that compound" table covers the same ground in-repo.
+- *motion-ui* / *motion-foundations* — deep motion-code mechanics (spring config, `AnimatePresence` internals, layout animations); this skill sets motion *intent + budget* and defers mechanics outward.
+- *product-lens* — validating the "why" before you build.
+- *liquid-glass-design* — native iOS 26 Liquid Glass material (this skill ships the *web* glass approximation only).
+
+- References (in this skill): `references/brand-grounding.md`, `references/research-method.md`, `references/trends-2026.md`, `references/visual-system.md`, `references/landing-anatomy-and-cro.md`, `references/copywriting-frameworks.md`, `references/motion-and-interaction.md`.

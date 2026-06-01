@@ -336,7 +336,7 @@ vulnerable code ships in your bundle whether you call it directly or not.
 # fix = upgrade to fixed-in, or override/replace if it's transitive.
 pip-audit
 npm audit --omit=dev --audit-level=high
-osv-scanner --lockfile=pnpm-lock.yaml
+osv-scanner scan source -L pnpm-lock.yaml   # v2 CLI; lockfile-aware, multi-ecosystem
 govulncheck ./...   # reports ONLY vulns your code actually calls (reachability)
 ```
 

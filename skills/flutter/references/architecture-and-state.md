@@ -291,7 +291,7 @@ dependencies:
 
 dev_dependencies:
   riverpod_generator: ^3.0.0
-  build_runner: ^2.4.0
+  build_runner: ^2.6.0
   custom_lint: ^0.7.0
   riverpod_lint: ^3.0.0
 ```
@@ -390,7 +390,7 @@ class CheckoutButton extends ConsumerWidget {
       onPressed: state is MutationPending
           ? null
           : () => checkoutMutation.run(
-              ref, (tsx) => tsx.get(checkoutControllerProvider.notifier).submit()),
+              ref, () => ref.read(checkoutControllerProvider.notifier).submit()),
       child: switch (state) {
         MutationPending() => const CircularProgressIndicator(),
         MutationError(:final error) => Text('Retry — $error'),

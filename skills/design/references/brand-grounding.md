@@ -2,7 +2,7 @@
 
 The brand study is the source of truth every design decision is grounded in. This file holds the **completeness checklist** (the visual/design dimensions a brand study must cover before you paint a single pixel), the **question script** (how to interview the user, batched), and the **persistence format** (how to write it into `02-DOCS` and link it from `CLAUDE.md`). The runtime mechanism that invokes this — the hard STOP on an incomplete study — lives in `SKILL.md` under "Brand grounding (read this first)".
 
-This skill **co-owns the brand study with the `marketing` skill**. Marketing owns the *words* dimensions (positioning, audience, value prop, voice & tone, proof, offers, channels, SEO keywords — see `marketing/references/brand-grounding.md`). Design owns the *visual* dimensions below. They write into the **same** `02-DOCS/wiki/brand/` study and the **same** `## Brand & voice` section of root `CLAUDE.md` — never a parallel copy. If marketing already created the study, extend it with the visual articles; do not duplicate the words articles.
+This skill **co-owns the brand study with the `marketing` skill**. Marketing owns the *words* dimensions (positioning, audience, value prop, voice & tone, proof, offers, channels, SEO/GEO keywords — see `../../marketing/references/brand-grounding.md`). Design owns the *visual* dimensions below. They write into the **same** `02-DOCS/wiki/brand/` study and the **same** `## Brand & voice` section of root `CLAUDE.md` — never a parallel copy. If marketing already created the study, extend it with the visual articles; do not duplicate the words articles.
 
 ## Where the brand study lives
 
@@ -45,7 +45,7 @@ The visual side of the study is **COMPLETE** only when every dimension below is 
 - [ ] **V8. Dark-mode stance** — light-only, dark-only, or both with a token-swap; if both, which is the default. (Dark mode via semantic token swap, not per-component overrides — see `visual-system.md`.)
 - [ ] **V9. Accessibility & performance constraints** — target conformance (WCAG 2.2 AA is the floor here; AAA if mandated); Core Web Vitals budget (LCP/INP/CLS); locales/RTL; reduced-motion seriousness; any device/bandwidth constraints.
 - [ ] **V10. Existing design system / tokens** — is there a Tailwind `@theme`, a `tokens.json`, a Figma library, or component kit to extend? Reusing the system beats inventing a parallel one.
-- [ ] **V11. Voice & positioning present (cross-check)** — the marketing-owned `voice.md` and `value-proposition.md` articles exist and are filled, so copy and design agree. If absent, hand off to `marketing` (or interview for them too) — a premium surface with off-voice copy is not premium.
+- [ ] **V11. Voice & positioning present (cross-check)** — the marketing-owned `voice.md` and `value-proposition.md` articles exist and are filled, so copy and design agree. If absent, hand off to the `marketing` sibling skill (or interview for them too) — a premium surface with off-voice copy is not premium.
 
 ## Question script (ask in batches, never all at once)
 
@@ -183,5 +183,5 @@ Also update `02-DOCS/wiki/index.md` (add the new brand articles) and append a on
 - `visual-system.md` — turns the captured color/type/personality into Tailwind v4 `@theme` tokens.
 - `research-method.md` — uses the reference sites (V6) as archetypes for the research loop.
 - `trends-2026.md` — researched defaults to offer when a visual dimension has no user direction.
-- `marketing/references/brand-grounding.md` — the co-owned words dimensions of the same study.
-- `harness` — the canonical `02-DOCS` wiki protocol and article templates.
+- `../../marketing/references/brand-grounding.md` — the co-owned words dimensions (incl. SEO/GEO) of the same study.
+- `../../harness/SKILL.md` — the canonical `02-DOCS` wiki protocol and article templates.

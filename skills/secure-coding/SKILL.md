@@ -213,6 +213,11 @@ if (!ft || !["image/png", "image/jpeg"].includes(ft.mime)) throw new Error("bad 
 
 ## AuthN / AuthZ in 60 seconds
 
+- **Library note (2026):** Auth.js / NextAuth v5 is still maintained (now under
+  the Better Auth team; security patches continue) and the `auth()` patterns
+  below are valid — but for *new* Next.js projects, evaluate Better Auth too. The
+  principles here (server-side authz, `HttpOnly` cookies, pinned-alg JWT) are
+  library-agnostic.
 - **Sessions vs JWT:** server-side session = easy revocation, default for
   first-party web; JWT = stateless, short access (5–15 min) + rotating refresh
   with reuse detection + a revocation story.
@@ -220,7 +225,9 @@ if (!ft || !["image/png", "image/jpeg"].includes(ft.mime)) throw new Error("bad 
   `__Host-` prefix, scoped `Path=/`. BAD = token in `localStorage` (XSS steals it).
 - **Password hashing:** Argon2id (`time_cost=3, memory_cost=65536, parallelism=4`)
   via `argon2-cffi` (Py) / `golang.org/x/crypto/argon2` (Go); bcrypt `cost>=12`
-  fallback; never SHA-256/MD5.
+  fallback; never SHA-256/MD5. (These exceed the OWASP floor of `m=19456, t=2,
+  p=1` or `m=47104, t=1, p=1` — `≥` the minimum on every axis is the bar; tune
+  `memory_cost` up until a hash takes ~0.5s on prod hardware.)
 - **CSRF:** needed for cookie-auth state-changing requests; double-submit token
   or framework token; SameSite is defense-in-depth, not sufficient alone.
 
@@ -311,8 +318,8 @@ equivalent is in `references/secrets-and-supply-chain.md`.
 | Secret scan | `gitleaks dir . --redact` | Working tree; add `gitleaks git .` for history; rotate-then-scrub on a hit |
 | SAST | `semgrep --config=auto --severity ERROR` | ERROR gates; WARNING informational |
 | Python CVEs | `pip-audit` | Upgrade to fix version; constraints for transitive |
-| Node CVEs | `npm audit --omit=dev --audit-level=high` | Or `osv-scanner --lockfile=…` (multi-ecosystem) |
-| Node CVEs (lockfile) | `osv-scanner --lockfile=pnpm-lock.yaml` | Lockfile-aware, broad ecosystem coverage |
+| Node CVEs | `npm audit --omit=dev --audit-level=high` | Or `osv-scanner scan source -L …` (multi-ecosystem) |
+| Node CVEs (lockfile) | `osv-scanner scan source -L pnpm-lock.yaml` | Lockfile-aware, broad ecosystem coverage (v2 CLI) |
 | Go CVEs | `govulncheck ./...` | Reachability-aware (only vulns you call) |
 | Password hash | Argon2id | `time_cost=3, memory_cost=65536, parallelism=4` |
 | Cookie flags | `Set-Cookie` | `__Host-name; HttpOnly; Secure; SameSite=Lax; Path=/` |

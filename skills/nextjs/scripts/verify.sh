@@ -64,15 +64,34 @@ bin_available() {
   return 1
 }
 
+# Detect the installed Next.js MAJOR version from package.json (best-effort,
+# bash-3.2 safe: no jq, no node required). Echoes a bare integer, or nothing.
+next_major() {
+  [ -f node_modules/next/package.json ] || return 0
+  # grep the "version": "x.y.z" line, then strip to the leading major integer.
+  ver="$(grep -m1 '"version"' node_modules/next/package.json 2>/dev/null \
+         | sed -e 's/.*"version"[^0-9]*//' -e 's/[^0-9].*//')"
+  [ -n "$ver" ] && printf '%s' "$ver"
+}
+
 # --- 1. ESLint -------------------------------------------------------------
+# `next lint` was REMOVED in Next.js 16 (and `next build` no longer lints).
+# So the fallback to `next lint` is only valid on v15 and earlier — on v16+ a
+# missing eslint must be a SKIP, never a FAIL (a v16 repo cannot pass a command
+# that no longer exists).
 if bin_available eslint; then
   printf '%s\n' "Running ESLint..."
   if run_bin eslint .; then ok "eslint"; else fail "eslint"; fi
-elif bin_available next; then
-  printf '%s\n' "Running next lint..."
-  if run_bin next lint; then ok "next lint"; else fail "next lint"; fi
 else
-  warn "eslint not resolvable — skipping lint" "eslint"
+  nxmajor="$(next_major)"
+  if bin_available next && [ -n "$nxmajor" ] && [ "$nxmajor" -lt 16 ] 2>/dev/null; then
+    printf '%s\n' "Running next lint... (eslint not resolvable; Next.js < 16 fallback)"
+    if run_bin next lint; then ok "next lint"; else fail "next lint"; fi
+  elif bin_available next && [ -n "$nxmajor" ]; then
+    warn "eslint not resolvable; next lint removed in Next.js ${nxmajor} — skipping lint" "eslint"
+  else
+    warn "eslint not resolvable — skipping lint" "eslint"
+  fi
 fi
 
 # --- 2. TypeScript ---------------------------------------------------------

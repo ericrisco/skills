@@ -46,7 +46,7 @@ CTA ....... See the full story
 
 Avoid all-caps, excessive punctuation, and `free`/`guarantee`/`limited time` in early sends. The subject must match the body — no bait-and-switch (it trips the QA gate and trains unsubscribes).
 
-### Deliverability note (hand the technical work to ops/`seo`/infra)
+### Deliverability note (hand the technical work to ops/infra)
 
 Authentication is not optional: SPF, DKIM (2048-bit), DMARC starting at `p=none` with reporting, tightening to quarantine/reject once aligned. Warm a new domain gradually. This skill writes the copy; flag the technical setup as a dependency rather than owning it.
 
@@ -121,7 +121,7 @@ Good — "We deleted the staging queue. Below: how per-PR environments work, the
 
 ## SEO-aware structure
 
-A structural constraint on the copy, not a keyword program — defer keyword research and technical audits to `seo`.
+A structural constraint on the copy, not a keyword program — the keyword/SERP workflow and technical audits live in `seo-geo.md`.
 
 - Exactly one `<h1>`; linear heading order (`h1` → `h2` → `h3`, no skips).
 - `<h2>`/`<h3>` subheads double as answers to likely search queries.
@@ -148,4 +148,4 @@ Meta description formula — Action + topic + value proposition + one supporting
 - `copy-frameworks.md` — frameworks and headline formulas reused across channels.
 - `landing-copy.md` — the page these campaigns drive traffic to.
 - `brand-grounding.md` — the proof and voice every channel inherits.
-- `seo` — keyword research and technical SEO depth.
+- `seo-geo.md` — technical SEO, GEO (AI-engine citation), JSON-LD schema, keyword research.

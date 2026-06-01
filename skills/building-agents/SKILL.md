@@ -120,7 +120,8 @@ class OpenAIAdapter:
         self.model, self.client = model, AsyncOpenAI()
 
     async def complete(self, req: CompletionRequest) -> CompletionResponse:
-        # system stays a `system` role message in the array
+        # Chat Completions shape (universal, still current); references/provider-abstraction.md
+        # gives the preferred Responses-API adapter. system stays a `system` role message here.
         kwargs: dict = {"model": self.model, "messages": [m.model_dump() for m in req.messages],
                         "temperature": req.temperature, "max_tokens": req.max_tokens}
         if req.tools:

@@ -46,7 +46,7 @@ Consult these first. They settle 90% of choices before you write a line.
 | --- | --- | --- |
 | FastAPI / Python | `gcr.io/distroless/python3-debian12:nonroot` (or `python:3.13-slim`) | UID 65532, no shell |
 | Go | `gcr.io/distroless/static-debian12:nonroot` | `CGO_ENABLED=0` static, ~10 MB |
-| Next.js | `node:22-bookworm-slim` | `output: "standalone"` |
+| Next.js | `node:24-bookworm-slim` | Active LTS; `output: "standalone"` |
 | Flutter web | `nginxinc/nginx-unprivileged:1.27-alpine` | static SPA + `try_files` fallback |
 | Postgres | `postgres:17-alpine` | managed/official — do NOT build a custom image |
 
@@ -244,7 +244,7 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
           provenance: true
-      - uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+      - uses: aquasecurity/trivy-action@57a97c7e7821a5776cebc9bb87c984fa69cba8f1 # v0.35.0
         with:
           image-ref: ghcr.io/${{ github.repository }}:sha-${{ github.sha }}
           exit-code: "1"
@@ -254,7 +254,7 @@ jobs:
 
 - GOOD: scoped per-job `permissions` (only `build-push` gets `packages: write` / `id-token: write`).
 - BAD: blanket `permissions: write-all` — any compromised step can push images or mint tokens.
-- GOOD: third-party actions pinned to a full commit SHA with a version comment (`@<sha> # v0.36.0`). `trivy-action` had its tags force-pushed to credential-stealing malware in a 2026 supply-chain incident — a moving tag would have pulled it; a SHA pin would not. Let Dependabot bump the SHA.
+- GOOD: third-party actions pinned to a full commit SHA with a version comment (`@<sha> # v0.35.0`). In the March 2026 `trivy-action` supply-chain incident ([GHSA-69fq-xp46-6x23](https://github.com/aquasecurity/trivy/security/advisories/GHSA-69fq-xp46-6x23) / CVE-2026-33634), 76 of 77 tags were force-pushed to credential-stealing malware; the advisory's named known-safe ref is `v0.35.0` (commit `57a97c7e7821a5776cebc9bb87c984fa69cba8f1`), the one clean tag still pointing at the real `master` HEAD. A moving tag would have pulled the malware; this SHA pin does not. Let Dependabot bump the SHA once upstream re-tags cleanly.
 
 → matrix, reusable workflows, OIDC-to-cloud, environments/approvals, releases: `references/github-actions.md`
 
@@ -425,10 +425,8 @@ brand study, technical conventions are *recorded, not gated* — never block the
 
 - `../harness/SKILL.md` — 01-TOOLS provider creds (Stripe, Postgres, OAuth…) that become Coolify runtime env.
 - `../secure-coding/SKILL.md` — input validation, authn/z, and secret-handling that this skill assumes the app already does.
-- `../fastapi/SKILL.md`, `../go/SKILL.md`, `../flutter/SKILL.md` — runtime code for the stacks you containerize here (this skill stops at the container boundary; `nextjs` and `postgresdb` skills if present cover those runtimes).
+- `../fastapi/SKILL.md`, `../nextjs/SKILL.md`, `../go/SKILL.md`, `../flutter/SKILL.md`, `../postgresdb/SKILL.md` — runtime code for the stacks you containerize here. This skill stops at the container boundary; those skills own the application code that runs inside it.
 - `references/dockerfiles-by-stack.md`, `references/github-actions.md`, `references/coolify.md`, `references/hosting-targets.md`, and `scripts/verify.sh`.
-
-FastAPI / Next.js / Go application-code skills (if present in this skills dir) own runtime code — this skill stops at the container boundary.
 
 ## References
 

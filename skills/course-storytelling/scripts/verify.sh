@@ -99,29 +99,13 @@ list_lessons() {
     2>/dev/null || true
 }
 
-# search <pattern>: case-insensitive whole-tree search over lesson files only.
-# ripgrep if present (faster), else portable grep -rnE. A no-match returns 1; swallow it.
-search() {
-  pattern="$1"
-  if have rg; then
-    rg -n --no-heading -i -e "$pattern" \
-       -g '*.md' -g '*.mdx' -g '*.txt' \
-       -g '!02-DOCS/**' -g '!node_modules/**' \
-       "$SCAN_PATH" 2>/dev/null || true
-  else
-    grep -rniE \
-      --include='*.md' --include='*.mdx' --include='*.txt' \
-      --exclude-dir='02-DOCS' --exclude-dir='node_modules' --exclude-dir='.git' \
-      -e "$pattern" "$SCAN_PATH" 2>/dev/null || true
-  fi
-}
-
 # file_has <file> <pattern>: 0 if the (case-insensitive) pattern appears in the file.
 file_has() { grep -iqE "$2" "$1" 2>/dev/null; }
 
 # --- ensure we have a searcher ----------------------------------------------
-if ! have rg && ! have grep; then
-  skip "neither ripgrep nor grep found — cannot scan; install ripgrep or grep"
+# The per-file checks use grep (via file_has); find gathers the lesson list.
+if ! have grep; then
+  skip "grep not found — cannot scan lesson sources; install grep"
   printf '\nok=%d skip=%d warn=%d fail=%d\n' "$ok_count" "$skip_count" "$warn_count" "$fail_count"
   exit 0
 fi
