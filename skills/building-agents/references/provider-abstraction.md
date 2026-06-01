@@ -193,12 +193,16 @@ class GeminiAdapter:
             system_instruction=sys_text, temperature=req.temperature, max_output_tokens=req.max_tokens,
         )
         if req.tools:
+            # Raw JSON Schema dicts go in *_json_schema (current SDK). The legacy
+            # `parameters=`/`response_schema=` fields expect a proto Schema / Pydantic
+            # type and are mutually exclusive with these — don't mix them.
             cfg.tools = [types.Tool(function_declarations=[
-                types.FunctionDeclaration(name=t.name, description=t.description, parameters=t.parameters)
+                types.FunctionDeclaration(name=t.name, description=t.description,
+                                          parameters_json_schema=t.parameters)
                 for t in req.tools])]
         if req.response_schema:
             cfg.response_mime_type = "application/json"
-            cfg.response_schema = req.response_schema
+            cfg.response_json_schema = req.response_schema
         r = await self.client.aio.models.generate_content(model=self.model, contents=contents, config=cfg)
         calls = [ToolCall(id=f"call_{i}", name=fc.name, arguments=dict(fc.args))
                  for i, fc in enumerate(r.function_calls or [])]
@@ -278,8 +282,8 @@ def _anthropic_turn(m: Message) -> dict:
 
 | Aspect | OpenAI | Anthropic | Gemini | OSS / litellm |
 |---|---|---|---|---|
-| Tool schema | `tools[].function.parameters` (JSON Schema) | `tools[].input_schema` | `FunctionDeclaration.parameters` | OpenAI shape |
-| Structured output | strict JSON Schema (`text.format`) | tool-forcing (`tool_choice`) | `responseSchema` + `responseMimeType` | strict JSON Schema if backend supports |
+| Tool schema | `tools[].function.parameters` (JSON Schema) | `tools[].input_schema` | `FunctionDeclaration.parameters_json_schema` | OpenAI shape |
+| Structured output | strict JSON Schema (`text.format`) | tool-forcing (`tool_choice`) | `response_json_schema` + `response_mime_type` | strict JSON Schema if backend supports |
 | System prompt | `system` role message | top-level `system=` param | `system_instruction` in config | `system` role message |
 | Streaming event | `response.output_text.delta` | `content_block_delta` | chunk stream (`.text` per chunk) | OpenAI delta |
 | Prompt caching | automatic cached input (−90% cached) | explicit `cache_control` (−90% read) | implicit/explicit cached content | backend-dependent |
@@ -327,8 +331,9 @@ def to_anthropic_tools(tools: list[ToolSpec]) -> list[dict]:
 
 
 def to_gemini_tools(tools: list[ToolSpec]) -> list[dict]:
+    # parameters_json_schema (not parameters) for raw JSON Schema dicts.
     return [{"function_declarations": [{"name": t.name, "description": t.description,
-            "parameters": t.parameters} for t in tools]}]
+            "parameters_json_schema": t.parameters} for t in tools]}]
 
 
 def parse_tool_calls(provider: str, raw: dict) -> list[ToolCall]:

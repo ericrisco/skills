@@ -90,8 +90,8 @@ void main() {
   });
 }
 
-const _emptyCart = Cart(id: 'c1', total: 0, items: []);
-const _fullCart = Cart(id: 'c1', total: 9, items: [
+const _emptyCart = Cart(id: 'c1', total: 0, items: const []);
+const _fullCart = Cart(id: 'c1', total: 9, items: const [
   CartItem(id: 'x', name: 'Mug', quantity: 1, unitPrice: 9),
 ]);
 ```

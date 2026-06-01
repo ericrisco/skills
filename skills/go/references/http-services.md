@@ -488,11 +488,41 @@ func readyz(db *sql.DB) http.HandlerFunc {
 	}
 }
 
-// pprof on 127.0.0.1:6060 only (blank import "net/http/pprof" registers on DefaultServeMux).
+import (
+	"net/http"
+	_ "net/http/pprof" // registers /debug/pprof/* handlers on http.DefaultServeMux
+	"time"
+)
+
+// startPprof serves pprof on 127.0.0.1:6060 only - never the public listener.
+// The blank import above is what wires the handlers; the snippet is incomplete without it.
 func startPprof() {
 	go func() {
-		s := &http.Server{Addr: "127.0.0.1:6060", Handler: http.DefaultServeMux,
-			ReadHeaderTimeout: 5 * time.Second}
+		s := &http.Server{
+			Addr:              "127.0.0.1:6060",
+			Handler:           http.DefaultServeMux, // pprof registered itself here
+			ReadHeaderTimeout: 5 * time.Second,
+		}
+		_ = s.ListenAndServe()
+	}()
+}
+```
+
+If your service already uses `http.DefaultServeMux` for real traffic, do not leak pprof onto
+it. Register the profiles on an explicit, private mux instead:
+
+```go
+import "net/http/pprof" // NOT blank: call the handlers explicitly on your own mux
+
+func startPprof() {
+	mux := http.NewServeMux()
+	mux.HandleFunc("/debug/pprof/", pprof.Index)
+	mux.HandleFunc("/debug/pprof/cmdline", pprof.Cmdline)
+	mux.HandleFunc("/debug/pprof/profile", pprof.Profile)
+	mux.HandleFunc("/debug/pprof/symbol", pprof.Symbol)
+	mux.HandleFunc("/debug/pprof/trace", pprof.Trace)
+	go func() {
+		s := &http.Server{Addr: "127.0.0.1:6060", Handler: mux, ReadHeaderTimeout: 5 * time.Second}
 		_ = s.ListenAndServe()
 	}()
 }

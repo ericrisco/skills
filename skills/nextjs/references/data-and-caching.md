@@ -17,7 +17,7 @@ Four caches sit between your code and the response:
 | --------------- | -------------------------------------------------- | ----------------------------------------------- |
 | Default `fetch` | Uncached                                           | Dynamic; cache only inside `"use cache"`        |
 | Opt-in cache    | `{ next: { revalidate, tags } }`, `unstable_cache` | `"use cache"` + `cacheLife()` + `cacheTag()`    |
-| Invalidate      | `revalidateTag` / `revalidatePath`                 | `updateTag` / `revalidateTag`                   |
+| Invalidate      | `revalidateTag` / `revalidatePath`                 | `updateTag` (immediate) / `revalidateTag` (SWR) |
 | Request dedupe  | `React.cache`                                      | `React.cache`                                   |
 | Static/dynamic  | route segment config (`dynamic`, `revalidate`)     | PPR by default (static shell + streamed holes)  |
 
@@ -98,44 +98,64 @@ export default config;
 
 ```ts
 // lib/products.ts — "use cache" at the function level
-import {
-  unstable_cacheLife as cacheLife,
-  unstable_cacheTag as cacheTag,
-} from "next/cache";
+// Next.js 16: cacheLife / cacheTag / updateTag are STABLE — no unstable_ prefix.
+import { cacheLife, cacheTag } from "next/cache";
 import { db } from "@/lib/db";
 
 export async function getProducts() {
   "use cache";
-  cacheLife("hours"); // built-in profile: seconds | minutes | hours | days | max
+  cacheLife("hours"); // built-in profile: seconds | minutes | hours | days | weeks | max
   cacheTag("products");
   return db.product.findMany();
 }
 ```
+
+> **15 → 16 transitional note only.** On the Next.js 15 *experimental* Cache Components preview these
+> were aliased: `import { unstable_cacheLife as cacheLife, unstable_cacheTag as cacheTag } from "next/cache"`.
+> On Next.js 16 they are stable — drop the `unstable_` aliases. If you still see the aliased form in a
+> repo, it is a leftover from the 15 preview, not the current API.
 
 ```ts
 // custom cacheLife profile (registered in next.config.ts under experimental, or inline object)
 cacheLife({ stale: 60, revalidate: 300, expire: 3600 }); // seconds
 ```
 
+`updateTag` and `revalidateTag` are **not** interchangeable on v16 — they have different timing:
+
+| Verb              | Timing                                                          | Where it runs                  |
+| ----------------- | -------------------------------------------------------------- | ------------------------------ |
+| `updateTag(tag)`  | **Immediate** expiry; the same request reads its own fresh write (read-your-writes). | **Server Actions only**        |
+| `revalidateTag(tag, profile)` | **Stale-while-revalidate**: serves stale now, refreshes in the background. On v16 it takes a second `cacheLife` profile argument; the single-arg form is deprecated. | Server Actions or Route Handlers |
+
 ```ts
-// invalidate: updateTag is the v16 verb (revalidateTag also works)
+// invalidate from a mutation
 "use server";
-import { revalidateTag as updateTag } from "next/cache";
+import { updateTag, revalidateTag } from "next/cache";
+
 export async function restock() {
   // ... auth + mutation ...
-  updateTag("products");
+  updateTag("products"); // user must see their own change on this very response
+}
+
+export async function nightlyReprice() {
+  // ... mutation ...
+  revalidateTag("products", "hours"); // ok to serve stale briefly; refresh in background
 }
 ```
 
-| Inside `"use cache"` you may NOT…   | Do this instead                           |
-| ----------------------------------- | ----------------------------------------- |
-| call `cookies()` / `headers()`      | read outside, pass the value as an arg    |
-| read `searchParams`                 | pass the parsed value as an arg           |
-| close over a request-scoped Promise | await/resolve it outside, pass the result |
+| Inside `"use cache"` / `"use cache: remote"` you may NOT… | Do this instead                           |
+| --------------------------------------------------------- | ----------------------------------------- |
+| call `cookies()` / `headers()`                            | read outside, pass the value as an arg    |
+| read `searchParams`                                       | pass the parsed value as an arg           |
+| close over a request-scoped Promise                       | await/resolve it outside, pass the result |
 
-Directive variants: `"use cache: private"` caches per-user (keyed by the session, never shared
-across users); `"use cache: remote"` stores the entry in the shared/remote cache. PPR streams the
-dynamic holes inside an otherwise-cached static shell, so the shell paints instantly.
+**Exception — `"use cache: private"`.** This variant *may* read `cookies()`, `headers()`, and
+`searchParams` directly. Its result is cached **only in the browser's memory** (never stored on the
+server, not persisted across reloads), so it is safe for per-user data. Use it when moving the
+request access outside and passing arguments is impractical; otherwise prefer plain `"use cache"`
+with arguments. `"use cache: remote"` stores the entry in the shared/remote cache and follows the
+same request-API restrictions as plain `"use cache"`. PPR streams the dynamic holes inside an
+otherwise-cached static shell, so the shell paints instantly.
 
 ```ts
 // Bad: a dynamic, request-scoped Promise captured inside "use cache" hangs the build
@@ -183,7 +203,8 @@ export async function renamePost(input: z.infer<typeof TitleSchema>): Promise<Re
     where: { id: parsed.data.id, authorId: session.user.id },
     data: { title: parsed.data.title },
   });
-  revalidateTag("posts"); // on v16 use updateTag — same import, named per model
+  revalidateTag("posts"); // v15: stale-while-revalidate. On v16 use updateTag("posts") for
+  //                          immediate read-your-writes, or revalidateTag("posts", "hours") for SWR.
   return { status: "ok", data: { id: post.id, title: post.title } };
 }
 ```

@@ -231,6 +231,10 @@ pg_basebackup -D /backups/base -Ft -z -P -h "$PGHOST" -U replicator
 # postgresql.conf — continuous WAL archiving enables PITR
 wal_level = replica
 archive_mode = on
+# ILLUSTRATIVE ONLY — do NOT ship this archive_command to production. Plain `cp` is not crash-safe:
+# it does not fsync the archived file or its directory, so a crash mid-archive can silently corrupt or
+# lose a WAL segment and break recovery. Use a tool that fsyncs and verifies — pgBackRest or wal-g
+# (referenced below) — as the real archive_command.
 archive_command = 'test ! -f /archive/%f && cp %p /archive/%f'
 ```
 
@@ -241,7 +245,9 @@ recovery_target_time = '2026-06-01 09:30:00+00'
 ```
 
 Test restores on a schedule — a backup you have never restored is a hypothesis, not a backup. For
-production at scale use `pgBackRest` (parallel, incremental, encrypted, with retention and verify).
+production at scale use a purpose-built tool such as `pgBackRest` or `wal-g` (parallel, incremental,
+encrypted, crash-safe archiving with retention and verify) instead of a hand-rolled `cp`-based
+`archive_command`.
 
 ## HA basics
 

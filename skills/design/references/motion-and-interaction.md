@@ -72,13 +72,20 @@ For **optimistic state** (toggle/like), flip the visual immediately on click and
 
 Native `animation-timeline: view()` and `scroll()` are the default for scroll-linked animation: zero JS, no main-thread scroll handler, no CLS. Use them before any library.
 
+Guard scroll-driven animation behind a `@supports (animation-timeline: view())` feature query so the fallback is **explicit and visible**, not accidental. Elements start fully visible (`opacity: 1`); only inside the feature query — and only when motion is allowed — do they start hidden and animate in. A browser without scroll-timeline support (or a reduced-motion user) never enters the query, so content is never stuck invisible.
+
 ```css
-/* Reveal on entry — no JS, respects reduced motion */
-@media (prefers-reduced-motion: no-preference) {
-  .reveal {
-    animation: reveal linear both;
-    animation-timeline: view();
-    animation-range: entry 0% cover 30%;
+/* Default: fully visible. No scroll-timeline support => content is never hidden. */
+.reveal { opacity: 1; }
+
+/* Progressive enhancement: only browsers WITH scroll-timeline opt in. */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .reveal {
+      animation: reveal linear both;
+      animation-timeline: view();
+      animation-range: entry 0% cover 30%;
+    }
   }
 }
 @keyframes reveal {
@@ -89,16 +96,18 @@ Native `animation-timeline: view()` and `scroll()` are the default for scroll-li
 
 ```css
 /* Parallax — element drifts as the page scrolls, driven by the scroll timeline */
-@media (prefers-reduced-motion: no-preference) {
-  .parallax {
-    animation: drift linear both;
-    animation-timeline: scroll(root block);
+@supports (animation-timeline: scroll()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .parallax {
+      animation: drift linear both;
+      animation-timeline: scroll(root block);
+    }
   }
 }
 @keyframes drift { to { translate: 0 -40px; } }
 ```
 
-Where `animation-timeline` lacks support, the element simply renders in its final keyframe state — a graceful, non-broken fallback.
+Browser support note (verified June 2026): scroll-driven timelines ship in Chromium and Firefox; Safari support is still landing, so the `@supports` query is load-bearing, not cosmetic. Where `animation-timeline` is unsupported, the feature query is skipped entirely and the element renders in its default (visible, un-drifted) state — a graceful, non-broken fallback.
 
 ## Performance budget
 
@@ -170,4 +179,4 @@ Once you are in `motion/react`, defer the mechanics (spring config, variants, `l
 - `visual-system.md` — the easing and duration tokens these animations consume.
 - `motion-ui` — production motion patterns and library mechanics.
 - `motion-foundations` — spring physics and timing theory.
-- `../nextjs/SKILL.md` — Client vs Server Component boundaries for animated UI.
+- `../../nextjs/SKILL.md` — Client vs Server Component boundaries for animated UI.

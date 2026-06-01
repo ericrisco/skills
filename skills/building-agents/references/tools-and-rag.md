@@ -412,4 +412,3 @@ recall sharp and the store bounded.
 - `provider-abstraction.md` — the `embed`/`complete` interface tools and RAG ride on.
 - `agent-loops-and-harness.md` — the `ToolResult` envelope and `dispatch` these tools fill.
 - `evals-and-observability.md` — graders for faithfulness, citation validity, and cost.
-</content>

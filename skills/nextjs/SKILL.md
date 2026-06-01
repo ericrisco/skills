@@ -259,8 +259,9 @@ export const getUser = cache(async (id: string) => db.user.findUnique({ where: {
 **v16 Cache Components** — everything dynamic by default; opt in with `"use cache"`.
 
 ```ts
-// lib/products.ts
-import { unstable_cacheLife as cacheLife, unstable_cacheTag as cacheTag, revalidateTag as updateTag } from "next/cache";
+// lib/products.ts — Next.js 16: cacheLife/cacheTag/updateTag are STABLE (no unstable_ prefix;
+// the v15 preview used `unstable_cacheLife as cacheLife`, `unstable_cacheTag as cacheTag`).
+import { cacheLife, cacheTag, updateTag } from "next/cache";
 
 export async function getProducts() {
   "use cache";
@@ -269,7 +270,8 @@ export async function getProducts() {
   return db.product.findMany();
 }
 
-// from a Server Action: invalidate
+// from a Server Action: updateTag = immediate read-your-writes;
+// revalidateTag("products", "hours") = stale-while-revalidate. See references/data-and-caching.md.
 updateTag("products");
 ```
 
@@ -393,6 +395,7 @@ See Also: `secure-coding`.
 - `next/font` — self-host, `display: "swap"`, subset → zero CLS + no extra round-trip.
 - `next/dynamic` for heavy client islands; `optimizePackageImports`; `@next/bundle-analyzer`.
 - Kill waterfalls with parallel `Promise.all` / split sibling fetches into parallel children; PPR/streaming, reserve space to avoid CLS.
+- Long lists: `content-visibility: auto` + `contain-intrinsic-size`; virtualize (`@tanstack/react-virtual`) past ~50 rows. Warm assets with `react-dom` `preload`/`preconnect`; use narrow store selectors (Zustand) to cut re-renders.
 - Core Web Vitals targets: **LCP < 2.5s, CLS < 0.1, INP < 200ms** (INP replaced FID).
 
 ## Anti-patterns → STOP
@@ -432,7 +435,9 @@ See Also: `secure-coding`.
 ## Verify
 
 Run `bash scripts/verify.sh` from the Next.js project root. It runs ESLint, `tsc --noEmit`,
-Vitest, and `next build`, skipping any tool not installed. Safe to re-run (read-only, no installs).
+Vitest, and `next build`, skipping any tool not installed (a missing tool is a yellow warning, never
+a failure). The lint/type/test steps are read-only; the final `next build` writes the `.next/`
+output directory. No installs, no network mutations. Safe to re-run.
 
 ## References
 

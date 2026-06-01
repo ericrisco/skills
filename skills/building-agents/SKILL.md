@@ -58,8 +58,11 @@ Build production LLM agents that are model-agnostic by construction — a thin p
 
 ## The provider adapter (the heart of the skill)
 
-The one payload to internalize. Python 3.12+, Pydantic v2. The full async + streaming
-interface, plus Gemini and OSS/litellm adapters, live in `references/provider-abstraction.md`.
+The one payload to internalize. Python 3.12+, Pydantic v2, **async** so it composes
+directly with the agent loop in `references/agent-loops-and-harness.md`. Streaming,
+the Gemini and OSS/litellm adapters, tool-result plumbing, and a `route()` registry live
+in `references/provider-abstraction.md` — this excerpt is the load-bearing core, not the
+whole interface.
 
 ```python
 from __future__ import annotations
@@ -105,18 +108,18 @@ class CompletionResponse(BaseModel):
 
 @runtime_checkable
 class LLMProvider(Protocol):
-    # SKILL excerpt is sync; the production interface is async + streaming —
-    # see references/provider-abstraction.md.
-    def complete(self, req: CompletionRequest) -> CompletionResponse: ...
+    # Async so it drives the async agent loop directly. The full interface in
+    # references/provider-abstraction.md adds stream() and embed().
+    async def complete(self, req: CompletionRequest) -> CompletionResponse: ...
 
 
 class OpenAIAdapter:
     def __init__(self, model: str) -> None:
-        from openai import OpenAI
+        from openai import AsyncOpenAI
 
-        self.model, self.client = model, OpenAI()
+        self.model, self.client = model, AsyncOpenAI()
 
-    def complete(self, req: CompletionRequest) -> CompletionResponse:
+    async def complete(self, req: CompletionRequest) -> CompletionResponse:
         # system stays a `system` role message in the array
         kwargs: dict = {"model": self.model, "messages": [m.model_dump() for m in req.messages],
                         "temperature": req.temperature, "max_tokens": req.max_tokens}
@@ -124,7 +127,7 @@ class OpenAIAdapter:
             kwargs["tools"] = [{"type": "function", "function": {"name": t.name, "description": t.description, "parameters": t.parameters}} for t in req.tools]
         if req.response_schema:
             kwargs["response_format"] = {"type": "json_schema", "json_schema": {"name": "out", "schema": req.response_schema, "strict": True}}
-        r = self.client.chat.completions.create(**kwargs)
+        r = await self.client.chat.completions.create(**kwargs)
         msg = r.choices[0].message
         calls = [{"id": c.id, "name": c.function.name, "arguments": c.function.arguments} for c in (msg.tool_calls or [])]
         return CompletionResponse(text=msg.content or "", tool_calls=calls, raw=r.model_dump(),
@@ -133,11 +136,11 @@ class OpenAIAdapter:
 
 class AnthropicAdapter:
     def __init__(self, model: str) -> None:
-        from anthropic import Anthropic
+        from anthropic import AsyncAnthropic
 
-        self.model, self.client = model, Anthropic()
+        self.model, self.client = model, AsyncAnthropic()
 
-    def complete(self, req: CompletionRequest) -> CompletionResponse:
+    async def complete(self, req: CompletionRequest) -> CompletionResponse:
         # QUIRKS: system is a top-level param (not a message); tools use input_schema (not function).
         system = "\n".join(m.content for m in req.messages if m.role == "system") or None
         turns = [{"role": m.role, "content": m.content} for m in req.messages if m.role != "system"]
@@ -147,7 +150,7 @@ class AnthropicAdapter:
         if req.response_schema:  # structured output via tool-forcing
             kwargs["tools"] = [{"name": "out", "description": "Emit the result", "input_schema": req.response_schema}]
             kwargs["tool_choice"] = {"type": "tool", "name": "out"}
-        r = self.client.messages.create(**kwargs)
+        r = await self.client.messages.create(**kwargs)
         text = "".join(b.text for b in r.content if b.type == "text")
         calls = [{"id": b.id, "name": b.name, "arguments": b.input} for b in r.content if b.type == "tool_use"]
         return CompletionResponse(text=text, tool_calls=calls, raw=r.model_dump(),
@@ -162,7 +165,7 @@ def get_provider(spec: str | None = None) -> LLMProvider:
     if provider == "anthropic":
         return AnthropicAdapter(model)
     raise ValueError(f"unknown provider: {provider!r}")
-# Gemini + OSS/litellm adapters, async, streaming, and tool-result plumbing
+# Gemini + OSS/litellm adapters, streaming, tool-result plumbing, and route() registry
 # -> references/provider-abstraction.md
 ```
 
@@ -179,14 +182,14 @@ def summarize(text: str) -> str:
 ```python
 # GOOD — one adapter resolved from config; logic never names a model.
 provider = get_provider(settings.llm)  # e.g. "anthropic:claude-sonnet-4-6"
-def summarize(text: str) -> str:
+async def summarize(text: str) -> str:
     req = CompletionRequest(model=settings.model_id, messages=[Message(role="user", content=text)])
-    return provider.complete(req).text
+    return (await provider.complete(req)).text
 ```
 
 ```python
 # BAD — parse-and-pray; wrong shape fails silently at 3am.
-raw = provider.complete(req).text
+raw = (await provider.complete(req)).text
 try:
     data = json.loads(raw)
 except json.JSONDecodeError:
@@ -200,28 +203,28 @@ class Answer(BaseModel):
     score: float
 
 req.response_schema = Answer.model_json_schema()
-ans = Answer.model_validate_json(provider.complete(req).text)
+ans = Answer.model_validate_json((await provider.complete(req)).text)
 ```
 
 ```python
 # BAD — unbounded loop; no cap/timeout/idempotency. Burns budget, repeats side effects, wedges.
 while True:
-    resp = provider.complete(req)
+    resp = await provider.complete(req)
     if not resp.tool_calls:
         break
     for call in resp.tool_calls:
-        run_tool(call)
+        await run_tool(call)
 ```
 
 ```python
 # GOOD — bounded loop: step cap + per-tool timeout + idempotency key (safe to retry).
 for step in range(max_steps):
-    resp = provider.complete(req)
+    resp = await provider.complete(req)
     if not resp.tool_calls:
         break
     for call in resp.tool_calls:
-        with asyncio.timeout(tool_timeout_s):
-            run_tool(call, idempotency_key=call["id"])
+        async with asyncio.timeout(tool_timeout_s):
+            await run_tool(call, idempotency_key=call["id"])
 # full loop, budgets, recovery -> references/agent-loops-and-harness.md
 ```
 
@@ -311,7 +314,7 @@ async def answer(query: str) -> str:
         messages=[Message(role="system", content="Answer ONLY from context; cite chunk ids like [12]."),
                   Message(role="user", content=f"{context}\n\nQ: {query}")],
     )
-    return (await provider.acomplete(req)).text
+    return (await provider.complete(req)).text
 # chunking, hybrid RRF, rerank, citation grader, memory -> references/tools-and-rag.md
 ```
 
@@ -324,12 +327,12 @@ import sys
 import time
 
 
-def run_eval(golden_path: str, graders: list, thresholds: dict[str, float]) -> None:
+async def run_eval(golden_path: str, graders: list, thresholds: dict[str, float]) -> None:
     cases = [json.loads(line) for line in open(golden_path)]  # {"input","expected","meta"}
     results = []
     for case in cases:
         t0 = time.perf_counter()
-        out = provider.complete(CompletionRequest(model=settings.model_id,
+        out = await provider.complete(CompletionRequest(model=settings.model_id,
               messages=[Message(role="user", content=case["input"])]))
         scores = {g.name: g.grade(case, out) for g in graders}  # exact / schema / LLM-judge
         results.append({"scores": scores, "cost": out.usage.cost_usd,
@@ -358,11 +361,11 @@ from opentelemetry import trace
 tracer = trace.get_tracer("agent")
 
 
-def traced_complete(provider: LLMProvider, req: CompletionRequest) -> CompletionResponse:
+async def traced_complete(provider: LLMProvider, req: CompletionRequest) -> CompletionResponse:
     with tracer.start_as_current_span("chat") as span:
         span.set_attribute("gen_ai.system", settings.llm.split(":")[0])
         span.set_attribute("gen_ai.request.model", req.model)
-        resp = provider.complete(req)
+        resp = await provider.complete(req)
         span.set_attributes({"gen_ai.usage.input_tokens": resp.usage.input_tokens,
                              "gen_ai.usage.output_tokens": resp.usage.output_tokens,
                              "gen_ai.usage.cost_usd": resp.usage.cost_usd})
@@ -376,7 +379,7 @@ def traced_complete(provider: LLMProvider, req: CompletionRequest) -> Completion
 **Native tools** when the agent and tools share a process/repo. **MCP** when tools must be reused across clients/teams or run out-of-process — accept the MCP cost (schema tokens, transport, ops) in exchange for reuse.
 
 ```python
-from mcp.server.fastmcp import FastMCP
+from fastmcp import FastMCP  # standalone fastmcp 2.x; see references/mcp-servers.md
 
 mcp = FastMCP("invoices")
 
@@ -424,7 +427,7 @@ if __name__ == "__main__":
 |---|---|---|
 | Define a provider | `LLMProvider` Protocol + normalized request/response | `references/provider-abstraction.md` |
 | Add a tool | Pydantic args model + `ToolResult` + validating dispatcher | `references/tools-and-rag.md` |
-| Structured output | Strict JSON Schema (OpenAI) / tool-forcing (Anthropic) / `responseSchema` (Gemini) | `references/provider-abstraction.md` |
+| Structured output | Strict JSON Schema (OpenAI) / tool-forcing (Anthropic) / `response_json_schema` (Gemini) | `references/provider-abstraction.md` |
 | Build the loop | Bounded perceive → decide → act → observe with budgets | `references/agent-loops-and-harness.md` |
 | Multi-agent | Orchestrator-worker + parallel fan-out with a semaphore | `references/agent-loops-and-harness.md` |
 | RAG | `pgvector` ANN + hybrid RRF + rerank + cite | `references/tools-and-rag.md` |

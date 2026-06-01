@@ -1,6 +1,6 @@
 ---
 name: design
-description: "Use when designing a modern UI, building a high-converting landing page, crafting marketing or value-prop copy, refreshing a hero, choosing type/color/spacing/motion, or making an interface feel premium instead of generic/AI-templated. Research-first: studies award-winning current work (Awwwards, Godly, Land-book, Refactoring UI, Linear/Stripe/Vercel-tier) before prescribing. Ships Tailwind v4 + Next.js 15 + React 19 patterns with WCAG 2.2 AA and Core Web Vitals (LCP/INP/CLS) as hard design constraints. Triggers: 'design a landing page', 'make this look premium', 'write the hero copy', 'pick a color palette', 'this UI feels generic', 'conversion copywriting', 'bento section', 'design review'."
+description: "Use when designing a modern UI, building/writing a high-converting landing page or web page, refreshing a hero, choosing type/color/spacing/motion, or making an interface feel premium instead of generic/AI-templated. Brand-grounded: reads the project's 02-DOCS brand study first and STOPS to interview the user if it is missing or incomplete. Research-first: studies award-winning current work (Awwwards, Godly, Land-book, Refactoring UI, Linear/Stripe/Vercel/Resend-tier) and pulls current 2026 trends with citations before prescribing. Ships Tailwind v4 + Next.js 15 + React 19 patterns with correctly-stated WCAG 2.2 AA and Core Web Vitals (LCP/INP/CLS) as hard design constraints; ties to 'marketing' for the words and 'nextjs' for the build. Triggers: 'design a landing page', 'build a web page', 'make this look premium', 'pick a color palette', 'this UI feels generic', 'bento section', 'design review', 'modern UI'."
 origin: risco
 ---
 
@@ -29,20 +29,38 @@ Do NOT use when (delegate or decline):
 
 **Tool vs. landing page:** A SaaS operations tool should be dense, quiet, and scannable — never paint a marketing skin on a tool that needs repeated daily use.
 
-## The non-negotiables (read first)
+## Brand grounding (read this first)
+
+Before producing ANY landing / web-page / marketing output, ground in the project's brand study. A design with no brand behind it is a guess, and a guess defaults to your AI-generic prior. This step is mandatory and self-reinforcing: **an incomplete brand study is a hard stop, not a warning.**
+
+Follow the risco-project-harness 02-DOCS convention (brand study = wiki articles under `02-DOCS/wiki/brand/`, raw inputs under `02-DOCS/raw/brand/`, linked from root `CLAUDE.md`):
+
+1. **Locate the brand study.** Read the project root `CLAUDE.md` and look for a `## Brand & voice` section pointing into `02-DOCS/wiki/brand/...`. If present, read those articles.
+2. **If the link is MISSING, or the brand study is ABSENT or INCOMPLETE** (any checklist dimension empty), STOP. Do not design yet. Instead:
+   - Ask the user the targeted question script — **ONE focused batch at a time**, not a wall of questions — until every dimension in the completeness checklist is filled. (→ `references/brand-grounding.md`)
+   - Write/update the brand study into `02-DOCS/wiki/brand/` (and paste any raw inputs the user gives — screenshots, existing palettes, competitor lists — into `02-DOCS/raw/brand/`), following the wiki article format, and update `wiki/index.md` + `wiki/log.md`.
+   - Add/update a `## Brand & voice` section in the root `CLAUDE.md` linking to it (create `CLAUDE.md` if absent).
+3. **Only once the brand study exists and is sufficient, proceed** — and cite which brand articles drove which decisions in your output (e.g. "palette from `02-DOCS/wiki/brand/visual-identity.md`").
+
+The completeness checklist spans visual identity (OKLCH color system, type pairing & scale, logo, imagery/illustration mood, density, radius/shadow/motion personality), reference/inspiration sites the user loves, layout preferences, dark-mode stance, accessibility & performance constraints, and brand voice/positioning (so copy and design agree). Full checklist + exact question script → `references/brand-grounding.md`.
+
+The order is: **brand grounding → trend research → build.** If the brand study lacks aesthetic direction, or the user asks for "modern" / "2026" / "premium", run the research-first protocol (below) and fold current, cited findings into the output.
+
+## The non-negotiables
 
 These are constraints, not preferences. Violating any one is a defect, not a style choice.
 
-1. **Research before you prescribe.** Run the research protocol; never ship from stale memory — your default taste skews AI-generic. (→ `references/research-method.md`)
-2. **5-second value prop.** What it is, who it's for, and why it's better must be legible above the fold in 5 seconds.
-3. **One `<h1>` per page;** semantic landmarks (`header`/`nav`/`main`/`section`/`footer`).
-4. **Core Web Vitals are design constraints:** LCP < 2.5s, INP < 200ms, CLS < 0.1. (INP replaced FID in March 2024 — measure INP.)
-5. **WCAG 2.2 AA:** 4.5:1 text contrast (3:1 large text / UI), visible focus, 44×44px targets, `prefers-reduced-motion` honored.
-6. **Design tokens, never magic numbers.** Tailwind v4 `@theme` → CSS vars.
-7. **Spacing on a 4/8px scale; type on a modular scale; color allocated 60-30-10.**
-8. **Motion must guide attention, communicate state, or preserve continuity** — else delete it.
-9. **Copy is benefit-led and specific.** No hype; the ban-list is enforced. (→ `references/copywriting-frameworks.md`)
-10. **Match the product domain.** Density and composition follow the audience and the job, not a template.
+1. **Ground in the brand study before you design.** No `02-DOCS/wiki/brand/` study, or an incomplete one → STOP and complete it. (→ "Brand grounding" above, `references/brand-grounding.md`)
+2. **Research before you prescribe.** Run the research protocol; never ship from stale memory — your default taste skews AI-generic. Pull current 2026 trends with citations + dates. (→ `references/research-method.md`, `references/trends-2026.md`)
+3. **5-second value prop.** What it is, who it's for, and why it's better must be legible above the fold in 5 seconds.
+4. **One `<h1>` per page;** semantic landmarks (`header`/`nav`/`main`/`section`/`footer`).
+5. **Core Web Vitals are design constraints:** LCP < 2.5s, INP < 200ms, CLS < 0.1. (INP replaced FID in March 2024 — measure INP.)
+6. **WCAG 2.2 AA:** 4.5:1 text contrast (3:1 large text / UI), visible focus, `prefers-reduced-motion` honored. Target size: 24×24px is the AA floor (SC 2.5.8 Target Size (Minimum)); 44×44px is the recommended quality bar (Apple HIG / pointer comfort) — aim for 44, never ship below 24.
+7. **Design tokens, never magic numbers.** Tailwind v4 `@theme` → CSS vars.
+8. **Spacing on a 4/8px scale; type on a modular scale; color allocated 60-30-10.**
+9. **Motion must guide attention, communicate state, or preserve continuity** — else delete it.
+10. **Copy is benefit-led and specific.** No hype; the ban-list is enforced. (→ `references/copywriting-frameworks.md`)
+11. **Match the product domain.** Density and composition follow the audience and the job, not a template.
 
 ## Decision rules (pick a direction first)
 
@@ -79,7 +97,7 @@ Trends churn quarterly and your built-in aesthetic prior is the median of every 
 5. Synthesize a one-paragraph DESIGN DIRECTION with citations (which URL contributed what).
 6. Only THEN build; re-check the result against the references in QA.
 
-Re-research per project — trends churn, competitors moved, and the domain dictates the reference set. Full loop, source map, and synthesis template → `references/research-method.md`.
+Re-research per project — trends churn, competitors moved, and the domain dictates the reference set. Do not rely on stale memory: whenever the brand study lacks aesthetic direction or the user asks for "modern" / "2026" / "premium", WebSearch/WebFetch current trends (award sites, Linear/Stripe/Vercel/Resend-tier, current type/color/motion/layout moves), fold the findings into the output **with citations + dates**, and refresh `references/trends-2026.md`. Full loop, source map, and synthesis template → `references/research-method.md`. Current snapshot (dated, cited) → `references/trends-2026.md`.
 
 ## Visual system in 90 seconds
 
@@ -193,12 +211,15 @@ Frameworks, value-prop canvas, Bad→Good rewrites, VOICE block → `references/
 - Scroll-driven via native CSS `animation-timeline: view()` FIRST (no JS, no CLS) before any JS library.
 
 ```css
-/* Good — native scroll-driven reveal, zero JS, respects reduced motion */
-@media (prefers-reduced-motion: no-preference) {
-  .reveal {
-    animation: reveal linear both;
-    animation-timeline: view();
-    animation-range: entry 0% cover 30%;
+/* Good — native scroll-driven reveal, zero JS, explicit @supports fallback */
+.reveal { opacity: 1; } /* default visible: no scroll-timeline support => never hidden */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .reveal {
+      animation: reveal linear both;
+      animation-timeline: view();
+      animation-range: entry 0% cover 30%;
+    }
   }
 }
 @keyframes reveal {
@@ -257,7 +278,7 @@ Depth recipes, glass, noise, concentric math → `references/visual-system.md`.
 | Color allocation | 60-30-10 | bg / fg / brand |
 | Text contrast | ≥ 4.5:1 (3:1 large) | verify with checker |
 | Card radius | 0.875rem | `--radius-card` |
-| Touch target | ≥ 44×44px | `min-h-11` |
+| Touch target | 44×44px recommended; 24×24px AA floor (SC 2.5.8) | `min-h-11` |
 | Enter / exit motion | 250ms / 150ms | `--ease-out` |
 | LCP | < 2.5s | `next/image priority` |
 | INP | < 200ms | compositor-only motion |
@@ -271,7 +292,7 @@ Run before claiming done. Same checks `scripts/verify.sh` falls back to.
 - [ ] Value prop legible in 5 seconds above the fold.
 - [ ] Text contrast ≥ 4.5:1 (3:1 for large text / UI).
 - [ ] Visible focus state on all interactive elements.
-- [ ] Touch targets ≥ 44×44px.
+- [ ] Touch targets 44×44px (recommended); never below the 24×24px WCAG 2.2 AA floor (SC 2.5.8).
 - [ ] `prefers-reduced-motion` honored.
 - [ ] Exactly one `<h1>` on the page.
 - [ ] Semantic landmarks present (`header`/`nav`/`main`/`section`/`footer`).
@@ -285,14 +306,35 @@ Run before claiming done. Same checks `scripts/verify.sh` falls back to.
 
 Automate → `scripts/verify.sh` (runs Lighthouse if a dev server is up, else static grep checks + this list).
 
+### Optional: graded visual-audit rubric (0–10)
+
+The checklist above is pass/fail. When the user asks for a *design review*, a *critique*, or a quality grade — or when you want to argue a surface is genuinely premium rather than merely compliant — score these 10 dimensions 0–10 and report the weighted total. Pass/fail tells you it ships; the rubric tells you how good it is.
+
+| # | Dimension | What a 10 looks like | Weight |
+| --- | --- | --- | --- |
+| 1 | First impression & value clarity | Passes the 5s test instantly; product shown, not a gradient | 1.5 |
+| 2 | Typographic craft | Modular scale, ≤2 families, balanced headings, 45–75ch measure, tabular numerals | 1.0 |
+| 3 | Color & contrast | Disciplined 60-30-10 OKLCH system, all text ≥ 4.5:1, dark mode via token swap | 1.0 |
+| 4 | Layout & spacing rhythm | Consistent 4/8px scale, intentional asymmetry/bento, clear focal point | 1.0 |
+| 5 | Hierarchy & scannability | Eye lands in the right order; one primary action per viewport | 1.0 |
+| 6 | Depth & detail polish | Concentric radius, layered shadows, hairline borders, restrained glass | 1.0 |
+| 7 | Motion quality | Purposeful only, compositor-only props, reduced-motion + `@supports` guards | 1.0 |
+| 8 | Accessibility | Landmarks, one `<h1>`, visible focus, 24px+ targets (44 ideal), no motion-only meaning | 1.0 |
+| 9 | Performance (CWV) | LCP < 2.5s, INP < 200ms, CLS < 0.1; LCP image `priority`, `next/font` | 1.0 |
+| 10 | Copy & brand fidelity | Benefit-led, specific, ban-list clean, voice matches the `02-DOCS/wiki/brand/` study | 0.5 |
+
+Score = Σ(dimension × weight), max 100. **Bands:** < 60 ships generic — redo; 60–79 competent but improvable — name the lowest two and fix; 80–94 premium; 95+ award-tier. For each dimension below 8, give one concrete, actionable fix (not "improve spacing" but "section padding jumps 48→96px with no 64px step — add `py-16` on mobile"). Cite the brand article or trend source that sets the bar where relevant.
+
 ## See Also
 
-- `../nextjs/SKILL.md` — App Router / React 19 stack implementation.
+- `marketing` — the WORDS: value prop, hero/section copy, microcopy, launch. Co-owns the `02-DOCS/wiki/brand/` study (it owns the words dimensions; this skill owns the visual ones).
+- `../nextjs/SKILL.md` — the BUILD: App Router / React 19 stack implementation.
+- `../flutter/SKILL.md` — mirror the brand tokens into a Flutter app.
 - `frontend-design-direction` — product-domain design direction.
 - `make-interfaces-feel-better` — polish-pass details.
 - `motion-ui`, `motion-foundations` — motion code mechanics (springs, `AnimatePresence`).
-- `brand-voice`, `content-engine` — voice profile and multi-platform distribution.
 - `seo` — deep technical SEO + keyword work.
 - `product-lens` — validate the "why" before you build.
 - `liquid-glass-design` — native iOS 26 Liquid Glass (this skill = web glass only).
-- References: `references/research-method.md`, `references/visual-system.md`, `references/landing-anatomy-and-cro.md`, `references/copywriting-frameworks.md`, `references/motion-and-interaction.md`.
+- `risco-project-harness` — the `02-DOCS` wiki protocol the brand study follows.
+- References: `references/brand-grounding.md`, `references/research-method.md`, `references/trends-2026.md`, `references/visual-system.md`, `references/landing-anatomy-and-cro.md`, `references/copywriting-frameworks.md`, `references/motion-and-interaction.md`.

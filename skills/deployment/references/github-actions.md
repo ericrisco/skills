@@ -19,11 +19,14 @@ concurrency:
   cancel-in-progress: true
 ```
 
-Pin actions by major tag (`@v4`) for routine use. For supply-chain hardening, pin the full 40-char commit SHA (Dependabot still bumps it):
+Pin actions by major tag (`@v4`) for routine use. For supply-chain hardening — and always for security-scanning actions — pin the full 40-char commit SHA (Dependabot still bumps it):
 
 ```yaml
 - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.2.2
+- uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
 ```
+
+A moving tag trusts the action's maintainer forever. In a 2026 supply-chain incident, `trivy-action`'s tags were force-pushed to credential-stealing malware; a SHA pin would have pinned the known-good commit and ignored the malicious force-push. SHA-pin every third-party action you can't fully trust to never be compromised.
 
 ## Caching
 

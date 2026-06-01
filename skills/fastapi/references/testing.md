@@ -63,38 +63,38 @@ identical.
 
 ## Transactional isolation fixture
 
-The canonical SQLAlchemy 2.0 async per-test rollback recipe. Each test runs inside an outer
-transaction plus a SAVEPOINT; service code may call `commit()` (which only releases the
-savepoint), and the whole thing is rolled back at teardown so the DB is pristine between
-tests — fast, no `create_all`/`drop_all` per test.
+The canonical SQLAlchemy 2.0 async per-test rollback recipe. Open a connection, begin an
+outer transaction on it, and bind an `AsyncSession` with
+`join_transaction_mode="create_savepoint"`. With that mode, every `session.commit()` the
+service code runs only releases an internal SAVEPOINT — the outer transaction stays open and
+is rolled back at teardown, so the DB is pristine between tests with no `create_all` /
+`drop_all` per test. The mode is built into SQLAlchemy 2.0+, so the old
+`after_transaction_end` event listener that manually restarted savepoints is no longer
+needed.
 
 ```python
 import pytest
-from sqlalchemy import event
 from sqlalchemy.ext.asyncio import AsyncSession
 
 
 @pytest.fixture
 async def db_session(engine) -> AsyncSession:
-    connection = await engine.connect()
-    trans = await connection.begin()
-    session = AsyncSession(bind=connection, expire_on_commit=False)
-    await connection.begin_nested()
-
-    @event.listens_for(session.sync_session, "after_transaction_end")
-    def _restart_savepoint(sess, transaction):
-        if transaction.nested and not transaction._parent.nested:
-            sess.begin_nested()
-
-    yield session
-
-    await session.close()
-    await trans.rollback()
-    await connection.close()
+    async with engine.connect() as connection:
+        outer = await connection.begin()
+        session = AsyncSession(
+            bind=connection,
+            expire_on_commit=False,
+            join_transaction_mode="create_savepoint",  # commits become SAVEPOINT releases
+        )
+        try:
+            yield session
+        finally:
+            await session.close()
+            await outer.rollback()  # discard everything the test wrote
 ```
 
-Every test runs inside an outer transaction + SAVEPOINT that is rolled back, so the DB is
-pristine between tests even though service code calls `commit()`.
+The session's `commit()` calls never reach the database as real commits, so each test sees a
+clean schema and the rollback at teardown leaves no residue for the next test.
 
 ## The async client fixture
 
@@ -102,8 +102,13 @@ Put this in `conftest.py`. It builds the app, swaps the request `get_db` for the
 transactional test session, and drives it over `ASGITransport` (in-process, no socket).
 `base_url="http://test"` satisfies httpx's absolute-URL requirement.
 
+Build the app in its own fixture so other fixtures (auth, feature flags) can register
+`dependency_overrides` on the *same* instance the client drives — no reaching into
+`client._transport.app`.
+
 ```python
 import pytest
+from fastapi import FastAPI
 from httpx import ASGITransport, AsyncClient
 
 from app.api.deps import get_db
@@ -111,9 +116,14 @@ from app.main import create_app
 
 
 @pytest.fixture
-async def client(db_session) -> AsyncClient:
-    app = create_app()
-    app.dependency_overrides[get_db] = lambda: db_session
+def app(db_session) -> FastAPI:
+    application = create_app()
+    application.dependency_overrides[get_db] = lambda: db_session
+    return application
+
+
+@pytest.fixture
+async def client(app: FastAPI) -> AsyncClient:
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as c:
         yield c
@@ -131,17 +141,19 @@ machinery. Use (b) when you are specifically exercising the decode/claims path.
 ```python
 # (a) Inject a fixed user, bypassing the real token decode.
 import pytest
+from fastapi import FastAPI
 
 from app.api.deps import get_current_user
 from app.models.user import User
 
 
 @pytest.fixture
-async def auth_client(client, db_session) -> AsyncClient:
+async def auth_client(app: FastAPI, client, db_session) -> AsyncClient:
     user = User(email="auth@example.com", full_name="Auth", hashed_password="x")
     db_session.add(user)
     await db_session.flush()
-    client._transport.app.dependency_overrides[get_current_user] = lambda: user  # type: ignore[attr-defined]
+    # Override on the same app the client drives — no client._transport.app reach-in.
+    app.dependency_overrides[get_current_user] = lambda: user
     return client
 ```
 

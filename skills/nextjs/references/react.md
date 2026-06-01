@@ -98,7 +98,7 @@ export function Comments({ commentsPromise }: { commentsPromise: Promise<{ id: s
 
 Most pages need neither Context nor a global store — server-derived data belongs in an RSC.
 
-```
+```text
 Where does this state live?
 ├── Used by one component only            → useState (local)
 ├── Parent + a few descendants            → lift to the nearest common parent, pass props

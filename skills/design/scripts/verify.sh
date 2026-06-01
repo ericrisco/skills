@@ -10,7 +10,8 @@
 #   2. Always runs static, network-free design-review grep checks (one <h1>,
 #      no `transition: all`, hardcoded hex vs tokens, missing image alt, missing
 #      prefers-reduced-motion, marketing ban-list words).
-#   3. If Lighthouse did not run, prints the 14-point manual QA checklist.
+#   3. If Lighthouse did not run, prints the manual QA checklist. For a graded
+#      0-10 critique, use the visual-audit rubric in SKILL.md instead.
 #
 # HOW TO RUN (inside YOUR project, not the skills repo)
 #   ./verify.sh                       # static checks + Lighthouse if localhost:3000 is up
@@ -25,6 +26,17 @@
 # Missing tools are SKIPPED with a yellow notice, never failed.
 
 set -euo pipefail
+
+# --- portability: runs on stock macOS bash 3.2 ------------------------------
+# This script intentionally avoids bash 4+ features (no `mapfile`/`readarray`,
+# no associative arrays, no `${arr[@]}` under set -u). It uses only scalar
+# counters and `read` loops, so it degrades gracefully on the default macOS
+# /bin/bash (3.2). If somehow run under an older/non-bash shell, warn and exit
+# cleanly rather than crashing.
+if [ -z "${BASH_VERSION:-}" ]; then
+  printf 'This script requires bash (any version >= 3.2). Run: bash %s\n' "$0" >&2
+  exit 2
+fi
 
 # --- color helpers (no escape codes when not a TTY) -------------------------
 if [ -t 1 ]; then
@@ -60,10 +72,12 @@ have() { command -v "$1" >/dev/null 2>&1; }
 
 # search wrapper: ripgrep if present, else portable grep -rnE. Both print file:line.
 search() {
+  [ "$#" -gt 0 ] || return 1
   if have rg; then
     rg -n --no-heading "$@"
   else
-    # last arg is the pattern; everything before are paths/globs we ignore for grep
+    # last arg is the pattern; everything before are paths/globs we ignore for grep.
+    # `${*: -1}` (last positional) is supported on bash 3.2; the space before -1 is required.
     local pattern="${*: -1}"
     grep -rnE "$pattern" . 2>/dev/null
   fi
@@ -191,7 +205,7 @@ Manual design-review checklist (Lighthouse did not run):
   [ ] Value prop legible in 5 seconds above the fold.
   [ ] Text contrast >= 4.5:1 (3:1 for large text / UI).
   [ ] Visible focus state on all interactive elements.
-  [ ] Touch targets >= 44x44px.
+  [ ] Touch targets 44x44px (recommended); never below the 24x24px WCAG 2.2 AA floor (SC 2.5.8).
   [ ] prefers-reduced-motion honored.
   [ ] Exactly one <h1> on the page.
   [ ] Semantic landmarks present (header/nav/main/section/footer).

@@ -1,7 +1,7 @@
 # Secrets & supply chain
 
 Keep secrets out of the repo and out of client bundles, pin every dependency,
-and gate the result in CI. Tools: `gitleaks`, `pip-audit`/`uv`, `osv-scanner`,
+and gate the result in CI. Tools: `gitleaks`, `pip-audit` (or `uvx pip-audit`), `osv-scanner`,
 `npm`/`pnpm`, `govulncheck`, `syft`. Versions: Python 3.12+ /
 `pydantic-settings`, Next.js 15, Go 1.22+, PostgreSQL 16.
 
@@ -80,7 +80,8 @@ credential immediately and treat the scrub as cleanup.
 ```bash
 # Rotate the credential at the provider FIRST. Then:
 git filter-repo --path config/secrets.yml --invert-paths   # scrub from history
-gitleaks detect --no-banner --redact --exit-code 1         # confirm it's gone
+gitleaks git . --no-banner --redact --exit-code 1          # confirm history is clean
+gitleaks dir . --no-banner --redact --exit-code 1          # confirm working tree is clean
 ```
 
 ## Rotation
@@ -178,8 +179,9 @@ jobs:
       - name: gitleaks
         uses: gitleaks/gitleaks-action@v2
       - name: semgrep
-        uses: returntocorp/semgrep-action@v1
-        with: { config: auto }
+        # The semgrep-action wrapper is deprecated; run the CLI directly
+        # (here in its official image) and let `semgrep ci` gate the build.
+        run: docker run --rm -v "$PWD:/src" -w /src semgrep/semgrep semgrep ci --config=auto
       - name: python audit
         if: hashFiles('**/pyproject.toml', '**/requirements*.txt') != ''
         run: pipx run pip-audit

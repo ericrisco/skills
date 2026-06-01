@@ -14,9 +14,19 @@
 #   7. summary; exit non-zero only on a real failure
 #
 # Env: SKIP_DOCKER_BUILD=1 to skip the build smoke; NO_COLOR=1 to disable color.
+#
+# Portability: runs on stock macOS bash 3.2 (no `mapfile`, no bash-4 features) and
+# on CI's bash 5 — that local<->CI parity is the whole point. Arrays are populated
+# without `mapfile` and always pre-initialised so `set -u` can't abort on an empty
+# array under bash 3.2.
 set -euo pipefail
 
 have() { command -v "$1" >/dev/null 2>&1; }
+
+# bash 3.2 aborts on `"${arr[@]}"` when arr is empty *and* unset under `set -u`.
+# Initialise every array up front and guard expansions with `${arr[@]+...}` so an
+# empty array is never an unbound-variable error. Never use `mapfile` (bash 4+).
+DOCKERFILES=()
 
 if [[ -n "${NO_COLOR:-}" ]]; then YEL=""; GRN=""; RED=""; RST=""
 else YEL=$'\033[33m'; GRN=$'\033[32m'; RED=$'\033[31m'; RST=$'\033[0m'; fi
@@ -29,7 +39,17 @@ BUILT_IMAGE=""
 SMOKE_TAG="verify-smoke:local"
 
 # 1. discover
-mapfile -t DOCKERFILES < <(find . -name 'Dockerfile' -o -name 'Dockerfile.*' 2>/dev/null | grep -v node_modules || true)
+# Parenthesize the `-name ... -o -name ...` group so the path filter (-not -path)
+# applies to BOTH name patterns — otherwise the second pattern matches vendored or
+# example Dockerfiles and we'd smoke-build the wrong one. Read results with a while
+# loop (bash-3.2-safe; no `mapfile`). NUL-delimited so paths with spaces survive.
+while IFS= read -r -d '' df; do
+  DOCKERFILES+=("$df")
+done < <(find . \
+  \( -path '*/node_modules/*' -o -path '*/vendor/*' -o -path '*/.git/*' \
+     -o -path '*/examples/*' -o -path '*/example/*' -o -path '*/testdata/*' \) -prune \
+  -o \( -name 'Dockerfile' -o -name 'Dockerfile.*' \) -type f -print0 2>/dev/null)
+
 WORKFLOWS_DIR=".github/workflows"
 HAVE_WORKFLOWS=0; [[ -d "$WORKFLOWS_DIR" ]] && HAVE_WORKFLOWS=1
 COMPOSE=$(find . -maxdepth 2 \( -name 'compose*.y*ml' -o -name 'docker-compose*.y*ml' \) 2>/dev/null | head -n1 || true)
@@ -38,8 +58,12 @@ if [[ ${#DOCKERFILES[@]} -eq 0 && $HAVE_WORKFLOWS -eq 0 && -z "$COMPOSE" ]]; the
 fi
 
 # 2. hadolint
-if have hadolint; then
-  for df in "${DOCKERFILES[@]}"; do
+if [[ ${#DOCKERFILES[@]} -eq 0 ]]; then
+  warn "no Dockerfile found — skipping Dockerfile lint"
+elif have hadolint; then
+  # `${arr[@]+"${arr[@]}"}` guards the expansion so an empty array is safe under
+  # `set -u` on bash 3.2 (we already know it's non-empty here, but stay consistent).
+  for df in ${DOCKERFILES[@]+"${DOCKERFILES[@]}"}; do
     if hadolint --failure-threshold warning "$df"; then ok "hadolint $df"
     else fail "hadolint $df"; FAILED=1; fi
   done

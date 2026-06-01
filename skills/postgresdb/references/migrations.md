@@ -4,6 +4,11 @@ Safe DDL against tables with real data and live traffic, on PostgreSQL 16, acros
 golang-migrate, Alembic, and Prisma. Running example: add `avatar_url` to `users`, index it
 concurrently, backfill `display_name`.
 
+> Using Drizzle, Kysely, Django, or another migration runner not shown here? The engine-level rules
+> below (expand–contract, `CONCURRENTLY` outside a txn, `NOT VALID` then `VALIDATE`, batched backfill)
+> are identical regardless of runner — translate the raw-SQL recipes into your tool's directives. For
+> the per-tool workflow/wiring of those runners, see the sibling `database-migrations` skill.
+
 ## Principles
 
 - **Forward-only in prod.** Roll back with a new forward migration, not by editing history.

@@ -1,6 +1,6 @@
 # Conversion Copywriting Frameworks
 
-The marketing-copy engine. Copy carries the value prop — the prettiest hero fails if the words are vague. Write benefit-led, specific, and human. Voice and distribution depth live in `brand-voice` and `content-engine`; this file makes the on-page copy convert.
+The marketing-copy engine. Copy carries the value prop — the prettiest hero fails if the words are vague. Write benefit-led, specific, and human. The `marketing` skill is the canonical owner of the WORDS (voice, full landing copy, launch, channel adaptation) and grounds them in the same `02-DOCS/wiki/brand/` study; this file is the design-side quick reference that makes on-page copy convert and keeps it in sync with the design. For anything beyond the hero/section copy, hand off to `marketing`.
 
 ## The 5s value-prop test
 
@@ -103,7 +103,7 @@ Buttons use value verbs; forms label clearly; states stay human.
 
 ## Voice/tone system
 
-Define a reusable VOICE block once and apply it everywhere. If `brand-voice` exists, consume its profile; otherwise fill this:
+Define a reusable VOICE block once and apply it everywhere. If a brand study exists under `02-DOCS/wiki/brand/voice.md` (owned by `marketing`), consume its profile verbatim; otherwise fill this and persist it back to the brand study:
 
 ```text
 VOICE
@@ -120,7 +120,7 @@ State once, enforce everywhere. These signal AI-template copy and erode trust:
 
 `revolutionary` · `game-changer` · `cutting-edge` · "In today's landscape" · `unlock` · `seamless` · `elevate` · `supercharge` · bait questions ("Tired of slow deploys?") · "not X, just Y" · forced lowercase as a style · "Excited to share".
 
-`brand-voice` and `content-engine` are the canonical owners of voice and distribution; this ban-list is the on-page enforcement of their rules.
+The `marketing` skill is the canonical owner of voice and distribution; this ban-list is the on-page enforcement of its rules.
 
 ## SEO-aware copy
 
@@ -134,6 +134,6 @@ A structural constraint, not a keyword strategy — defer depth to `seo`.
 ## See Also
 
 - `landing-anatomy-and-cro.md` — where each piece of copy lands on the page.
-- `brand-voice` — canonical voice profile.
-- `content-engine` — multi-platform distribution of the copy.
+- `brand-grounding.md` — where the voice/positioning that drives this copy is captured and persisted.
+- `marketing` — canonical owner of voice, full landing copy, launch and channel adaptation.
 - `seo` — keyword research and technical SEO.

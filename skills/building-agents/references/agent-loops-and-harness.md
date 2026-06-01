@@ -369,5 +369,3 @@ key — re-running a completed step is a no-op (see `tools-and-rag.md`).
 
 - `provider-abstraction.md` — the `LLMProvider` this loop drives, plus `complete_structured`.
 - `tools-and-rag.md` — the `dispatch`, idempotency keys, and sandboxing the loop relies on.
-</content>
-</invoke>

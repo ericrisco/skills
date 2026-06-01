@@ -143,5 +143,5 @@ When the direction changes mid-project (new competitor, pivot), re-run the loop 
 ## See Also
 
 - `visual-system.md` — turn the filled direction into tokens.
-- `../nextjs/SKILL.md` — implement the chosen direction on the App Router stack.
+- `../../nextjs/SKILL.md` — implement the chosen direction on the App Router stack.
 - `frontend-design-direction` — product-domain direction judgment.

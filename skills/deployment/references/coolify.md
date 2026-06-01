@@ -1,6 +1,6 @@
-# Coolify (v4.1) — deploy target
+# Coolify (v4) — deploy target
 
-Coolify v4.1 (mid-2026): a self-hosted PaaS using a Traefik reverse proxy and automatic Let's Encrypt SSL. This chapter maps every deploy decision to concrete Coolify fields. Back to the entrypoint: `../SKILL.md`.
+Coolify v4: a self-hosted PaaS using a Traefik reverse proxy and automatic Let's Encrypt SSL. This chapter maps every deploy decision to concrete Coolify fields. Back to the entrypoint: `../SKILL.md`.
 
 ## What Coolify is (v4)
 
@@ -63,8 +63,18 @@ curl --fail -X PATCH \
 - Set **Health Check** Path, Port, Interval, Timeout, and Retries on the resource.
 - On deploy, Coolify starts the new container and waits for it to report healthy **before** routing traffic and stopping the old one — a healthcheck-gated rolling swap.
 - A failing healthcheck aborts the swap: the old container keeps serving, so a broken build never goes live.
-- True zero-downtime for multi-service **Compose** is slated for v5; single-service rolling is solid in v4.1.
 - The Dockerfile `HEALTHCHECK` documents intent and works in `docker compose`; **Coolify's configured check is what gates the swap** — set it explicitly in the UI.
+
+### Rolling-update prerequisites — ALL FOUR or it silently falls back to stop-then-start
+
+Coolify only performs a true zero-downtime rolling swap when every one of these holds. Miss any and it quietly degrades to a recreate (brief downtime), often with no warning in the UI:
+
+1. **A valid health check is configured and passing.** Coolify waits for the new container to report healthy before cutting traffic; no check = no gate.
+2. **Default container naming.** A custom container name breaks the rolling logic — Coolify can't track the old/new pair, so it falls back to stop-then-start. Leave naming on the default.
+3. **No published host port.** A host-mapped port (`ports:`/published port binding) makes the new container collide with the old one on the same host port during the overlap window, so both can't run at once — Traefik routes by the internal port instead, so you do not need a published host port. Set **Ports Exposes** (the internal container port), not a host publish.
+4. **Not the Docker Compose build pack.** Compose uses static container names and can't run an old/new pair side by side, so rolling updates are unsupported there. Single-service Dockerfile/Nixpacks/Static/Image packs get rolling; multi-service Compose zero-downtime is slated for a later release. For Compose, use the blue-green pattern below.
+
+If you need a custom name or a published host port (e.g. exposing a raw TCP service that Traefik can't front), accept stop-then-start downtime or move to blue-green.
 
 Field reference (UI → Health Checks):
 
@@ -93,6 +103,8 @@ Use `/readyz` (checks DB connectivity) for the swap gate so a new container that
 - Apps reach them over the internal network via the service name (no public exposure by default).
 - Enable **scheduled S3 backups** on the database resource — Coolify runs `pg_dump`/equivalent to object storage.
 - Keep databases internal: only expose a public port for a deliberate, firewalled admin path.
+
+Network segmentation: by default Coolify resources in the same project can resolve each other over a shared Docker network. For multi-tenant or sensitive stacks, put each app+DB pair on its own **custom Docker network** (Coolify lets you assign one per resource) and attach only the services that must talk — a leaked app credential then can't reach a database it was never meant to. Connect the app and its DB to the same custom network; leave unrelated resources off it.
 
 A managed Postgres resource exposes an internal hostname (the service name). Wire the app's `DATABASE_URL` to it as a Runtime secret:
 

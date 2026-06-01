@@ -18,7 +18,7 @@ async FastAPI service on Python 3.12+. The mental model: **the app is a thin asy
 layer over typed dependencies, a service/repository core, and explicit DB sessions. Routes
 validate and delegate; they never own business logic, raw SQL, or secrets.**
 
-Pinned stack: Python 3.12+, FastAPI 0.115+, Starlette 0.41+, Pydantic v2 (2.9+) +
+Pinned stack: Python 3.12+, FastAPI 0.136+, Starlette 0.46+, Pydantic v2 (2.7+) +
 pydantic-settings 2.x, SQLAlchemy 2.0 async, Alembic 1.13+, asyncpg 0.30 / psycopg 3,
 httpx 0.28+, pytest 8 + pytest-asyncio 0.24+ (`asyncio_mode=auto`), ruff 0.7+, mypy 1.13+
 strict, uv 0.5+, uvicorn 0.32+ / gunicorn 23+, PyJWT 2.9, argon2-cffi 23+, pip-audit 2.7+,
@@ -93,43 +93,98 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.routers import health, users
-from app.core.config import get_settings
+from app.core.config import Settings, get_settings
 from app.db.base import engine
 from app.exceptions import register_exception_handlers
 
+# Routers paired with their mount prefix + OpenAPI tag, declared once so the factory
+# stays a flat loop instead of a wall of include_router() calls.
+ROUTERS = (
+    (health.router, "/health", "health"),
+    (users.router, "/api/v1/users", "users"),
+)
+
 
 @asynccontextmanager
-async def lifespan(app: FastAPI):
-    # Startup: connections/caches are created here, never at import time.
+async def lifespan(_app: FastAPI):
+    # Open pools/caches here on startup — never at import time, so importing the module
+    # has no side effects (tests and Alembic import it freely).
     yield
-    # Shutdown: release pooled connections so workers exit cleanly.
+    # On shutdown, hand pooled DB connections back so workers exit without dangling sockets.
     await engine.dispose()
 
 
-def create_app() -> FastAPI:
-    settings = get_settings()
-    app = FastAPI(title=settings.api_title, version=settings.api_version, lifespan=lifespan)
-
+def _install_cors(app: FastAPI, settings: Settings) -> None:
+    if not settings.cors_origins:
+        return  # no browser clients configured -> skip the middleware entirely
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=settings.cors_origins,            # explicit list, never ["*"] with creds
-        allow_credentials=bool(settings.cors_origins),
+        allow_origins=settings.cors_origins,   # explicit per-env list, never ["*"] with creds
+        allow_credentials=True,
         allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE"],
         allow_headers=["Authorization", "Content-Type"],
     )
 
+
+def create_app(settings: Settings | None = None) -> FastAPI:
+    settings = settings or get_settings()
+    app = FastAPI(title=settings.api_title, version=settings.api_version, lifespan=lifespan)
+
     register_exception_handlers(app)
-    app.include_router(health.router, prefix="/health", tags=["health"])
-    app.include_router(users.router, prefix="/api/v1/users", tags=["users"])
+    _install_cors(app, settings)
+    for router, prefix, tag in ROUTERS:
+        app.include_router(router, prefix=prefix, tags=[tag])
     return app
 
 
 app = create_app()
 ```
 
-**Bad** = `allow_origins=["*"]` with `allow_credentials=True` — browsers reject it and
-Starlette disallows it for credentialed requests. `→ references/production.md` for proxy
-headers / logging wiring at startup.
+Accepting an optional `settings` argument lets tests build the app with overridden config
+without touching the `get_settings` cache. **Bad** = `allow_origins=["*"]` with
+`allow_credentials=True` — browsers reject it and Starlette refuses to echo `*` for
+credentialed requests. `→ references/production.md` for proxy headers / logging wiring at
+startup.
+
+## Customizing the OpenAPI schema
+
+FastAPI builds the OpenAPI document lazily and caches it on `app.openapi_schema`. To inject
+extra metadata (servers, security schemes, a logo, tags) build the base schema once, mutate
+it, cache it, and **assign your function to `app.openapi`** — assigning the callable (not
+calling it eagerly) preserves the lazy-build-and-cache contract and lets `/docs` and
+`/openapi.json` pick it up.
+
+```python
+from typing import Any
+
+from fastapi import FastAPI
+from fastapi.openapi.utils import get_openapi
+
+
+def customize_openapi(app: FastAPI) -> None:
+    def build() -> dict[str, Any]:
+        if app.openapi_schema:                 # serve the cached doc on later calls
+            return app.openapi_schema
+        schema = get_openapi(
+            title=app.title,
+            version=app.version,
+            description="Authenticate via the OAuth2 password flow at /auth/login.",
+            routes=app.routes,
+        )
+        schema["servers"] = [{"url": "https://api.example.com", "description": "production"}]
+        schema.setdefault("components", {})["securitySchemes"] = {
+            "bearerAuth": {"type": "http", "scheme": "bearer", "bearerFormat": "JWT"},
+        }
+        app.openapi_schema = schema
+        return schema
+
+    app.openapi = build  # type: ignore[method-assign]  # assign, don't call — keep it lazy
+```
+
+Call `customize_openapi(app)` inside `create_app()` before returning. **Bad** =
+`app.openapi_schema = customize_openapi(app)()` at import time — it forces the schema to
+build before every route is registered, so late `include_router` calls go missing from the
+docs.
 
 ## Configuration (pydantic-settings)
 
@@ -172,30 +227,39 @@ from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, EmailStr, Field, computed_field
 
+# Reusable constrained types keep the same rule in one place across the three models.
+FullName = Annotated[str, Field(min_length=1, max_length=100)]
+RawPassword = Annotated[str, Field(min_length=12, max_length=128)]
 
-class UserBase(BaseModel):
+
+class UserInput(BaseModel):
+    """Fields a client may send. Create/Update narrow this; Response never inherits it."""
+
     email: EmailStr
-    full_name: Annotated[str, Field(min_length=1, max_length=100)]
+    full_name: FullName
 
 
-class UserCreate(UserBase):
-    password: Annotated[str, Field(min_length=12, max_length=128)]
+class UserCreate(UserInput):
+    password: RawPassword
 
 
 class UserUpdate(BaseModel):
+    # Every field optional: a PATCH sends only what changes.
     email: EmailStr | None = None
-    full_name: Annotated[str | None, Field(min_length=1, max_length=100)] = None
+    full_name: FullName | None = None
 
 
-class UserResponse(UserBase):
-    model_config = ConfigDict(from_attributes=True)
+class UserResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)  # populate straight off ORM attributes
 
     id: UUID
+    email: EmailStr
+    full_name: str
     created_at: datetime
 
     @computed_field  # type: ignore[prop-decorator]
     @property
-    def display(self) -> str:
+    def label(self) -> str:
         return f"{self.full_name} <{self.email}>"
 ```
 
@@ -220,13 +284,15 @@ from app.db.base import async_session_factory
 
 
 async def get_db() -> AsyncIterator[AsyncSession]:
-    async with async_session_factory() as session:
-        try:
-            yield session
-            await session.commit()
-        except Exception:
-            await session.rollback()
-            raise
+    session = async_session_factory()
+    try:
+        yield session
+        await session.commit()   # commit only if the handler returned without raising
+    except Exception:
+        await session.rollback()  # any error (incl. HTTP exceptions) unwinds the txn
+        raise
+    finally:
+        await session.close()    # always release the connection back to the pool
 
 
 DbSession = Annotated[AsyncSession, Depends(get_db)]
@@ -354,7 +420,7 @@ def register_exception_handlers(app: FastAPI) -> None:
 from datetime import datetime
 from uuid import UUID, uuid4
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
@@ -375,7 +441,7 @@ class User(Base):
     email: Mapped[str] = mapped_column(unique=True, index=True)
     full_name: Mapped[str]
     hashed_password: Mapped[str]
-    created_at: Mapped[datetime] = mapped_column(server_default="now()")
+    created_at: Mapped[datetime] = mapped_column(server_default=func.now())
 
 
 async def list_users(db: AsyncSession, limit: int, offset: int) -> list[User]:
@@ -410,6 +476,7 @@ it runs in-process and dies with the worker, with no retry or visibility.
 
 ```python
 import pytest
+from fastapi import FastAPI
 from httpx import ASGITransport, AsyncClient
 
 from app.api.deps import get_db
@@ -417,9 +484,14 @@ from app.main import create_app
 
 
 @pytest.fixture
-async def client(db_session):  # db_session: transactional fixture, see references/testing.md
-    app = create_app()
-    app.dependency_overrides[get_db] = lambda: db_session
+def app(db_session) -> FastAPI:  # db_session: transactional fixture, see references/testing.md
+    application = create_app()
+    application.dependency_overrides[get_db] = lambda: db_session
+    return application
+
+
+@pytest.fixture
+async def client(app: FastAPI):
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as c:
         yield c
     app.dependency_overrides.clear()

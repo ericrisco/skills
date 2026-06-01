@@ -6,6 +6,9 @@ set -euo pipefail
 # Detects each tool; missing tools print a yellow WARN and are skipped (not failures).
 # Exit 0 = all present checks passed (or only skips). Non-zero = a real failure.
 # Read-only: never writes files, never installs anything (npx uses --no-install).
+#
+# Portable to stock macOS bash 3.2: no `mapfile`, no `pipefail` reliance, and every
+# array expansion is guarded so it is safe under `set -u` even when empty.
 
 if [ -t 1 ] && command -v tput >/dev/null 2>&1 && [ "$(tput colors 2>/dev/null || echo 0)" -ge 8 ]; then
   YELLOW="$(tput setaf 3)"; RED="$(tput setaf 1)"; GREEN="$(tput setaf 2)"; RESET="$(tput sgr0)"
@@ -20,18 +23,28 @@ fail() { printf '%s[FAIL]%s %s\n' "$RED" "$RESET" "$1" >&2; rc=1; }
 have() { command -v "$1" >/dev/null 2>&1; }
 
 # Directories likely to hold example code; fall back to "." with vendored dirs pruned.
+# Result is returned newline-delimited so callers read it without arrays (bash 3.2 safe).
 PRUNE='-path ./node_modules -o -path ./.venv -o -path ./venv -o -path ./dist -o -path ./build -o -path ./.git'
 pick_dirs() {
-  local found=()
+  found=""
   for d in examples agents src; do
-    [ -d "$d" ] && found+=("$d")
+    [ -d "$d" ] && found="${found}${d}
+"
   done
-  if [ "${#found[@]}" -gt 0 ]; then printf '%s\n' "${found[@]}"; else printf '%s\n' "."; fi
+  if [ -n "$found" ]; then printf '%s' "$found"; else printf '%s\n' "."; fi
 }
+
+# Populate the PYDIRS array portably (no `mapfile`; works on bash 3.2).
+PYDIRS=()
+while IFS= read -r _d; do
+  [ -n "$_d" ] && PYDIRS+=("$_d")
+done <<EOF
+$(pick_dirs)
+EOF
+[ "${#PYDIRS[@]}" -gt 0 ] || PYDIRS=(".")   # never expand an empty array under set -u
 
 # 1. Python lint (ruff)
 if have ruff; then
-  mapfile -t PYDIRS < <(pick_dirs)
   if find "${PYDIRS[@]}" \( $PRUNE \) -prune -o -name '*.py' -print 2>/dev/null | grep -q .; then
     info "ruff: linting ${PYDIRS[*]}"
     if ! ruff check "${PYDIRS[@]}"; then fail "ruff reported lint errors"; fi
@@ -44,7 +57,6 @@ fi
 
 # 2. Python typecheck (mypy) — soft: only if config present
 if have mypy && { [ -f mypy.ini ] || [ -f setup.cfg ] || grep -qs '\[tool.mypy\]' pyproject.toml 2>/dev/null; }; then
-  mapfile -t PYDIRS < <(pick_dirs)
   info "mypy: typechecking ${PYDIRS[*]}"
   if ! mypy "${PYDIRS[@]}"; then fail "mypy reported type errors"; fi
 elif have mypy; then
@@ -60,6 +72,7 @@ if [ -f tsconfig.json ] && have npx; then
 elif have node && find . \( $PRUNE \) -prune -o \( -name '*.mjs' -o -name '*.js' \) -print 2>/dev/null | grep -q .; then
   info "node --check: syntax-checking JS/MJS examples"
   while IFS= read -r f; do
+    [ -n "$f" ] || continue
     node --check "$f" || fail "node --check failed: $f"
   done < <(find . \( $PRUNE \) -prune -o \( -name '*.mjs' -o -name '*.js' \) -print)
 else
@@ -84,9 +97,9 @@ done
 if [ -n "$EVAL_ENTRY" ] && have python; then
   info "eval smoke (dry-run): $EVAL_ENTRY"
   if ! EVAL_DRY_RUN=1 python "$EVAL_ENTRY" --dry-run; then fail "eval smoke dry-run failed"; fi
-elif [ -f package.json ] && have npx && grep -qs '"eval"' package.json; then
+elif [ -f package.json ] && have npm && grep -qs '"eval"' package.json; then
   info "eval smoke (dry-run): npm run eval -- --dry-run"
-  if ! EVAL_DRY_RUN=1 npx --no-install npm run eval -- --dry-run; then fail "eval smoke dry-run failed"; fi
+  if ! EVAL_DRY_RUN=1 npm run eval -- --dry-run; then fail "eval smoke dry-run failed"; fi
 else
   warn "no eval smoke entrypoint (evals/run.py|smoke.py|scripts/eval_smoke.py|package.json eval); skipping"
 fi

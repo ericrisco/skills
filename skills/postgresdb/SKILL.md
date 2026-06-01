@@ -334,11 +334,13 @@ FROM pg_stat_user_indexes WHERE idx_scan = 0 ORDER BY relname;
 ## Verify
 
 Run `scripts/verify.sh` from your project root. It lints discovered SQL with `sqlfluff` (if
-configured), syntax-sanity-checks migration files and flags foot-guns (`CREATE INDEX` without
-`CONCURRENTLY` in a migration, `ADD COLUMN ... NOT NULL` without `DEFAULT`, `VACUUM FULL`), and — only
-if `DATABASE_URL` and `psql` are present — checks that `pg_stat_statements` is enabled. Missing tools
-are skipped with a yellow `[skip]`, never a failure; it never writes and never connects without
-`DATABASE_URL`.
+configured), syntax-sanity-checks migration files (the quote/paren balance check is dollar-quote and
+block-comment aware) and flags foot-guns (`CREATE INDEX` without `CONCURRENTLY` in a migration,
+`ADD COLUMN ... NOT NULL` without `DEFAULT`, `VACUUM FULL`), and — only if `DATABASE_URL` and `psql`
+are present — checks that `pg_stat_statements` is enabled. It exits non-zero **only** on a real
+`sqlfluff` lint error; everything else (missing tools, heuristic quote/paren warnings, DB unreachable)
+is advisory `[skip]`/`[warn]`, never a failure. Runs on stock macOS bash 3.2; it never writes and
+never connects without `DATABASE_URL`.
 
 ## See Also
 

@@ -62,7 +62,7 @@ Consult these first. They settle 90% of choices before you write a line.
 | --- | --- |
 | Backward-compatible | Rolling (Coolify default, healthcheck-gated) |
 | Breaking / instant cutover / risky migration | Blue-green: two Coolify resources + domain swap |
-| Want gradual % traffic | Not on vanilla Coolify (no traffic split) — use feature flags |
+| Want gradual % traffic (canary) | Canary = release to a small subset, watch metrics, then ramp. Vanilla Coolify has no traffic split — emulate with feature flags (in-app % gating) or a blue-green pair behind a flagged path |
 
 **Table D — Secret delivery**
 
@@ -238,7 +238,7 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
           provenance: true
-      - uses: aquasecurity/trivy-action@0.28.0
+      - uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
         with:
           image-ref: ghcr.io/${{ github.repository }}:sha-${{ github.sha }}
           exit-code: "1"
@@ -248,6 +248,7 @@ jobs:
 
 - GOOD: scoped per-job `permissions` (only `build-push` gets `packages: write` / `id-token: write`).
 - BAD: blanket `permissions: write-all` — any compromised step can push images or mint tokens.
+- GOOD: third-party actions pinned to a full commit SHA with a version comment (`@<sha> # v0.36.0`). `trivy-action` had its tags force-pushed to credential-stealing malware in a 2026 supply-chain incident — a moving tag would have pulled it; a SHA pin would not. Let Dependabot bump the SHA.
 
 → matrix, reusable workflows, OIDC-to-cloud, environments/approvals, releases: `references/github-actions.md`
 
@@ -318,7 +319,20 @@ type Config struct {
 cfg := env.Must(env.ParseAs[Config]()) // exits at boot if invalid → fail-fast
 ```
 
-- Log JSON to stdout (slog for Go, structlog/uvicorn JSON for FastAPI, pino for Next.js); never log secrets; expose `/healthz` (liveness) + `/readyz` (deps).
+- Log JSON to stdout (slog for Go, structlog/uvicorn JSON for FastAPI, pino for Next.js); never log secrets; expose `/healthz` (liveness, no deps) + `/readyz` (checks deps).
+
+```python
+# FastAPI: liveness is dependency-free; readiness probes the DB so a node that
+# can't reach Postgres never takes traffic during the rolling swap.
+@app.get("/healthz")
+async def healthz() -> dict[str, str]:
+    return {"status": "ok"}
+
+@app.get("/readyz")
+async def readyz() -> dict[str, str]:
+    await db.execute("SELECT 1")   # raises 500 if the DB is unreachable
+    return {"status": "ready"}
+```
 
 ## Anti-patterns — rationalizations → STOP
 

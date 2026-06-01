@@ -1,6 +1,6 @@
 # Visual System — Tokens, Type, Color, Layout, Depth
 
-The full design-token and aesthetics system. Define tokens once with Tailwind v4 `@theme`; consume them everywhere as utilities and raw `var()`. Targets the current stack: Tailwind v4.1, Next.js 15, React 19, OKLCH-native color.
+The full design-token and aesthetics system. Define tokens once with Tailwind v4 `@theme`; consume them everywhere as utilities and raw `var()`. Targets the current stack (verified June 2026): Tailwind CSS v4.3, Next.js 15, React 19, OKLCH-native color.
 
 ## Spacing scale
 
@@ -212,10 +212,12 @@ Mirror the source-of-truth tokens in a `tokens.json` so other tools (Flutter, ic
 }
 ```
 
-Make the cross-platform parity concrete — the Flutter app uses the same brand hue:
+Make the cross-platform parity concrete — the Flutter app uses the same brand hue. OKLCH is the source of truth; the sRGB hex is an **approximation** (Flutter's `Color` is sRGB-only, so the wider-gamut OKLCH value cannot round-trip exactly). Label it as such so no one treats the hex as canonical:
 
 ```dart
-// lib/theme.dart — Flutter mirror of the brand token (Dart 3 / Flutter stable)
+// lib/theme.dart — Flutter mirror of the brand token (Dart 3 / Flutter stable).
+// 0xFF5B54FF is an sRGB APPROXIMATION (≈) of the canonical oklch(0.62 0.19 256);
+// regenerate from the OKLCH source token, never hand-edit this hex.
 final brand = const Color(0xFF5B54FF); // ≈ oklch(0.62 0.19 256)
 final theme = ThemeData(colorScheme: ColorScheme.fromSeed(seedColor: brand));
 ```
@@ -231,4 +233,4 @@ final theme = ThemeData(colorScheme: ColorScheme.fromSeed(seedColor: brand));
 
 - `motion-and-interaction.md` — animate these tokens with intent.
 - `landing-anatomy-and-cro.md` — apply the system across a full page.
-- `../flutter/SKILL.md` — implement the mirrored tokens in the Flutter app.
+- `../../flutter/SKILL.md` — implement the mirrored tokens in the Flutter app.

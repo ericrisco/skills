@@ -17,7 +17,7 @@ origin: risco
 
 Write, review, test, secure, and ship idiomatic Go HTTP services.
 
-Targets **Go 1.22+** (assume 1.23/1.24 stable): enhanced `net/http` routing
+Targets **Go 1.22+** (1.25/1.26 current at time of writing): enhanced `net/http` routing
 (`mux.HandleFunc("GET /users/{id}", h)` + `r.PathValue`), `log/slog` structured
 logging, and fixed loop-variable semantics (no more `tt := tt`).
 
@@ -258,7 +258,11 @@ go func() {
 `sync.Once` (lazy init), `sync.RWMutex` (read-heavy state), `sync/atomic` (`atomic.Int64`
 counters) cover most low-level needs. **Run `-race` in CI.**
 
-Full pipelines, fan-in/out, semaphores, `singleflight`, leak detection ->
+Resilient upstream calls need a `withRetry` helper: exponential backoff + full jitter, honor
+`ctx`, and a `retryIf` guard that **never retries a 4xx** (retry timeouts/`5xx`/`429` only).
+Full implementation -> `references/concurrency.md`.
+
+Full pipelines, fan-in/out, semaphores, `singleflight`, retry/backoff, leak detection ->
 `references/concurrency.md`.
 
 ## HTTP services (essentials)
@@ -358,7 +362,7 @@ Golden files, fuzzing, benchmarks, httptest matrices, interface fakes ->
 
 ## Security (embedded)
 
-Parametrize SQL (PostgreSQL 16; prefer `pgx v5`); cap request bodies and reject unknown
+Parametrize SQL (PostgreSQL; prefer `pgx v5` over `database/sql`); cap request bodies and reject unknown
 fields; set a TLS floor and trust the `crypto/tls` defaults:
 
 ```go

@@ -418,4 +418,3 @@ the table before trusting any number.
 
 - `provider-abstraction.md` — the `LLMProvider` the runner, judge, and router all use.
 - `agent-loops-and-harness.md` — budgets and `AgentState` the `CostTracker` complements.
-</content>

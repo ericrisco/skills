@@ -37,8 +37,13 @@ forward-port cleanly and scale horizontally.
 
 ## Python server (FastMCP)
 
-The `mcp` Python SDK ships FastMCP: decorators register tools/resources/prompts; Pydantic
-types on the signature become the input schema automatically.
+FastMCP gives you decorators that register tools/resources/prompts; Pydantic types on the
+signature become the input schema automatically. Two packages expose a `FastMCP` class:
+the standalone **`fastmcp`** 2.x (actively developed, install `pip install fastmcp`,
+import `from fastmcp import FastMCP`) and the frozen 1.x snapshot bundled in the official
+`mcp` SDK (`from mcp.server.fastmcp import FastMCP`). Use the standalone package — its
+in-process `Client` (see Testing below) makes the round-trip test trivial. Pick one and
+keep imports consistent across server and tests.
 
 ```python
 # server.py — run with: python server.py   (stdio transport)
@@ -46,7 +51,7 @@ from __future__ import annotations
 
 from typing import Literal
 
-from mcp.server.fastmcp import FastMCP
+from fastmcp import FastMCP
 from pydantic import BaseModel, Field
 
 mcp = FastMCP("invoices")
@@ -101,7 +106,7 @@ new paths — verify against the SDK version in your `package.json`.
 
 ```typescript
 // server.ts — install: npm i @modelcontextprotocol/sdk zod
-import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { McpServer, ResourceTemplate } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 import { randomUUID } from "node:crypto";
@@ -130,12 +135,15 @@ export function buildServer(): McpServer {
     },
   );
 
+  // A templated URI must be wrapped in ResourceTemplate so {invoiceId} is parsed and
+  // bound; { list: undefined } means clients can't enumerate every invoice, only fetch
+  // one by id. A bare "invoice://{invoiceId}" string would NOT bind the param.
   server.registerResource(
     "invoice",
-    "invoice://{invoiceId}",
+    new ResourceTemplate("invoice://{invoiceId}", { list: undefined }),
     { description: "Read-only invoice lookup by id." },
-    async (uri) => {
-      const id = uri.href.replace("invoice://", "");
+    async (uri, { invoiceId }) => {
+      const id = String(invoiceId);
       const inv = invoices.get(id);
       if (!inv) throw new Error(`unknown invoice: ${id}`);
       return { contents: [{ uri: uri.href, text: `Invoice ${id}: ${inv.amountCents} ${inv.currency}` }] };
@@ -229,24 +237,25 @@ app.use("/mcp", (req, res, next) => {
 ```python
 # test_server.py — pytest + the in-process FastMCP client
 import pytest
-from mcp.server.fastmcp import FastMCP
+from fastmcp import Client
 
 from server import mcp  # the FastMCP instance
 
 
 @pytest.mark.anyio
 async def test_create_and_read_round_trip():
-    async with mcp.client() as client:          # in-process client; no transport needed
+    # Pass the server instance straight to Client -> in-memory transport, no subprocess.
+    async with Client(mcp) as client:
         tools = await client.list_tools()
-        assert "create_invoice" in {t.name for t in tools.tools}
+        assert "create_invoice" in {t.name for t in tools}
 
         created = await client.call_tool("create_invoice",
             {"args": {"customer_id": "cus_42", "amount_cents": 500, "currency": "EUR"}})
-        inv_id = created.structuredContent["id"]
+        inv_id = created.structured_content["id"]
 
         # idempotency / read-back: the resource reflects the created invoice
         res = await client.read_resource(f"invoice://{inv_id}")
-        assert "500 EUR" in res.contents[0].text
+        assert "500 EUR" in res[0].text
 ```
 
 ## Packaging
@@ -283,4 +292,3 @@ Client-registration snippet (Claude Desktop/Code `mcpServers` config) for the st
 
 - `tools-and-rag.md` — native tools, Pydantic/Zod validation, and sandboxing the server reuses.
 - `provider-abstraction.md` — when the agent calling this MCP server stays provider-agnostic.
-</content>

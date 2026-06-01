@@ -260,6 +260,114 @@ func fetchAll(ctx context.Context, urls []string) ([][]byte, error) {
 Collect indexed results into a preallocated slice (`out[i]`), never a shared `map` written
 from multiple goroutines - that is a data race the `-race` detector will flag.
 
+## Retry with backoff
+
+Resilient upstream calls retry transient failures with exponential backoff plus jitter, honor
+the context deadline, and stop early on errors that will never succeed (4xx, validation,
+auth). A `retryIf` guard keeps the policy explicit: retry only what is genuinely transient.
+
+```go
+type RetryOptions struct {
+	MaxAttempts int                    // total tries, including the first; <=0 means 1
+	BaseDelay   time.Duration          // first backoff step (e.g. 100ms)
+	MaxDelay    time.Duration          // cap per-attempt sleep (e.g. 5s)
+	RetryIf     func(error) bool       // return false to stop retrying immediately
+}
+
+func DefaultRetryOptions() RetryOptions {
+	return RetryOptions{
+		MaxAttempts: 4,
+		BaseDelay:   100 * time.Millisecond,
+		MaxDelay:    5 * time.Second,
+		RetryIf:     func(error) bool { return true },
+	}
+}
+
+// withRetry calls fn until it succeeds, RetryIf rejects the error, attempts run out, or ctx
+// is done. Backoff is exponential (BaseDelay * 2^n) capped at MaxDelay, with full jitter to
+// avoid thundering-herd synchronization across callers.
+func withRetry(ctx context.Context, fn func(ctx context.Context) error, opts RetryOptions) error {
+	if opts.MaxAttempts <= 0 {
+		opts.MaxAttempts = 1
+	}
+	if opts.RetryIf == nil {
+		opts.RetryIf = func(error) bool { return true }
+	}
+
+	var err error
+	for attempt := 0; attempt < opts.MaxAttempts; attempt++ {
+		if err = fn(ctx); err == nil {
+			return nil
+		}
+		// Stop immediately on non-retryable errors and on context cancellation.
+		if !opts.RetryIf(err) || ctx.Err() != nil {
+			return err
+		}
+		if attempt == opts.MaxAttempts-1 {
+			break // last attempt: do not sleep, just return the error
+		}
+
+		// Exponential backoff capped at MaxDelay, then full jitter in [0, backoff].
+		backoff := opts.BaseDelay << attempt // BaseDelay * 2^attempt
+		if backoff <= 0 || backoff > opts.MaxDelay {
+			backoff = opts.MaxDelay
+		}
+		delay := time.Duration(rand.Int63n(int64(backoff) + 1))
+
+		timer := time.NewTimer(delay)
+		select {
+		case <-ctx.Done():
+			timer.Stop()
+			return fmt.Errorf("retry aborted: %w", ctx.Err())
+		case <-timer.C:
+		}
+	}
+	return fmt.Errorf("after %d attempts: %w", opts.MaxAttempts, err)
+}
+```
+
+The `retryIf` guard is the important half: **never retry a 4xx**. Retrying a `400`/`401`/`403`
+wastes the budget and can amplify load during an incident. Retry only timeouts, `5xx`, and
+connection failures:
+
+```go
+// HTTPStatusError carries the status so retryIf can classify without string-matching.
+type HTTPStatusError struct{ Code int }
+
+func (e *HTTPStatusError) Error() string { return fmt.Sprintf("http status %d", e.Code) }
+
+func isTransient(err error) bool {
+	if errors.Is(err, context.Canceled) {
+		return false // caller gave up; do not retry
+	}
+	if errors.Is(err, context.DeadlineExceeded) {
+		return true // a per-attempt timeout is worth another shot within the outer budget
+	}
+	var se *HTTPStatusError
+	if errors.As(err, &se) {
+		return se.Code == http.StatusTooManyRequests || se.Code >= 500 // 429 + 5xx only
+	}
+	return true // unknown (e.g. dial/reset) errors are treated as transient
+}
+
+func fetchUser(ctx context.Context, id string) (*User, error) {
+	var u *User
+	err := withRetry(ctx, func(ctx context.Context) error {
+		got, err := callUpstream(ctx, id) // wraps non-2xx as *HTTPStatusError
+		if err != nil {
+			return err
+		}
+		u = got
+		return nil
+	}, RetryOptions{MaxAttempts: 4, BaseDelay: 100 * time.Millisecond, MaxDelay: 2 * time.Second, RetryIf: isTransient})
+	return u, err
+}
+```
+
+Pair retries with a per-attempt timeout (set inside `fn` via `context.WithTimeout`) and an
+overall budget on the outer `ctx`, so a slow upstream cannot stretch one call indefinitely.
+`math/rand` jitter is fine here; it is timing, not a security boundary.
+
 ## Pipelines
 
 Compose stages where each stage reads from an input channel, processes, and writes to an

@@ -55,8 +55,8 @@ Triggers: `"audit my project"`, `"bootstrap workspace"`, `"set up
 ## Stack skills
 
 A tight set of best-in-class skills for the Risco stack — FastAPI/Python,
-Next.js, Go, Flutter, PostgreSQL — plus cross-cutting design, security,
-agents and deployment. Each is **hybrid**: a focused `SKILL.md`, deep-dive
+Next.js, Go, Flutter, PostgreSQL — plus cross-cutting design, marketing,
+security, agents and deployment. Each is **hybrid**: a focused `SKILL.md`, deep-dive
 `references/`, and an executable `scripts/verify.sh` quality gate you run
 inside your own project. Testing, security and production guidance are
 embedded in each stack skill rather than scattered.
@@ -96,11 +96,23 @@ testing, performance.
 
 ### [design](skills/design/)
 
-Research-first product design, high-converting landing pages and conversion
-copywriting — studies award-winning current work, then ships a premium,
-accessible (WCAG 2.2 AA), fast (LCP/INP/CLS) visual system with Tailwind +
-Next.js. `references/`: research-method, visual-system,
-landing-anatomy-and-cro, copywriting-frameworks, motion-and-interaction.
+Research-first product design and high-converting landing pages — grounds in
+the project's brand study (links root `CLAUDE.md` → `02-DOCS/wiki/brand/`, and
+asks until complete if missing), researches current **2026 UX/UI trends**, then
+ships a premium, accessible (WCAG 2.2 AA), fast (LCP/INP/CLS) visual system with
+Tailwind + Next.js. `references/`: research-method, visual-system,
+landing-anatomy-and-cro, copywriting-frameworks, motion-and-interaction,
+trends-2026, brand-grounding.
+
+### [marketing](skills/marketing/)
+
+The words, not the pixels — conversion copywriting for landings and web pages.
+Grounds in the brand study first (links root `CLAUDE.md` → `02-DOCS/wiki/brand/`,
+asking for voice samples and positioning until complete), then writes specific,
+benefit-led, on-brand copy: value props, hero/section copy, CTAs, email and
+launch sequences, channel-adapted messaging. Pairs with `design` (pixels) and
+`nextjs` (build). `references/`: brand-grounding, copy-frameworks, landing-copy,
+campaigns-and-channels.
 
 ### [building-agents](skills/building-agents/)
 

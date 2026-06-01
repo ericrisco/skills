@@ -241,11 +241,16 @@ target.open("rb")
 
 ```go
 // GOOD (Go) — Clean + prefix check against the resolved base.
-clean := filepath.Join(base, name)
+clean := filepath.Join(base, name) // Join already applies filepath.Clean
 if !strings.HasPrefix(clean, filepath.Clean(base)+string(os.PathSeparator)) {
     http.Error(w, "bad path", http.StatusBadRequest)
     return
 }
+// CAVEAT: filepath.Clean is purely lexical — a symlink inside base can still
+// point outside it. If the tree may contain attacker-controlled symlinks,
+// resolve them too: real, err := filepath.EvalSymlinks(clean); then re-run the
+// prefix check on `real` against an EvalSymlinks'd base. On Go 1.24+,
+// os.Root / os.OpenRoot confines opens to the directory and refuses escapes.
 ```
 
 ### NoSQL / operator injection (Mongo-style)
@@ -418,23 +423,37 @@ Forbidden ranges: `169.254.169.254` (metadata), `10.0.0.0/8`, `172.16.0.0/12`,
 
 ```python
 # BAD — fetches whatever URL the user gave us:  r = httpx.get(user_url)
-# GOOD — https-only, resolve DNS, reject private IPs, pin the dialed IP, no redirects.
+# GOOD — https-only, resolve DNS, reject EVERY returned IP, then DIAL the
+# validated IP literal so DNS cannot rebind between check and connect.
+# `sni_hostname` keeps TLS/SNI + certificate validation bound to the real host.
 import ipaddress, socket, httpx
 from urllib.parse import urlparse
+
+def _blocked(ip) -> bool:  # ip: IPv4Address | IPv6Address
+    return (ip.is_private or ip.is_loopback or ip.is_link_local
+            or ip.is_reserved or ip.is_multicast or ip.is_unspecified)
 
 def safe_get(user_url: str) -> httpx.Response:
     u = urlparse(user_url)
     if u.scheme != "https" or not u.hostname:
         raise ValueError("https URL required")
-    # Resolve and validate every returned address.
-    infos = socket.getaddrinfo(u.hostname, u.port or 443, proto=socket.IPPROTO_TCP)
-    ip = ipaddress.ip_address(infos[0][4][0])
-    if ip.is_private or ip.is_loopback or ip.is_link_local or ip.is_reserved:
+    port = u.port or 443
+    # Resolve once and validate ALL returned addresses (a multi-record answer
+    # can pair a safe first record with a private second one).
+    infos = socket.getaddrinfo(u.hostname, port, proto=socket.IPPROTO_TCP)
+    addrs = [ipaddress.ip_address(info[4][0]) for info in infos]
+    if not addrs or any(_blocked(ip) for ip in addrs):
         raise ValueError("blocked address")
-    # Pin the validated IP to defeat DNS rebinding; keep Host for TLS/SNI.
-    transport = httpx.HTTPTransport(local_address=None)
-    with httpx.Client(transport=transport, timeout=5.0, follow_redirects=False) as c:
-        return c.get(f"https://{ip}{u.path or '/'}", headers={"Host": u.hostname})
+    pinned = addrs[0]  # a validated address from the set we just checked
+    bracket = f"[{pinned}]" if pinned.version == 6 else str(pinned)
+    with httpx.Client(timeout=5.0, follow_redirects=False) as c:
+        # Connect to the validated IP literal; pin SNI + Host to the real
+        # hostname so certificate verification is performed against it.
+        return c.get(
+            f"https://{bracket}:{port}{u.path or '/'}",
+            headers={"Host": u.hostname},
+            extensions={"sni_hostname": u.hostname},
+        )
 ```
 
 ### Go (`http.Client`)
@@ -477,16 +496,27 @@ export async function fetchUserUrl(raw: string): Promise<Response> {
   const u = new URL(raw);                       // throws on malformed input
   if (u.protocol !== "https:") throw new Error("https required");
   if (!ALLOWED_HOSTS.has(u.hostname)) throw new Error("host not allowed");
-  const { address } = await lookup(u.hostname);
-  if (net.isIP(address) && isPrivate(address)) throw new Error("blocked address");
+  // Validate EVERY resolved address, not just the first record.
+  const addrs = await lookup(u.hostname, { all: true });
+  if (addrs.length === 0) throw new Error("no address");
+  for (const { address } of addrs) {
+    if (net.isIP(address) && isPrivate(address)) throw new Error("blocked address");
+  }
+  // NOTE: undici/fetch re-resolves DNS at connect time, so this check is
+  // TOCTOU-racy on its own. For untrusted hosts, pin via a custom undici
+  // Agent whose `connect` re-validates the dialed IP (mirror the Go dialer).
   return fetch(u, { redirect: "error", signal: AbortSignal.timeout(5000) });
 }
 ```
 
 **DNS-rebinding caveat:** validating the pre-resolution IP is not enough — the
 hostname can resolve to a safe IP at check time and a private IP at connect
-time. Validate the IP you actually **dial** (pin it, like the Python/Go
-examples), or re-resolve and re-check inside the dialer.
+time. Validate the IP you actually **dial**: the Python example connects to the
+validated IP literal (with `sni_hostname` so TLS still verifies the real host),
+and the Go example re-checks every IP inside `DialContext`. The TS `fetch`
+example checks all records but cannot pin the dialed IP without a custom undici
+`Agent` — for untrusted hosts, supply one whose `connect` re-validates the IP,
+mirroring the Go dialer.
 
 ---
 

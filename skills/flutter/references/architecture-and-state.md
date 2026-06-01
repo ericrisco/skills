@@ -36,7 +36,7 @@ lib/src/features/cart/
 
 ## Domain entities & DTOs
 
-Entities are freezed immutable value types. In **freezed 3.x** a data class uses `class … with _$Name` + a `const factory`; unions use `sealed`/`abstract`. Entities carry no JSON concern — wire shape stays in the DTO.
+Entities are freezed immutable value types. In **freezed 3.x** every freezed class must be marked `abstract` (single-constructor data class) or `sealed` (multi-constructor union), then `with _$Name` + a `const factory` — a bare `class … with _$Name` no longer compiles. Entities carry no JSON concern — wire shape stays in the DTO.
 
 ```dart
 // domain/cart.dart
@@ -44,7 +44,7 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 part 'cart.freezed.dart';
 
 @freezed
-class Cart with _$Cart {
+abstract class Cart with _$Cart {
   const factory Cart({required String id, required List<CartItem> items, required double total}) = _Cart;
 }
 ```
@@ -55,7 +55,7 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 part 'cart_item.freezed.dart';
 
 @freezed
-class CartItem with _$CartItem {
+abstract class CartItem with _$CartItem {
   const factory CartItem({
     required String id,
     required String name,

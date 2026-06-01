@@ -306,7 +306,7 @@ equivalent is in `references/secrets-and-supply-chain.md`.
 
 | Concern | Tool / flag | One-liner |
 |---|---|---|
-| Secret scan | `gitleaks detect --redact` | Working tree + history; rotate-then-scrub on a hit |
+| Secret scan | `gitleaks dir . --redact` | Working tree; add `gitleaks git .` for history; rotate-then-scrub on a hit |
 | SAST | `semgrep --config=auto --severity ERROR` | ERROR gates; WARNING informational |
 | Python CVEs | `pip-audit` | Upgrade to fix version; constraints for transitive |
 | Node CVEs | `npm audit --omit=dev --audit-level=high` | Or `osv-scanner --lockfile=…` (multi-ecosystem) |

@@ -10,13 +10,18 @@
 # Tools that are not installed are skipped with a yellow warning (not a failure).
 # Real problems (unformatted code, vet/test/vuln failures) exit non-zero.
 # Read-only: never mutates your source.
+#
+# Portability: runs on stock macOS bash 3.2 (no mapfile, no associative arrays,
+# no unguarded array expansions under `set -u`).
 
 set -euo pipefail
 
-readonly YELLOW=$'\033[33m'
-readonly RED=$'\033[31m'
-readonly GREEN=$'\033[32m'
-readonly RESET=$'\033[0m'
+# Colors only when stdout is a TTY (keeps logs/CI output clean).
+if [ -t 1 ]; then
+  YELLOW=$'\033[33m'; RED=$'\033[31m'; GREEN=$'\033[32m'; RESET=$'\033[0m'
+else
+  YELLOW=''; RED=''; GREEN=''; RESET=''
+fi
 
 failed=0
 
@@ -27,17 +32,17 @@ ok()    { printf '%s[ ok ]%s %s\n' "$GREEN" "$RESET" "$*"; }
 info()  { printf '----- %s\n' "$*"; }
 
 # Must run from a module root.
-if [[ ! -f go.mod ]]; then
+if [ ! -f go.mod ]; then
   printf '%serror:%s no go.mod in %s - cd into your module root first.\n' \
     "$RED" "$RESET" "$(pwd)" >&2
   exit 2
 fi
 
-# 1. gofmt - always available with the Go toolchain; formatting is non-negotiable.
+# 1. gofmt - ships with the Go toolchain; formatting is non-negotiable.
 info "gofmt"
 if have gofmt; then
-  fmt_out="$(gofmt -l .)"
-  if [[ -n "$fmt_out" ]]; then
+  fmt_out="$(gofmt -l . 2>/dev/null || true)"
+  if [ -n "$fmt_out" ]; then
     fail "unformatted files (run: gofmt -w .):"
     printf '%s\n' "$fmt_out"
   else
@@ -47,7 +52,7 @@ else
   warn "gofmt not found (is Go installed?)"
 fi
 
-# 2. go vet - always available with the Go toolchain.
+# 2. go vet - ships with the Go toolchain.
 info "go vet"
 if have go; then
   if go vet ./...; then ok "go vet clean"; else fail "go vet reported issues"; fi
@@ -71,13 +76,17 @@ else
   warn "golangci-lint not found (https://golangci-lint.run/usage/install/)"
 fi
 
-# 5. go test -race -cover. -race needs a C toolchain; detect and degrade gracefully.
+# 5. go test -race -cover. -race needs cgo + a working C compiler; detect and degrade.
+#    The C compiler is whatever `go env CC` reports (gcc/clang/cc), so check that one
+#    rather than assuming `cc` exists. CGO_ENABLED must actually be "1".
 info "go test -race -cover"
 if have go; then
-  if CGO_ENABLED=1 go env >/dev/null 2>&1 && have cc; then
+  cgo_enabled="$(go env CGO_ENABLED 2>/dev/null || echo 0)"
+  cgo_cc="$(go env CC 2>/dev/null || echo cc)"
+  if [ "$cgo_enabled" = "1" ] && have "$cgo_cc"; then
     if go test -race -cover ./...; then ok "tests pass (race+cover)"; else fail "tests failed"; fi
   else
-    warn "no C compiler for -race; running plain go test -cover"
+    warn "cgo disabled or C compiler '$cgo_cc' not found; running plain go test -cover"
     if go test -cover ./...; then ok "tests pass (no race)"; else fail "tests failed"; fi
   fi
 else
@@ -93,7 +102,7 @@ else
 fi
 
 echo
-if [[ "$failed" -ne 0 ]]; then
+if [ "$failed" -ne 0 ]; then
   printf '%sFAIL:%s one or more checks failed.\n' "$RED" "$RESET"
   exit 1
 fi

@@ -199,4 +199,4 @@ Enforce the structural constraints here; defer keyword research and technical au
 
 - `copywriting-frameworks.md` — the words for every section above.
 - `seo` — deep technical SEO and keyword research.
-- `../nextjs/SKILL.md` — App Router Metadata API and rendering specifics.
+- `../../nextjs/SKILL.md` — App Router Metadata API and rendering specifics.

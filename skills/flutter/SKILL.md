@@ -44,7 +44,7 @@ subproject — never the FastAPI/Go/Next.js siblings.
 | Multi-state async | `AsyncValue` / sealed state | `bool isLoading` + `bool isError` flags |
 | Navigation | one typed go_router | mixing `Navigator.push` with declarative routes |
 | Errors at domain boundary | `Result<T, Failure>` / sealed | leaking `DioException` / raw `throw` to UI |
-| Models / DTOs | `@freezed` immutable classes | hand-written mutable classes |
+| Models / DTOs | `@freezed abstract class … with _$Name` | hand-written mutable classes |
 | Cross-feature data | repository behind an interface | widgets calling `dio`/DB directly |
 
 ## Project layout
@@ -370,13 +370,31 @@ pyramid, repository tests, `blocTest`, golden determinism and coverage → `refe
 
 Rebuild/paint/jank workflow, isolates and build flavors → `references/performance.md`.
 
+## Localization & dependency hygiene (essentials)
+
+- l10n via first-party `flutter_localizations` + `gen_l10n` (set `generate: true`, add `l10n.yaml`); one
+  **ARB** file per locale, strings read type-safely through `AppLocalizations.of(context)`.
+- Plurals/genders use **ICU** syntax inside the ARB (`{count, plural, =0{…} =1{…} other{…}}`), never an
+  `if (count == 1)` ladder in Dart.
+- RTL: use `EdgeInsetsDirectional`/`AlignmentDirectional` (auto-mirrors); mirror directional icons, never
+  logos or numbers. Format numbers/dates/currency with `intl` `NumberFormat`/`DateFormat` (locale-aware), never by hand.
+- Before adding a dependency, check its **pub points**/popularity/last-publish on pub.dev; audit with
+  `flutter pub outdated`. In a multi-package repo, **melos** orchestrates bootstrap/scripts and `package:`
+  encapsulation (public API via `lib/<pkg>.dart`, internals under `lib/src/`, enforced by `implementation_imports`).
+
+ARB + ICU plurals, RTL geometry, locale-aware formatting, pub points/pana, `melos` and workspace
+encapsulation → `references/i18n-and-dependencies.md`.
+
 ## Production checklist
 
 - `FlutterError.onError` + `PlatformDispatcher.instance.onError` + `ErrorWidget.builder` wired to Crashlytics/Sentry.
 - Secrets via `--dart-define` / `--dart-define-from-file`; tokens in secure storage (Keychain / EncryptedSharedPreferences), **never plaintext**.
 - HTTPS only.
 - Strict `analysis_options.yaml`: `strict-casts` / `strict-inference` / `strict-raw-types` + `flutter_lints` or `very_good_analysis`.
-- l10n via ARB; a11y (48px targets, `Semantics`, contrast ≥ 4.5:1).
+- l10n via `flutter_localizations` + ARB (ICU plurals, RTL-safe geometry, locale-aware `intl` formatting);
+  a11y (48px targets, `Semantics`, contrast ≥ 4.5:1).
+- Dependency hygiene: `pubspec.lock` committed for apps, `flutter pub outdated` audited on a cadence,
+  dependencies vetted by pub points before adding.
 - No `print()` → `dart:developer` `log()`.
 
 ## Anti-patterns → STOP
@@ -414,6 +432,8 @@ Rebuild/paint/jank workflow, isolates and build flavors → `references/performa
 | unit test | `ProviderContainer.test()` | `references/testing.md` |
 | widget test | `ProviderScope` override | `references/testing.md` |
 | golden | `matchesGoldenFile` | `references/testing.md` |
+| l10n | ARB + `gen_l10n` + `intl` | `references/i18n-and-dependencies.md` |
+| deps | `flutter pub outdated` / `melos` | `references/i18n-and-dependencies.md` |
 | verify | `scripts/verify.sh` | `scripts/verify.sh` |
 
 ## See Also
@@ -422,7 +442,8 @@ Rebuild/paint/jank workflow, isolates and build flavors → `references/performa
 - `references/ui-and-navigation.md` — widgets, Material 3 tokens, responsive, typed go_router, a11y.
 - `references/testing.md` — unit/widget/golden/integration + coverage.
 - `references/performance.md` — rebuilds, paint, jank, isolates, build flavors.
-- `scripts/verify.sh` — run inside your Flutter project to gate format/analyze/codegen/tests.
+- `references/i18n-and-dependencies.md` — ARB/ICU l10n, RTL, locale-aware formatting, pub points, `melos`.
+- `scripts/verify.sh` — run inside your Flutter project to gate format/codegen/analyze/tests.
 - Sibling skills: `risco-project-harness` (workspace `01-TOOLS`/`02-DOCS`, flavor secrets); `fastapi`,
   `go` and `nextjs` for the backends this app talks to; `secure-coding` for token handling and deep-link
   validation; `deployment` for store/CI release; `design` for the Material 3 token system.

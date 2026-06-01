@@ -1,6 +1,4 @@
 #!/usr/bin/env bash
-set -euo pipefail
-
 # verify.sh — Next.js App Router project gate.
 #
 # Usage:
@@ -9,7 +7,18 @@ set -euo pipefail
 # What it does (in order): ESLint -> tsc --noEmit -> Vitest -> next build.
 # Each tool is detected; if it is not installed/resolvable, it is skipped with a
 # yellow warning (NOT a failure). Exits non-zero only on a real tool failure.
-# Safe to re-run: read-only, no writes, no installs, no network.
+#
+# Side effects: the lint / type-check / test steps are read-only. The final
+# `next build` WRITES the `.next/` output directory (and may write `tsconfig.json`
+# / `next-env.d.ts` defaults) — it is not a pure read-only step. It performs no
+# installs and no network mutations. Safe to re-run.
+#
+# Portability: targets stock macOS bash 3.2. We avoid `mapfile`, never expand a
+# possibly-empty array under `set -u`, and degrade gracefully when a tool is
+# missing. `set -e` is intentionally NOT used (each check handles its own exit
+# code); `set -u` is on, with arrays initialised before use.
+
+set -u
 
 # --- colors (only when stdout is a TTY) -----------------------------------
 if [ -t 1 ] && command -v tput >/dev/null 2>&1; then
@@ -19,14 +28,16 @@ else
 fi
 
 failures=0
-skips=()
+# Space-separated list (portable to bash 3.2; avoids empty-array expansion under set -u).
+skips=""
 
 have() { command -v "$1" >/dev/null 2>&1; }
-warn() { printf '%s\n' "${YELLOW}SKIP: $1${RESET}"; skips+=("$2"); return 0; }
+warn() { printf '%s\n' "${YELLOW}SKIP: $1${RESET}"; skips="${skips}${skips:+ }$2"; return 0; }
 fail() { printf '%s\n' "${RED}FAIL: $1${RESET}"; failures=$((failures + 1)); }
 ok()   { printf '%s\n' "${GREEN}OK: $1${RESET}"; }
 
 # --- resolve a package runner from the lockfile ----------------------------
+RUN=""
 if [ -f pnpm-lock.yaml ] && have pnpm; then
   RUN="pnpm exec"
 elif [ -f yarn.lock ] && have yarn; then
@@ -35,13 +46,11 @@ elif [ -f package-lock.json ] && have npm; then
   RUN="npm exec --"
 elif have npx; then
   RUN="npx --no-install"
-else
-  RUN=""
 fi
 
 run_bin() {
   # run_bin <bin-name> <args...> : true if the bin is resolvable and runs
-  local bin="$1"; shift
+  bin="$1"; shift
   if have "$bin"; then "$bin" "$@"; return $?; fi
   if [ -x "node_modules/.bin/$bin" ]; then "node_modules/.bin/$bin" "$@"; return $?; fi
   if [ -n "$RUN" ]; then $RUN "$bin" "$@"; return $?; fi
@@ -49,7 +58,7 @@ run_bin() {
 }
 
 bin_available() {
-  local bin="$1"
+  bin="$1"
   have "$bin" && return 0
   [ -x "node_modules/.bin/$bin" ] && return 0
   return 1
@@ -75,22 +84,26 @@ else
 fi
 
 # --- 3. Vitest -------------------------------------------------------------
+# Only treat the repo as having Vitest unit tests when a vitest config exists OR
+# `*.test.*` files exist. Playwright e2e uses `*.spec.*` (typically under e2e/),
+# which Vitest must NOT pick up — so `.spec.*` files alone do not trigger Vitest.
 has_tests=false
-if ls vitest.config.* >/dev/null 2>&1; then has_tests=true; fi
-if find . -path ./node_modules -prune -o \
-     \( -name '*.test.*' -o -name '*.spec.*' \) -print 2>/dev/null | grep -q .; then
+if ls vitest.config.* vitest.workspace.* >/dev/null 2>&1; then
+  has_tests=true
+elif find . \( -name node_modules -o -name .next -o -name dist \) -prune -o \
+       -name '*.test.*' -print 2>/dev/null | grep -q .; then
   has_tests=true
 fi
 if bin_available vitest && [ "$has_tests" = true ]; then
   printf '%s\n' "Running vitest run..."
   if run_bin vitest run; then ok "vitest"; else fail "vitest"; fi
 else
-  warn "vitest or tests not present — skipping unit tests" "vitest"
+  warn "vitest or unit tests (vitest.config.* / *.test.*) not present — skipping unit tests" "vitest"
 fi
 
-# --- 4. next build (slow/expensive — last) ---------------------------------
+# --- 4. next build (slow; WRITES .next/; run last) -------------------------
 if bin_available next; then
-  printf '%s\n' "Running next build... (Turbopack is the default builder on Next.js 16)"
+  printf '%s\n' "Running next build... (writes .next/; Turbopack is the default builder on Next.js 16)"
   if run_bin next build; then ok "next build"; else fail "next build"; fi
 else
   warn "next not resolvable — skipping build" "next build"
@@ -98,8 +111,8 @@ fi
 
 # --- summary ---------------------------------------------------------------
 printf '\n'
-if [ "${#skips[@]}" -gt 0 ]; then
-  printf '%s\n' "${YELLOW}skipped: ${skips[*]}${RESET}"
+if [ -n "$skips" ]; then
+  printf '%s\n' "${YELLOW}skipped: ${skips}${RESET}"
 fi
 if [ "$failures" -gt 0 ]; then
   printf '%s\n' "${RED}verify.sh: $failures check(s) failed${RESET}"
