@@ -1,6 +1,6 @@
 ---
 name: risco-project-harness
-description: "Use when bootstrapping or auditing a workspace that needs a `01-TOOLS/` operational tooling layer and a `02-DOCS/` LLM-wiki layer. Triggers: 'audita mi proyecto', 'bootstrap workspace', 'monta 01-TOOLS y 02-DOCS', 'risco harness', 'project harness', migrating numbered `XX-*` folders into the canonical structure, detecting external provider integrations (Stripe, Mailjet, Hetzner, Firebase, OAuth, Postgres…) and scaffolding connection-ready tools, generating root `CLAUDE.md`/`AGENTS.md`, or consolidating scattered docs into a Karpathy-style wiki. Brownfield-first; greenfield is the degenerate case."
+description: "Use when bootstrapping or auditing a workspace that needs a `01-TOOLS/` operational tooling layer and a `02-DOCS/` LLM-wiki layer. Triggers: 'audita mi proyecto', 'bootstrap workspace', 'monta 01-TOOLS y 02-DOCS', 'risco harness', 'project harness', migrating numbered `XX-*` folders into the canonical structure, detecting external provider integrations (Stripe, Mailjet, Hetzner, Firebase, OAuth, Postgres…) and scaffolding connection-ready tools, generating root `CLAUDE.md`/`AGENTS.md`, or consolidating scattered docs into a Karpathy-style wiki. The `02-DOCS/` layer is a domain-agnostic chaos→knowledge engine: drop any raw file (PDF, image, CSV, JSON, notes) into `inbox/` and an Inbox Sweep ('procesa el inbox', 'sal a pasear') extracts, classifies and compiles it into a living wiki. Brownfield-first; greenfield is the degenerate case."
 ---
 
 # Risco Project Harness
@@ -8,7 +8,7 @@ description: "Use when bootstrapping or auditing a workspace that needs a `01-TO
 A workspace orchestrator that audits a project root, proposes a concrete migration plan, and — only with explicit user consent — scaffolds two canonical layers:
 
 - **`01-TOOLS/<PROVIDER>/`** — operational tooling, one folder per external provider, co-locating credentials (`.env`) with the scripts that consume them. Each tool ships a working `probar_conexion` against the real API.
-- **`02-DOCS/`** — LLM wiki (`raw/` + `wiki/` + `wiki/index.md` + `wiki/log.md` + `wiki/gaps.md` + `wiki/scores.json`) following the Karpathy pattern, fully embedded in this skill. The protocol lives at `references/wiki-protocol.md` with templates at `references/wiki-*.md`. The wiki **self-improves continuously**: every Ingest and Query triggers a Maintenance Pass (deterministic lint, score recomputation, gap detection, See Also sweep), and every N interactions a Micro-Improve runs (rewrite 1 low-scoring article, fill 1 gap, preserving old versions in `_archive/`). Deep Improve runs on explicit request or via scheduled cron. No external skill needed.
+- **`02-DOCS/`** — the **chaos→knowledge engine**: a domain-agnostic LLM wiki (`inbox/` + `raw/` + `wiki/` + `wiki/index.md` + `wiki/log.md` + `wiki/gaps.md` + `wiki/scores.json`) following the Karpathy pattern, fully embedded in this skill. The user drops **any raw file in any format** (PDF, image, CSV, JSON, txt, html…) into `inbox/`; an **Inbox Sweep** ("the agent goes for a walk") extracts, classifies by content, cross-links, and compiles it into the wiki — see `references/ingest-formats.md` for the multiformat Fetch and `references/wiki-protocol.md` for the protocol. Topics are inferred from content (`finanzas/`, `legal/`, `crm/`…), never hardcoded to software docs. The wiki **self-improves continuously**: every Ingest, Sweep and Query triggers a Maintenance Pass (deterministic lint, score recomputation, gap detection, See Also sweep), and every N interactions a Micro-Improve runs (rewrite 1 low-scoring article, fill 1 gap, preserving old versions in `_archive/`). Deep Improve runs on explicit request or via scheduled cron. No external skill needed.
 
 Also generates root `CLAUDE.md` and `AGENTS.md`, and migrates legacy `XX-*` numbered folders into the canonical layout.
 
@@ -40,7 +40,9 @@ risco-project-harness/
 │   ├── agents-md-template.md         ← root AGENTS.md template
 │   ├── tools-readme-template.md      ← 01-TOOLS/README.md catalog template
 │   ├── audit-report-template.md      ← exact format of the audit report shown to user
-│   ├── wiki-protocol.md              ← embedded wiki protocol + Continuous Improvement
+│   ├── wiki-protocol.md              ← embedded wiki protocol + Inbox Sweep + Continuous Improvement
+│   ├── ingest-formats.md             ← multiformat Fetch (PDF, image, CSV, JSON, html…)
+│   ├── inbox-readme-template.md      ← the inbox/README.md drop-zone contract
 │   ├── wiki-raw-template.md          ← format for raw/<topic>/*.md
 │   ├── wiki-article-template.md     ← format for wiki/<topic>/*.md
 │   ├── wiki-index-template.md       ← format for wiki/index.md (with Score column)
@@ -144,7 +146,7 @@ Execute in this exact order. Each step writes to disk; abort and report on first
    - For folders WITH ambiguous files: never delete. The folder stays with the ambiguous content.
 8. **Build `02-DOCS/` (embedded wiki protocol).**
    - Open `references/wiki-protocol.md` and follow it. It defines initialization, ingest, query, and lint flows in full.
-   - For the bootstrap pass on this APPLY: run the Initialization sub-section (create `02-DOCS/raw/`, `02-DOCS/wiki/`, `02-DOCS/wiki/index.md`, `02-DOCS/wiki/log.md`), then run Ingest for each of these sources (see the "How `risco-project-harness` uses this protocol" section at the bottom of `wiki-protocol.md`):
+   - For the bootstrap pass on this APPLY: run the Initialization sub-section (create `02-DOCS/inbox/`, `02-DOCS/inbox/README.md` from `inbox-readme-template.md`, `02-DOCS/inbox/_processed/`, `02-DOCS/raw/`, `02-DOCS/wiki/`, `02-DOCS/wiki/index.md`, `02-DOCS/wiki/log.md`), then run the **bootstrap ingest** (one optional seeding pass — the ongoing path is dropping files into `inbox/` and running the Inbox Sweep) for each of these sources (see the "How `risco-project-harness` uses this protocol" section at the bottom of `wiki-protocol.md`):
      - Each subproject `README.md` if present.
      - `01-TOOLS/README.md` (just written in step 6).
      - Each `01-TOOLS/<TOOL>/README.md` and `CREDENTIALS.md`.
@@ -214,7 +216,9 @@ If any of these occur, stop and report:
 - `references/tools-readme-template.md` — `01-TOOLS/README.md` catalog template.
 - `references/audit-report-template.md` — text summary format for the in-conversation audit summary.
 - `references/audit-report-template.html` — HTML format for the full per-run audit artifact written to `02-DOCS/audits/`.
-- `references/wiki-protocol.md` — embedded protocol for the `02-DOCS/` wiki layer (initialization, ingest, query, lint, **Continuous Improvement**: Maintenance Pass, Micro-Improve, Deep Improve).
+- `references/wiki-protocol.md` — embedded protocol for the `02-DOCS/` chaos→knowledge layer (initialization, **Inbox Sweep**, ingest, query, lint, **Continuous Improvement**: Maintenance Pass, Micro-Improve, Deep Improve).
+- `references/ingest-formats.md` — multiformat Fetch: how any input (PDF, image, CSV/Excel, JSON/API, html, docx, email, unknown binary) becomes `raw/` markdown with the original preserved in `_originals/`.
+- `references/inbox-readme-template.md` — the `inbox/README.md` drop-zone contract shown to the user.
 - `references/wiki-raw-template.md` — format for `02-DOCS/raw/<topic>/*.md`.
 - `references/wiki-article-template.md` — format for `02-DOCS/wiki/<topic>/*.md`.
 - `references/wiki-index-template.md` — format for `02-DOCS/wiki/index.md` (with Score column).
