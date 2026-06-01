@@ -1,0 +1,43 @@
+skill: implement
+
+should_trigger:
+  - prompt: "We've got the plan and the task list approved. Start building it out — work through the tasks and write the code."
+    why: "Canonical entry: a planned feature with an approved task list, now asking to execute it into code. Squarely this skill."
+  - prompt: "Do task 3 from the plan, write the test first then the code, and stop so I can review before you move on."
+    why: "Single task, test-first, stop-and-show checkpoint — the red→green loop plus the checkpoint discipline this skill owns."
+  - prompt: "Implement this feature red-green-refactor: failing test, make it pass, then clean it up. One commit per task."
+    why: "Explicit TDD cadence and one-commit-per-task — the core discipline of this skill, named without naming the phase."
+  - prompt: "Continue implementing where we left off; the users repo is done, next is the invoices repo. Those two don't share state — can you do the rest in parallel?"
+    why: "Resuming an in-progress build and asking about parallelizing disjoint tasks — the independence rule lives in this skill (which hands orchestration to parallel)."
+  - prompt: "Take the approved spec and turn it into working, tested code. I want a checkpoint after every task and the design choices written down somewhere."
+    why: "Execute spec→code with per-task checkpoints and decision logging to 02-DOCS — exactly this skill's loop and its decisions.md trail."
+  - prompt: "The analyze gate passed. Build it. Write each piece test-first and don't let it drift from the plan."
+    why: "Post-analyze, pre-verify execution with TDD and plan-adherence — the precise slot this skill fills in the SDD chain."
+
+should_not_trigger:
+  - prompt: "The feature's all coded and committed. Run the full lint, type-check, test suite and security audit and tell me if it's actually done."
+    route_to: "verify"
+    why: "Whole-suite lint/type/audit + acceptance sign-off is the verify gate, not per-task implementation. This skill explicitly defers the done-claim to verify."
+  - prompt: "Before we write any code, break this plan into an ordered list of small tasks, each with a way to tell it's finished."
+    route_to: "tasks"
+    why: "Producing the ordered task list with done-checks is the tasks phase; this skill consumes that list, it doesn't create it."
+  - prompt: "One of my tests is failing intermittently and I can't tell why. Help me find the root cause before I change anything."
+    route_to: "debug"
+    why: "Mysterious failure needing reproduce→isolate→hypothesize is the debug protocol; this skill routes to debug rather than guessing."
+  - prompt: "We need an isolated branch/worktree for this feature so it doesn't touch my current working tree. Set that up."
+    route_to: "worktrees"
+    why: "Creating the isolated branch/worktree is the worktrees skill; implement only checks that isolation exists before the first commit."
+  - prompt: "Write me the exact pytest fixture that gives an in-process FastAPI client with a transactional rollback per test."
+    route_to: "fastapi"
+    why: "Concrete test-tooling mechanics for FastAPI live in the fastapi testing reference; this skill delegates the mechanics rather than reinventing them."
+
+capability:
+  - scenario: "User asks: 'Implement this task from the plan: POST /tasks creates a task and returns 201; the done-check says it must reject a blank title with 422. Do it test-first and stop after.' (FastAPI stack noted in the plan.)"
+    must_include:
+      - "RED first: writes the smallest FAILING test encoding the done-check (asserts 201 on a valid create AND 422 on a blank title) and states the test must be run and seen to fail for the right reason before any implementation"
+      - "GREEN: writes the least endpoint code to pass — no extra fields or features beyond what the done-check requires"
+      - "REFACTOR only after green, with a note to re-run and confirm still green"
+      - "Delegates the test mechanics to the FastAPI testing reference (ASGITransport in-process client + dependency_overrides + transactional rollback fixture) rather than hand-rolling a runner"
+      - "Stops at a checkpoint after the task (does not barrel into the next task) and adapts checkpoint verbosity to the accompaniment level in 02-DOCS/wiki/harness/user-profile.md"
+      - "Commits the task as one logical unit and notes authorship is Eric (no Co-Authored-By Claude)"
+      - "Logs any non-obvious choice (e.g. error envelope shape) to 02-DOCS/wiki/sdd/decisions.md, and ties done to the done-check + spec acceptance criterion (not 'looks right'), pointing to verify for the final whole-suite gate"

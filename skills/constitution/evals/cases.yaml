@@ -1,0 +1,72 @@
+skill: constitution
+
+# Prompts that MUST load the `constitution` skill. It is the FIRST rsc-sdd phase:
+# capture a project's non-negotiable principles (stack canon, quality bars,
+# conventions, branching/security/a11y floors) into 02-DOCS/wiki/sdd/constitution.md,
+# reconciling with 02-DOCS/wiki/stack/*. It NAMES bars and links enforcers; it does
+# not describe a feature (specify) or design an implementation (plan).
+should_trigger:
+  - prompt: "Let's set the non-negotiable principles for this project before we start building features."
+    why: "Capturing project-wide non-negotiables once, up front, is the exact purpose of the constitution phase."
+
+  - prompt: "I want a project constitution: stack canon, the quality bar, and our coding conventions in one place."
+    why: "Names the artifact and the three pillars (stack canon, quality bar, conventions) the skill produces."
+
+  - prompt: "We keep relitigating test coverage and branch naming — can we ratify these as project rules once and for all?"
+    why: "Turning repeatedly-relitigated decisions into ratified, enforceable principles is a core trigger, phrased without naming the skill."
+
+  - prompt: "Amend our engineering standards to require strict TypeScript and bump the version."
+    why: "Amending a ratified principle with a version bump is the amendment protocol this skill owns."
+
+  - prompt: "What's the definition of done for the whole repo that every PR has to pass?"
+    why: "The repo-wide Definition of Done (the merge bar verify runs against) lives in the constitution, not in any single feature spec."
+
+  - prompt: "Lock down our stack canon and quality floors so the SDD phases have guardrails to read."
+    why: "Explicitly the guardrail document every later SDD phase reads — the constitution's defining role."
+
+  - prompt: "Write our project's coding standards doc — formatter must pass clean, types strict, secrets never committed."
+    why: "These are enforceable project-wide non-negotiables (quality bar + security floor), the constitution's content."
+
+  - prompt: "Establecer las reglas del proyecto: convenciones de nombres, cobertura mínima y cómo hacemos los commits."
+    why: "Spanish phrasing for setting project-wide conventions, coverage floor, and commit rules — all constitution principles."
+
+# NEAR-MISS prompts that must NOT load `constitution`. Each routes to the genuinely
+# correct sibling that exists in this repo. The recurring trap: anything that sounds
+# like 'project setup' or 'standards' but is actually a feature, a stack mechanic,
+# the wiki scaffolding, or a security implementation.
+should_not_trigger:
+  - prompt: "Set up 01-TOOLS and 02-DOCS for this workspace and generate the root CLAUDE.md."
+    route_to: "harness"
+    why: "Scaffolding the tooling + wiki layers and the Knowledge map is the harness's job; the constitution only writes one article INTO that wiki and links one row."
+
+  - prompt: "I'm starting from scratch and don't know where to begin — help me bootstrap the project."
+    route_to: "init"
+    why: "Front-door bootstrapping (gauge the user, set the accompaniment dial, recommend bundles) is init; the constitution runs after the harness exists and the profile is set."
+
+  - prompt: "Show me how to actually configure Ruff and pytest with an 80% coverage gate in our FastAPI service."
+    route_to: "fastapi"
+    why: "The constitution NAMES the coverage bar; the concrete lint/test config is a stack mechanic owned by fastapi — the skill explicitly defers this."
+
+  - prompt: "Add input validation and proper authz to our login endpoint so it can't be abused."
+    route_to: "secure-coding"
+    why: "Implementing the security baseline is secure-coding; the constitution only ratifies the principle (e.g. 'authn/z baseline met') and links the enforcer."
+
+  - prompt: "Pick the type scale, color tokens, and spacing system for our app's design language."
+    route_to: "design"
+    why: "Choosing concrete design tokens is the design skill; the constitution at most names an accessibility floor and links wiki/stack/design.md."
+
+# Concrete tasks the skill should guide, with a rubric to grade WITH vs WITHOUT
+# the skill loaded. A skill-guided answer reconciles with the stack wiki, keeps
+# principles testable, includes the fixed authorship/decisions rules, versions
+# the file, and ratifies with the user — an ungrounded answer writes a vague,
+# unversioned wall of aspirations.
+capability:
+  - scenario: "Stand up the constitution for a new project that has a Next.js frontend and a FastAPI backend. The harness already wrote 02-DOCS/wiki/stack/nextjs.md and fastapi.md with some conventions. There is a user-profile at L1 (brief)."
+    must_include:
+      - "Reads 02-DOCS/wiki/harness/user-profile.md and matches L1 verbosity (one line of why per principle, few questions) rather than a long interview."
+      - "Runs the reconciliation pass: reads the existing wiki/stack/nextjs.md and fastapi.md, lifts only project-wide non-negotiables, and LINKS those articles instead of pasting their config; surfaces any contradiction for the user to resolve rather than auto-picking."
+      - "Every principle is numbered, imperative, and testable (a number, command, or named artifact), not an aspiration like 'write clean code'."
+      - "Includes the two fixed principles: git authorship is the human's (no Co-Authored-By AI / generated-with footer, enforced at ship) and significant decisions are logged."
+      - "Produces a Definition of Done checklist (the merge bar verify runs against) covering format/lint, types, tests/coverage, conventions, branch+PR+authorship, security, and decisions logged."
+      - "Writes 02-DOCS/wiki/sdd/constitution.md with a version (v1.0.0), ratified date, and an append-only amendment log; adds the Knowledge-map row to root CLAUDE.md additively (never deleting sections)."
+      - "Shows the draft and gets explicit ratification from the user before it takes effect, and ends by pointing to the specify phase as next in the chain."

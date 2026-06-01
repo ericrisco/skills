@@ -25,6 +25,7 @@ once, then install only the bundles you want.
 /plugin install rsc-content@rsc-skills    # marketing + presentations + course-storytelling
 /plugin install rsc-agents@rsc-skills     # building-agents
 /plugin install rsc-ops@rsc-skills        # secure-coding + deployment
+/plugin install rsc-sdd@rsc-skills        # sdd + constitution/specify/clarify/plan/tasks/analyze/implement/verify/review/ship + debug/worktrees/parallel
 ```
 
 Once a bundle is installed, its skills are **namespaced under the plugin name**
@@ -33,18 +34,23 @@ and invoke as `/<plugin>:<skill>`:
 ```text
 /rsc-core:init                  /rsc-backend:fastapi      /rsc-frontend:nextjs
 /rsc-core:harness               /rsc-backend:go           /rsc-frontend:flutter
-                                /rsc-backend:postgresdb   /rsc-frontend:design
+/rsc-core:author-skill          /rsc-backend:postgresdb   /rsc-frontend:design
 
 /rsc-content:marketing          /rsc-agents:building-agents
 /rsc-content:presentations      /rsc-ops:secure-coding
 /rsc-content:course-storytelling /rsc-ops:deployment
+
+/rsc-sdd:sdd        /rsc-sdd:constitution /rsc-sdd:specify  /rsc-sdd:clarify
+/rsc-sdd:plan       /rsc-sdd:tasks        /rsc-sdd:analyze  /rsc-sdd:implement
+/rsc-sdd:verify     /rsc-sdd:review       /rsc-sdd:ship     /rsc-sdd:debug
+/rsc-sdd:worktrees  /rsc-sdd:parallel
 ```
 
 New here? Install `rsc-core` and run `/rsc-core:init` — it gauges your level,
 figures out what you're building, recommends which other bundles to install,
 and hands off to `/rsc-core:harness` to scaffold the workspace.
 
-The six bundles map to one marketplace under `.claude-plugin/marketplace.json`;
+The seven bundles map to one marketplace under `.claude-plugin/marketplace.json`;
 each bundle lives at `plugins/<bundle>/`. A skill is authored once under
 `skills/<name>/` (the canonical source) and copied into each bundle for
 distribution — see [Repo layout & contributing](#repo-layout--contributing).
@@ -71,18 +77,19 @@ npx skills add ericrisco/skills --list
 
 ## Bundles & skills
 
-The 14 skills ship as six plugin bundles. The flat `npx skills` names are the
+The skills ship as seven plugin bundles. The flat `npx skills` names are the
 skill names (e.g. `harness`, `fastapi`); the plugin invocations are namespaced
 as `/<bundle>:<skill>`.
 
 | Bundle | Skills |
 | --- | --- |
-| **rsc-core** | `init`, `harness` |
+| **rsc-core** | `init`, `harness`, `author-skill` |
 | **rsc-backend** | `fastapi`, `go`, `postgresdb` |
 | **rsc-frontend** | `nextjs`, `flutter`, `design` |
 | **rsc-content** | `marketing`, `presentations`, `course-storytelling` |
 | **rsc-agents** | `building-agents` |
 | **rsc-ops** | `secure-coding`, `deployment` |
+| **rsc-sdd** | `sdd`, `constitution`, `specify`, `clarify`, `plan`, `tasks`, `analyze`, `implement`, `verify`, `review`, `ship`, `debug`, `worktrees`, `parallel` |
 
 ### rsc-core
 
@@ -127,6 +134,15 @@ Also generates the root `CLAUDE.md` and `AGENTS.md`, and migrates legacy
 Triggers: `"audit my project"`, `"bootstrap workspace"`, `"set up
 01-TOOLS and 02-DOCS"`, `"risco harness"`, `"project harness"`,
 `"procesa el inbox"`, `"sal a pasear"`.
+
+#### [author-skill](skills/author-skill/) — `/rsc-core:author-skill`
+
+The meta-skill for authoring and editing the skills in this catalog itself —
+frontmatter discipline, trigger design (`should_trigger` / `should_not_trigger`),
+the eval minimums enforced by `scripts/eval-lint.sh`, the canonical-source +
+`sync-bundles.sh` distribution model, and sibling-link hygiene (every
+`../x/SKILL.md` must resolve). Use it when creating a new skill, tightening an
+existing one's triggers, or verifying a skill before it ships.
 
 The remaining bundles are the stack and craft skills — a tight set of
 best-in-class skills for the Risco stack plus cross-cutting design, content,
@@ -238,6 +254,50 @@ Source → hardened container → green CI/CD → live: multi-stage Dockerfiles 
 stack, GitHub Actions (matrix, caching, OIDC, security gates), and Coolify
 self-hosted deploys (zero-downtime, secrets flow, rollbacks). `references/`:
 dockerfiles-by-stack, github-actions, coolify.
+
+## SDD skills
+
+The `rsc-sdd` bundle is the **Spec-Driven Development workflow** — the method
+that takes a fuzzy intent and walks it, phase by phase, to a shipped, verified
+change. It is process, not stack: each phase defers concrete tooling (test
+runners, lint/type/build, framework idioms) to the stack skills above, and
+writes its artifacts into the `02-DOCS/wiki/sdd/` layer the `harness` governs.
+
+Install it alongside the others:
+
+```bash
+/plugin install rsc-sdd@rsc-skills
+```
+
+The `sdd` dispatcher routes each request to its phase; you can also invoke any
+phase directly as `/rsc-sdd:<phase>`:
+
+```text
+/rsc-sdd:sdd            # the dispatcher: the method, the phase map, the invoke rule
+/rsc-sdd:constitution   # project non-negotiables: stack canon, quality bars, conventions
+/rsc-sdd:specify        # turn a fuzzy intent into a spec — what & why, no how
+/rsc-sdd:clarify        # surface ambiguities / edge cases, ask, bake answers back in
+/rsc-sdd:plan           # technical plan: architecture, interfaces, data flow, tests, risks
+/rsc-sdd:tasks          # break the plan into ordered, independently-verifiable tasks
+/rsc-sdd:analyze        # consistency gate: constitution <-> spec <-> plan <-> tasks
+/rsc-sdd:implement      # execute tasks with checkpoints; TDD discipline embedded
+/rsc-sdd:verify         # post-build gate: run the stack's checks + done-checks + acceptance
+/rsc-sdd:review         # adversarial code review — give and receive with rigor
+/rsc-sdd:ship           # close the branch: PR / merge / cleanup
+/rsc-sdd:debug          # root-cause diagnosis: reproduce -> isolate -> fix -> verify
+/rsc-sdd:worktrees      # isolate feature work in a branch/worktree before executing a plan
+/rsc-sdd:parallel       # fan out independent tasks across subagents, gather results
+```
+
+The happy path is **constitution → specify → clarify → plan → tasks → analyze →
+implement → verify → review → ship**, with `debug`, `worktrees`, and `parallel`
+callable on demand at any point. The SDD artifacts live under
+`02-DOCS/wiki/sdd/` (`constitution.md`, `specs/`, `plans/`, `decisions.md`).
+
+The `rsc-core` bundle also gains **`author-skill`** — the meta-skill for
+authoring and editing skills in this catalog itself (frontmatter discipline,
+trigger design, the eval minimums, sibling-link hygiene). Invoke it as
+`/rsc-core:author-skill`.
 
 ## Skill format
 

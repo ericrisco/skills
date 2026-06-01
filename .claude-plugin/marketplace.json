@@ -55,6 +55,14 @@
       "license": "MIT",
       "category": "operations",
       "keywords": ["security", "owasp", "stride", "deployment", "docker", "ci-cd", "coolify", "github-actions"]
+    },
+    {
+      "name": "rsc-sdd",
+      "source": "./plugins/rsc-sdd",
+      "description": "Spec-Driven Development workflow: constitution -> specify -> clarify -> plan -> tasks -> analyze -> implement -> verify -> review -> ship, with debug, worktrees, and parallel callable on demand. The sdd dispatcher routes each request to its phase. Invoked as /rsc-sdd:<phase>.",
+      "license": "MIT",
+      "category": "workflow",
+      "keywords": ["sdd", "spec-driven", "workflow", "specify", "plan", "tasks", "implement", "verify", "review", "ship", "debug", "worktrees", "parallel", "constitution"]
     }
   ]
 }

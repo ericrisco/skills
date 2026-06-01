@@ -1,0 +1,75 @@
+skill: tasks
+
+# Prompts that MUST load the `tasks` skill. It owns ONE job in the SDD chain:
+# turn an APPROVED plan into an ordered, independently-verifiable task list —
+# each task with a literal done-check, dependencies, a parallel-safe marker,
+# and a trace back to a spec line — appended into the plan artifact under
+# 02-DOCS/wiki/sdd/plans/<slug>.md. It is NOT plan-writing (plan), NOT the
+# consistency gate (analyze), NOT execution (implement).
+should_trigger:
+  - prompt: "The plan for the billing feature is approved — break it into tasks we can actually execute."
+    why: "Slicing an approved plan into an executable task list is the skill's core and only job."
+
+  - prompt: "Descompón el plan de autenticación en una lista de tareas ordenada, cada una con su comprobación de hecho."
+    why: "Spanish phrasing for an ordered task breakdown where each task carries an explicit done-check — exactly this phase."
+
+  - prompt: "Give each step in the build a done-check so a subagent can run it and prove it's finished."
+    why: "Attaching a runnable done-check to every unit so it's independently verifiable is the defining feature of this skill, phrased without naming it."
+
+  - prompt: "We have the design doc and architecture — now sequence the work and tell me which parts can run in parallel."
+    why: "Ordering tasks by dependency and marking which are parallel-safe ([P]) is owned here; the user names sequencing/parallelism, not the skill."
+
+  - prompt: "Turn the plan into a numbered checklist where every item traces back to a requirement in the spec."
+    why: "Producing numbered, spec-traced tasks (Trace field, no orphan tasks) is precisely this phase's output and discipline."
+
+  - prompt: "Before we start coding, I want a task list off the approved plan with dependencies between tasks spelled out."
+    why: "Pre-implementation breakdown of an approved plan with explicit depends-on edges is the tasks phase; it sits between plan and analyze/implement."
+
+  - prompt: "Slice this implementation plan into the smallest units a coding agent can finish and hand off one at a time."
+    why: "Smallest-verifiable-unit slicing for handoff is the skill's stated method, even though 'tasks' is never said."
+
+# NEAR-MISS prompts that must NOT load `tasks`. Each routes to the genuinely
+# correct sibling. The recurring trap: anything in the SDD chain that is the
+# step BEFORE (plan), the gate AFTER (analyze), or the DOING (implement) — plus
+# stack-specific work that a single task merely delegates to.
+should_not_trigger:
+  - prompt: "We don't have a technical plan yet — design the architecture, interfaces, and testing strategy for the billing feature."
+    route_to: "plan"
+    why: "Writing the plan itself (architecture/interfaces/testing) is the `plan` phase; `tasks` slices a plan that already exists, it does not author one."
+
+  - prompt: "Cross-check the constitution, spec, plan, and task list for contradictions or scope drift before we write any code."
+    route_to: "analyze"
+    why: "The pre-implementation consistency gate over all four artifacts is `analyze`; `tasks` produces the list that analyze audits, it doesn't audit."
+
+  - prompt: "Start executing the task list — write the code for T004 and get its test green."
+    route_to: "implement"
+    why: "Executing tasks and writing runtime code (red → green → refactor) is `implement`; `tasks` writes no code, only the list."
+
+  - prompt: "Write the failing pytest and then the FastAPI route for the POST /login endpoint."
+    route_to: "fastapi"
+    why: "Concrete test+endpoint implementation in a specific stack is owned by the stack skill (fastapi) under implement; tasks only references such a command as a done-check, it doesn't write it."
+
+  - prompt: "Write the Alembic migration that adds the users table with a UNIQUE email constraint."
+    route_to: "postgresdb"
+    why: "Authoring the actual migration/schema is postgresdb's job; a tasks row merely cites 'migration applies clean' as a done-check."
+
+  - prompt: "The intent is fuzzy — there are unresolved edge cases in the spec we need to nail down before planning."
+    route_to: "clarify"
+    why: "Surfacing ambiguities and underspecified areas in the spec is the `clarify` gate; tasks refuses to start until the plan (downstream of clarify) is solid."
+
+# A concrete task the skill should guide, graded WITH vs WITHOUT it loaded.
+# A correct skill-guided answer enforces well-formed rows (runnable done-checks,
+# dependency order, [P] discipline, spec traces), appends to the plan artifact,
+# and hands off to analyze — not a flat unverifiable to-do list.
+capability:
+  - scenario: "An approved plan exists at 02-DOCS/wiki/sdd/plans/auth.md (login + sessions + a users migration, pytest as the testing strategy) and a spec at specs/auth.md. Break it into a task list."
+    must_include:
+      - "Confirms the inputs first: plan, spec, AND constitution must exist; if the plan were missing it would STOP and route to `plan` rather than slice from intent."
+      - "Reads 02-DOCS/wiki/harness/user-profile.md for the accompaniment level and adapts verbosity (L0 table-only … L3 explain the slicing/dependencies)."
+      - "Emits sequential zero-padded stable IDs (T001, T002… — no hyphen, GitHub Spec Kit canon) with the six well-formed fields: ID, a separate [P] marker field after the ID, imperative title, done-check, depends-on, and a trace to a spec section."
+      - "Every done-check is a LITERAL runnable command or checkable observation (e.g. `pytest tests/auth/test_login.py` green; `alembic upgrade head` applies; bad password → 401) — never 'login works'."
+      - "Orders by dependency (migration/schema → data → service → API), so no task precedes what it depends on; marks `[P]` only on file/state-disjoint tasks and defaults to sequential when unsure."
+      - "Uses TDD-shaped slicing: a failing-test task before its implementation task, whose done-check is 'the test that was red is now green'."
+      - "Ensures every task traces to a spec line and cuts/flags any task with no trace as scope creep (route to clarify/specify), rather than inventing scope."
+      - "Appends the table under a `## Tasks` heading INSIDE 02-DOCS/wiki/sdd/plans/auth.md (not a new file) and confirms the plan is indexed in the root CLAUDE.md Knowledge map under sdd/."
+      - "Adds a final closer task gating on all done-checks passing plus `scripts/verify.sh` green, and hands off to `analyze` next (then implement) — not straight to implementation."

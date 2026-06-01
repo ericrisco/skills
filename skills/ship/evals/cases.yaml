@@ -1,0 +1,44 @@
+skill: ship
+
+should_trigger:
+  - prompt: "Review's done and approved. Ship it — open the PR and get this branch landed."
+    why: "Flagship trigger: approved diff, explicit 'ship it' + 'open the PR' + 'land the branch'. Squarely the ship phase, the close of the SDD chain."
+  - prompt: "Esta rama ya pasó verify y review. Haz el merge a main y borra la rama."
+    why: "Spanish trigger — branch passed verify+review, 'merge to main and delete the branch'. Same close-the-branch action in the user's other language."
+  - prompt: "I'm done with the feature and everything's green. What now — how do I land this?"
+    why: "Non-obvious phrasing: no literal 'merge'/'PR' word, but 'done', 'green', 'how do I land this' is exactly the moment ship presents the three landing options."
+  - prompt: "Can you write a clean commit message and open a pull request for this change? Make sure it doesn't credit Claude or any AI as a co-author."
+    why: "Directly invokes the authorship hard rule (no Co-Authored-By Claude) alongside the commit+PR action — the defining concern this skill owns."
+  - prompt: "This spike didn't pan out — the approach is superseded. Clean up the branch, I don't think it should merge."
+    why: "The park/discard landing option (option 3). 'Clean up the branch', 'shouldn't merge' is the abandon path ship handles, including the destructive-confirm + log-the-reason discipline."
+  - prompt: "Squash my wip commits into one good commit and push it so I can merge into main."
+    why: "Commit-history hygiene + landing to trunk. Squashing noisy wip commits and merging is ship's commit-message discipline and option 1 (direct merge)."
+  - prompt: "The PR body got auto-generated with a 'Generated with Claude Code' footer — strip that and make sure the author is me before this lands."
+    why: "Authorship-violation cleanup: stripping the generated-with footer and confirming Eric is the author, immediately before landing. Core ship safety behavior."
+
+should_not_trigger:
+  - prompt: "Run lint, type-check and the whole test suite on my branch and tell me if it's green before I do anything else."
+    route_to: "verify"
+    why: "Running the gates to green is the verify phase. Ship assumes green and refuses to run when the gates haven't passed; this is the prerequisite, not the close."
+  - prompt: "Tear this diff apart before it goes out — what's actually wrong with the logic?"
+    route_to: "review"
+    why: "Adversarial reading of the diff for defects is the review phase. Ship lands an already-approved diff; it never reads code for correctness."
+  - prompt: "The merge is in. Now provision the server and roll this out to production with a rollback plan."
+    route_to: "deployment"
+    why: "Server provisioning, release pipeline and rollback are the deployment phase. Ship lands code in the repo; deployment puts it in front of users — explicitly routed out in 'When NOT to use'."
+  - prompt: "I'm starting a new feature and want it isolated from my current work — set up a worktree."
+    route_to: "worktrees"
+    why: "Creating the isolated branch/worktree to OPEN work is the worktrees phase. Ship is the close, not the open; opposite end of the loop."
+  - prompt: "Write me a Postgres migration to add a nullable discount_cents column to the orders table."
+    route_to: "postgresdb"
+    why: "Authoring SQL/migration code is owned by the postgresdb stack skill. There is no branch to land here — it's implementation work, not a close."
+
+capability:
+  - scenario: "An approved branch `feature/discount-codes` is ready to land. The user asks to commit and open a PR. The repo's `main` is protected (a `.github/` with prior PRs exists), and a leftover commit on the branch carries the trailer 'Co-Authored-By: Claude <noreply@anthropic.com>' plus a 'Generated with Claude Code' footer. Decide how to land it and produce the commit/PR."
+    must_include:
+      - "Runs the pre-ship safety checklist: confirms the review verdict is APPROVE, the tree is clean, the branch is rebased on main, and scans the diff for secrets — before presenting any option."
+      - "Detects the AI authorship trailer/footer and treats it as a BLOCKER: strips the Co-Authored-By Claude trailer and the 'Generated with Claude Code' footer (amends the commit) before anything is pushed."
+      - "Confirms git author is Eric (checks git config user.email) and never passes --author for an agent identity."
+      - "Presents exactly THREE landing options (direct merge / pull request / park-or-discard) and recommends the PR option BECAUSE main is protected / the repo has a PR culture (.github + prior PRs)."
+      - "Writes a spec-linked commit message and PR body (What/Why/How/Verification referencing 02-DOCS/wiki/sdd/specs/<slug>.md) that contains NO AI attribution — no Co-Authored-By, no generated-with footer."
+      - "Logs the landing decision to 02-DOCS/wiki/sdd/decisions.md and keeps the sdd/ Knowledge-map rows honest; verifies authorship clean (the git log grep) before claiming the branch is shipped."

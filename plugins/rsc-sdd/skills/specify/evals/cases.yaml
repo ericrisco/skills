@@ -1,0 +1,80 @@
+skill: specify
+
+# Prompts that MUST load `specify`. The skill turns a fuzzy intent into a written
+# WHAT/WHY spec at 02-DOCS/wiki/sdd/specs/<slug>.md — problem, goals/non-goals,
+# users, observable behaviour, testable acceptance criteria, points to clarify —
+# with zero implementation detail. It is NOT the technical plan (plan), NOT the
+# ambiguity sweep (clarify), NOT project-wide principles (constitution).
+should_trigger:
+  - prompt: "Write a spec for a bulk CSV import feature in our admin panel."
+    why: "Direct request to produce a specification for a feature — the skill's core job: WHAT/WHY at 02-DOCS/wiki/sdd/specs/<slug>.md."
+
+  - prompt: "I want to add magic-link login but I haven't really thought it through yet — can you help me nail down what it should actually do?"
+    why: "A fuzzy intent that needs to become a spec (behaviour + acceptance criteria) before any planning; 'what it should do' is WHAT, not HOW."
+
+  - prompt: "Especifica la feature de notificaciones por email antes de que nos pongamos a construir nada."
+    why: "Spanish 'especifica … antes de construir' is the exact specify trigger — capture the spec before implementation, in the rsc bilingual register."
+
+  - prompt: "Before we build it, capture the requirements for letting users export their data."
+    why: "Requirements capture for a feature, explicitly pre-build — the specify phase, even though the user never says the word 'spec'."
+
+  - prompt: "We just finished the project constitution. Now let's define the first feature: a referral program."
+    why: "Kicking off an SDD feature right after the constitution exists is precisely the constitution -> specify handoff this skill owns."
+
+  - prompt: "Draft a PRD for the new onboarding checklist — what it does and why, not how we'll code it."
+    why: "A PRD describing what/why and explicitly excluding the how is a spec; 'not how we'll code it' confirms the WHAT/WHY scope."
+
+  - prompt: "Everyone keeps jumping to the database design for the booking feature, but nobody has written down what it's even supposed to do. Sort that out."
+    why: "Someone jumped to HOW before WHAT is agreed; pulling it back to a behaviour/acceptance spec is the specify intervention."
+
+# NEAR-MISS prompts that must NOT load `specify`. Each routes to the genuinely
+# correct sibling. The recurring trap: anything that is the HOW (plan/stack),
+# the ambiguity sweep on an existing spec (clarify), or project-wide principles
+# (constitution) rather than the WHAT/WHY of one feature.
+should_not_trigger:
+  - prompt: "We already have the spec for magic-link login — now design the architecture, data flow, and testing strategy to build it."
+    route_to: "plan"
+    why: "A spec already exists and the ask is the technical HOW (architecture, data flow); that's the plan phase, not writing the spec."
+
+  - prompt: "Read our checkout spec and find the ambiguous bits and edge cases I haven't decided yet, then ask me about them."
+    route_to: "clarify"
+    why: "Surfacing ambiguities/edge cases in an EXISTING spec and resolving them is the de-risking clarify phase, distinct from authoring the spec."
+
+  - prompt: "Define our project's non-negotiable principles: stack canon, quality bars, and coding conventions."
+    route_to: "constitution"
+    why: "Project-wide guardrails/principles are the constitution, not a single feature's WHAT/WHY spec."
+
+  - prompt: "Build the bulk CSV import endpoint in FastAPI with Pydantic validation and tests."
+    route_to: "fastapi"
+    why: "Concrete implementation in a specific stack is build work delegated to the fastapi skill, the opposite of a no-implementation spec."
+
+  - prompt: "Design the type scale, colour palette, and layout for the onboarding checklist screen."
+    route_to: "design"
+    why: "Visual/UX design (pixels) is the design skill; specify owns the behavioural requirements, never the look."
+
+  - prompt: "Break the approved plan for the referral program into an ordered task list with done-checks."
+    route_to: "tasks"
+    why: "Decomposing an approved plan into verifiable tasks is the tasks phase; specify produces the upstream spec, not the task breakdown."
+
+# Concrete tasks the skill should guide, with a rubric to grade WITH vs WITHOUT
+# the skill loaded. A skill-guided answer holds WHAT/WHY discipline, asks one
+# question at a time, writes to the canonical path, and names open points; an
+# ungrounded answer typically leaks implementation and dumps questions at once.
+capability:
+  - scenario: "A user says: 'I want to add magic-link (passwordless) login.' There is a constitution at 02-DOCS/wiki/sdd/constitution.md but no spec yet. Produce the spec."
+    must_include:
+      - "Reads the accompaniment level from 02-DOCS/wiki/harness/user-profile.md and the constitution first, inferring everything it can before asking, then asks only scope-changing questions ONE at a time (not a batch of ten)."
+      - "Stays strictly WHAT/WHY: no framework, token format, database table, endpoint shape, email provider, library, or file path appears in the spec — implementation-laden answers are flagged as points to clarify instead of guessed."
+      - "Produces the spec sections: Problem & why, Goals, Non-goals / out of scope, Users & context, Behaviour (main + edge + error paths), Acceptance criteria, Points to clarify."
+      - "Writes testable acceptance criteria in Given/When/Then form that verify could later check (e.g. expired-link refusal, unknown-email revealing nothing)."
+      - "Writes the file to 02-DOCS/wiki/sdd/specs/<slug>.md (kebab-case slug), indexes it in the root CLAUDE.md Knowledge map under sdd/specs, and logs the spec creation to the canonical SDD decisions log at 02-DOCS/wiki/sdd/decisions.md."
+      - "Lists honest Points to clarify (e.g. link validity window, rate-limiting) as the handoff rather than inventing those values."
+      - "Ends by pointing to the clarify phase as the next step in the SDD chain."
+
+  - scenario: "A user pastes a rough one-liner: 'Let users export all their data as a download.' Show how you'd elicit and capture this without over-asking."
+    must_include:
+      - "Recovers the underlying problem/why rather than treating the feature request as the problem, and inherits any relevant constraints from the constitution."
+      - "Applies the 'would a different answer change the spec?' test and asks only the genuinely scope-changing question(s), one at a time, in the user's register."
+      - "Captures observable behaviour (what the user sees/can do) and explicit non-goals / out-of-scope rather than implementation (no file format library, storage, or job-queue detail)."
+      - "Turns answers into binary acceptance criteria and defers unresolved items (e.g. data scope, retention, format) to Points to clarify instead of fabricating decisions."
+      - "Notes that the spec is complete-enough-to-plan with open points remaining, and hands off to clarify — not to plan or implementation."
