@@ -10,3 +10,9 @@ node_modules/
 .coverage
 __pycache__/
 *.pyc
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# NOTE: do NOT ignore .claude-plugin/ — marketplace.json + plugin.json are the
+# distributable manifest and must stay tracked.
