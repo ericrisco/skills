@@ -5,3 +5,8 @@ node_modules/
 *.log
 
 # Per-tool ignores already exist inside each skill's _TEMPLATE/.gitignore.
+
+# build artifacts
+.coverage
+__pycache__/
+*.pyc

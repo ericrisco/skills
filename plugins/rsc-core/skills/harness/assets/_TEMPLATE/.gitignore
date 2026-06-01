@@ -1,0 +1,10 @@
+.env
+keys/
+out/
+*.p8
+*.p12
+*.jks
+*.json
+!*.example.json
+__pycache__/
+*.pyc

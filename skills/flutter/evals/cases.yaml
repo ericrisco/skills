@@ -1,0 +1,69 @@
+skill: flutter
+
+should_trigger:
+  - prompt: "I'm starting a new checkout screen in our Flutter app — what's the cleanest way to structure the feature and wire up state?"
+    why: "Building a new Flutter feature/screen plus choosing state management is the core Use-when; expects feature-first layering + Riverpod/Bloc guidance."
+
+  - prompt: "My Dart app's product list flickers and the whole page rebuilds every time I tap an item. How do I stop the jank?"
+    why: "Investigating rebuilds/jank in a widget tree is an explicit trigger; expects const/extract-to-class, .select(), RepaintBoundary, ListView.builder."
+
+  - prompt: "We model loading and error with two booleans and it keeps getting into impossible states. Better pattern?"
+    why: "Multi-state async modeling — the skill prescribes AsyncValue/sealed state over bool isLoading + bool isError flags. User doesn't name Flutter but it's a Dart-UI anti-pattern the skill owns."
+
+  - prompt: "Need to add auth-guarded navigation with deep links to my mobile app built with Riverpod and go_router. How should redirect work?"
+    why: "Routing + auth guards + go_router are named triggers; Riverpod/go_router signal the exact stack this skill targets."
+
+  - prompt: "How do I write a test that pumps a screen, fakes the controller, and asserts the loading-then-data transition? pumpAndSettle just hangs on my spinner."
+    why: "Widget testing + async state transition tests are a trigger; skill knows ProviderScope override, the loading->data/error gate, and the pumpAndSettle-hangs-on-spinner fix."
+
+  - prompt: "Our dio calls throw DioException straight into the widgets and the app crashes on a 500. What's the right boundary?"
+    why: "dio data layer + error modeling at the domain boundary; skill prescribes Result<T, Failure> mapping so the UI cannot crash on a wire error."
+
+  - prompt: "Setting up dev/staging/prod with different API URLs and secrets for our mobile client — how do flavors and dart-define fit together?"
+    why: "Wiring build flavors and secret injection (--dart-define-from-file, flavored main entrypoints) is an explicit Use-when, without naming Flutter directly."
+
+should_not_trigger:
+  - prompt: "Build the REST endpoints and Pydantic models that our mobile app will call, with async SQLAlchemy."
+    route_to: "fastapi"
+    why: "This is the Python backend the app talks to, not the Flutter subproject; SKILL says use the sibling backend skill and this one only owns the Flutter package."
+
+  - prompt: "I'm building the same screens in Compose Multiplatform with a shared Kotlin module — how should I structure state?"
+    route_to: "none"
+    why: "Explicit Do-NOT-use: UI is Compose Multiplatform/native, not Flutter; defer to a Compose/native skill which is not in this catalog."
+
+  - prompt: "Write a pure Dart CLI that parses a CSV and writes a report — no UI at all."
+    route_to: "none"
+    why: "Do-NOT-use: a pure Dart server/CLI with no widget tree; general Dart applies but the skill's UI/nav/perf material does not, so it should not impose its architecture."
+
+  - prompt: "Tune this Postgres query and add the right composite index for our orders table."
+    route_to: "postgresdb"
+    why: "Pure SQL/database tuning has nothing to do with the Flutter client; routes to the database skill."
+
+  - prompt: "Review how we store the OAuth refresh token and validate incoming deep-link URLs for injection — is it secure?"
+    route_to: "secure-coding"
+    why: "A security-only audit of token storage and deep-link validation belongs to secure-coding; the SKILL itself points token handling/deep-link validation to that sibling."
+
+  - prompt: "Build the marketing landing page and SEO metadata for our app's website in Next.js."
+    route_to: "nextjs"
+    why: "A Next.js web sibling in the monorepo; the SKILL says use that skill — this one only owns the Flutter subproject."
+
+capability:
+  - scenario: "A user has a screen with separate `bool isLoading`, `bool isError`, and a `List<Product> items` field, fetched via dio, and asks for the right way to model and render this async state in Flutter with Riverpod."
+    must_include:
+      - "Replace the three flags with a single sealed/AsyncValue type so impossible states (loading AND error) are unrepresentable"
+      - "Expose the data via a Riverpod 3 @riverpod Notifier/AsyncNotifier (function provider for async reads), not scattered setState"
+      - "Render with an exhaustive switch over AsyncData/AsyncError/loading so the compiler enforces all cases handled"
+      - "Map dio failures to a Result<T, Failure> at the repository boundary so DioException never reaches the UI"
+      - "Scope rebuilds with ref.watch(...).select(...) and use ref.read only in callbacks"
+      - "Guard async gaps: check ref.mounted / context.mounted after an await before using ref/context"
+      - "Note that every async transition (loading->data, loading->error) needs a test"
+
+  - scenario: "A user reports their long scrolling feed stutters and the whole page rebuilds on every state change; they want it smooth."
+    must_include:
+      - "Use ListView.builder (lazy) instead of ListView(children: [...]) which builds all children eagerly"
+      - "Extract widgets to const classes rather than _build*() helper methods to enable element reuse and const propagation"
+      - "Scope rebuilds with .select() / BlocSelector / buildWhen so only the changing subtree rebuilds, not the page"
+      - "Wrap independently-animating subtrees in RepaintBoundary"
+      - "Decode images at display size with cacheWidth/cacheHeight"
+      - "Profile with flutter run --profile and DevTools (Track Widget Rebuilds, raster vs UI thread) rather than guessing"
+      - "Move CPU-bound work off the UI thread with Isolate.run"
