@@ -65,9 +65,9 @@ capability:
     must_include:
       - "Reads the accompaniment level from 02-DOCS/wiki/harness/user-profile.md and the constitution first, inferring everything it can before asking, then asks only scope-changing questions ONE at a time (not a batch of ten)."
       - "Stays strictly WHAT/WHY: no framework, token format, database table, endpoint shape, email provider, library, or file path appears in the spec — implementation-laden answers are flagged as points to clarify instead of guessed."
-      - "Produces the spec sections: Problem & why, Goals, Non-goals, Users & context, Behaviour (main + edge + error paths), Acceptance criteria, Out of scope, Points to clarify."
+      - "Produces the spec sections: Problem & why, Goals, Non-goals / out of scope, Users & context, Behaviour (main + edge + error paths), Acceptance criteria, Points to clarify."
       - "Writes testable acceptance criteria in Given/When/Then form that verify could later check (e.g. expired-link refusal, unknown-email revealing nothing)."
-      - "Writes the file to 02-DOCS/wiki/sdd/specs/<slug>.md (kebab-case slug), indexes it in the root CLAUDE.md Knowledge map under sdd/specs, and notes the spec creation could be logged to the harness decisions log."
+      - "Writes the file to 02-DOCS/wiki/sdd/specs/<slug>.md (kebab-case slug), indexes it in the root CLAUDE.md Knowledge map under sdd/specs, and logs the spec creation to the canonical SDD decisions log at 02-DOCS/wiki/sdd/decisions.md."
       - "Lists honest Points to clarify (e.g. link validity window, rate-limiting) as the handoff rather than inventing those values."
       - "Ends by pointing to the clarify phase as the next step in the SDD chain."
 

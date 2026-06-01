@@ -72,12 +72,13 @@ Pass conditions:
 
 - These are LLM-graded, stochastic evals — re-run on skill edits and treat small
   score deltas as noise, not signal.
-- `route_to` targets assume the named siblings are present in the catalog. The
-  adjacent SDD phases this skill hands off to (**verify** before it, **ship**
-  after it) are not yet separate skills in this repo, so two near-misses route to
-  the closest *existing* skill instead. That is a catalog gap, not a `review`
-  fault — when those phase skills land, repoint the `verify`/`ship` near-misses
-  at them. Don't count a mis-route caused by an absent sibling against `review`.
+- `route_to` targets name the sibling skill the prompt should land on instead of
+  `review`. The adjacent SDD phases this skill hands off to — **verify** before it
+  and **ship** after it — are present as their own skills in this repo, so the two
+  phase-boundary near-misses route straight to them (`verify` for the run-the-gates
+  prompt, `ship` for the open-the-PR-and-merge prompt). Every `route_to` target
+  must resolve to a real sibling skill; a mis-route to the wrong sibling counts
+  against `review`'s triggering accuracy.
 - The receiving-side capability scenario is intentionally a *false* finding. A
   pass means the skill declined the edit with a trace; "fixed the NPE" is a
   failure even though it looks responsive.

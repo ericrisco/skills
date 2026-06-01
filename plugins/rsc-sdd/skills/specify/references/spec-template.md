@@ -18,8 +18,10 @@ paragraph. State the problem, not a pre-chosen solution.>
 ## Goals
 - <What success delivers, in outcome terms. One bullet per goal.>
 
-## Non-goals
-- <What is explicitly out of scope for THIS change, so scope can't drift.>
+## Non-goals / out of scope
+- <What is explicitly NOT done in THIS change — adjacent features, deferred
+  work, things a reader might assume are included. Be explicit, not silent:
+  unsaid scope becomes assumed scope.>
 
 ## Users & context
 <Who acts, the situation they're in, and what they're trying to achieve.
@@ -35,9 +37,6 @@ Real users from the constitution/wiki, not invented personas.>
 checkable by `verify` and convertible to a `tasks` done-check.>
 - Given <state>, When <action>, Then <observable outcome>.
 - Given <state>, When <action>, Then <observable outcome>.
-
-## Out of scope
-- <Adjacent things deliberately not done now — be explicit, not silent.>
 
 ## Points to clarify
 <The handoff to the `clarify` phase. Open questions, assumptions you made and

@@ -136,7 +136,7 @@ A skill ships only when every box is checked or a miss is consciously justified.
 - [ ] **Accompaniment dial honored** — reads the profile, adapts verbosity.
 - [ ] **Artifacts under `02-DOCS/wiki/`** and indexed in the root CLAUDE.md Knowledge map, if the skill produces any.
 - [ ] **Concrete tooling delegated** to the stack skills rather than reinvented.
-- [ ] **evals present** — `cases.yaml` (≥5 `should_trigger` incl. non-obvious, ≥4 `should_not_trigger` each with a real-sibling `route_to`, ≥1 `capability` with a `must_include` rubric) + an honest `README.md`. `scripts/eval-lint.sh` passes.
+- [ ] **evals present** — `cases.yaml` (≥5 `should_trigger` incl. non-obvious, ≥4 `should_not_trigger` each with a real-sibling `route_to`, ≥1 `capability` with a `must_include` rubric) + an honest `README.md`. `scripts/eval-lint.sh` passes — but it only checks presence and the counts (≥5/≥4/≥1) and that those keys are lists; the `route_to`-points-at-a-real-sibling, non-obvious phrasings, and `must_include` quality are yours to verify here, not the linter's.
 - [ ] **verify.sh** present iff the skill has a checkable artifact; process skills rely on evals.
 - [ ] **Sibling links resolve** — every `../x/SKILL.md` points to a skill that exists.
 - [ ] **Wired** — in a bundle map, the marketplace, and `sync-bundles.sh` re-run so `plugins/*/skills/*` are real copies (0 symlinks).

@@ -7,13 +7,17 @@ A skill without evals is unverifiable, and unverifiable means it does not ship. 
 
 Everything lives in `evals/cases.yaml` (the cases) and `evals/README.md` (how to run them, honestly).
 
-## The minimums (enforced by scripts/eval-lint.sh)
+## The minimums
 
 - `should_trigger` — **≥ 5** prompts that MUST load the skill. Include at least one **non-obvious** phrasing (a symptom, not the skill's name) and ideally a non-English one.
 - `should_not_trigger` — **≥ 4** near-miss prompts that must NOT load it. **Each needs a `route_to`** naming the real sibling that *should* own it (or `none` if no sibling does, with a why).
 - `capability` — **≥ 1** scenario with a `must_include` rubric of concrete points the answer must cover.
 
-`scripts/eval-lint.sh` parses every `cases.yaml` and fails the build if a skill is under any minimum. Run it before shipping.
+### What `scripts/eval-lint.sh` actually checks (and what it doesn't)
+
+`scripts/eval-lint.sh` parses every `cases.yaml` and fails the build only on the **structural minimums**: that `evals/cases.yaml` exists, that `should_trigger`, `should_not_trigger`, and `capability` are present as lists, and that their item counts meet **≥ 5 / ≥ 4 / ≥ 1**. (Without python3+PyYAML it degrades to a presence-only key check.) Run it before shipping to catch a missing or undersized section.
+
+It does **not** read inside the entries. Whether each `should_not_trigger` carries a `route_to`, whether that `route_to` names a sibling that actually exists in this repo, whether your `should_trigger` set includes a genuinely non-obvious or non-English phrasing, and whether each `capability` scenario has a real `must_include` rubric of gradeable points — none of that is enforced by the linter. Those are **author and review responsibilities**: verify them by hand (and in the self-audit / code-review pass) before shipping. A green eval-lint means the shape is right, not that the cases are good.
 
 ## cases.yaml structure
 

@@ -72,7 +72,7 @@ For each touched stack, run that stack skill's gate and **capture the output ver
 | Stack | Gate command (owned by the stack skill) | Covers |
 | --- | --- | --- |
 | FastAPI / async Python | `./scripts/verify.sh` (`../fastapi`) | ruff/black, mypy, pytest+coverage, pip-audit |
-| Go module | `./verify.sh` (`../go`) | gofmt, vet, staticcheck, golangci-lint, `test -race -cover`, govulncheck |
+| Go module | `./scripts/verify.sh` (`../go`, run in the module root) | gofmt, vet, staticcheck, golangci-lint, `test -race -cover`, govulncheck |
 | Next.js / React | `./scripts/verify.sh` (`../nextjs`) | eslint, tsc --noEmit, test, build |
 | Flutter / Dart | `./scripts/verify.sh` (`../flutter`) | `dart format`, `flutter analyze`, `flutter test` |
 | Postgres / data layer | migration + query checks (`../postgresdb`) | schema/migration apply, constraint + query checks |
