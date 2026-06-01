@@ -318,6 +318,24 @@ equivalent is in `references/secrets-and-supply-chain.md`.
 | CORS rule | allowlist | Explicit origins; never `*` with credentials |
 | SSRF blocklist | IP ranges | `169.254.169.254`, `10/8`, `172.16/12`, `192.168/16`, `127/8`, `::1`, `fc00::/7`, `fe80::/10` |
 
+## Project grounding (02-DOCS + CLAUDE.md)
+
+When this skill runs in a project with a `02-DOCS/` layer (the
+[`risco-project-harness`](../risco-project-harness/SKILL.md) Karpathy wiki), record this
+project's security decisions there and index them from the root `CLAUDE.md`, so the next
+agent inherits the conventions instead of re-deriving them.
+
+1. **Find the article** `02-DOCS/wiki/stack/security.md`, linked from a `## Knowledge map` section in the root
+   `CLAUDE.md`.
+2. **If missing or stale**, create/update it with the project's real choices — the threat model, the auth model, the secrets backend, the CI security gates, and any accepted risks —
+   then add/refresh the `CLAUDE.md` link (create the `## Knowledge map` section, and
+   `CLAUDE.md` itself, if absent).
+3. **Read it first on every use** and stay consistent; when a convention changes, update the
+   article (bump its `Updated` date) in the same change.
+
+No `02-DOCS/` layer? Skip silently (optionally suggest `risco-project-harness`). Unlike the
+brand study, technical conventions are *recorded, not gated* — never block the task on this.
+
 ## See Also
 
 - **Stack skills** — `../fastapi/SKILL.md`, `../nextjs/SKILL.md`, `../go/SKILL.md`,

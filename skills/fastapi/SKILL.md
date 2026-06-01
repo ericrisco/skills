@@ -576,6 +576,24 @@ gunicorn app.main:app \
 | Hash password | `argon2.PasswordHasher().hash(pw)` |
 | Verify JWT | `jwt.decode(t, key, algorithms=[...], audience=..., issuer=...)` |
 
+## Project grounding (02-DOCS + CLAUDE.md)
+
+When this skill runs in a project with a `02-DOCS/` layer (the
+[`risco-project-harness`](../risco-project-harness/SKILL.md) Karpathy wiki), record this
+project's API decisions there and index them from the root `CLAUDE.md`, so the next
+agent inherits the conventions instead of re-deriving them.
+
+1. **Find the article** `02-DOCS/wiki/stack/fastapi.md`, linked from a `## Knowledge map` section in the root
+   `CLAUDE.md`.
+2. **If missing or stale**, create/update it with the project's real choices — auth model (JWT/OAuth2 provider, token lifetimes), the DB session + migration tool, the error-envelope shape, the settings/secrets approach, and the deployment target —
+   then add/refresh the `CLAUDE.md` link (create the `## Knowledge map` section, and
+   `CLAUDE.md` itself, if absent).
+3. **Read it first on every use** and stay consistent; when a convention changes, update the
+   article (bump its `Updated` date) in the same change.
+
+No `02-DOCS/` layer? Skip silently (optionally suggest `risco-project-harness`). Unlike the
+brand study, technical conventions are *recorded, not gated* — never block the task on this.
+
 ## See Also
 
 - `api-design` — REST contract (status codes, URL naming, pagination semantics, versioning).

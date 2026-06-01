@@ -440,6 +440,24 @@ Docker note: distroless/static base, `CGO_ENABLED=0`, multi-stage build. Full Co
 | Leak guard | buffered chan + `select { case ch<-v: case <-ctx.Done(): }` |
 | Local gate | `./scripts/verify.sh` (run in your module root) |
 
+## Project grounding (02-DOCS + CLAUDE.md)
+
+When this skill runs in a project with a `02-DOCS/` layer (the
+[`risco-project-harness`](../risco-project-harness/SKILL.md) Karpathy wiki), record this
+project's service decisions there and index them from the root `CLAUDE.md`, so the next
+agent inherits the conventions instead of re-deriving them.
+
+1. **Find the article** `02-DOCS/wiki/stack/go.md`, linked from a `## Knowledge map` section in the root
+   `CLAUDE.md`.
+2. **If missing or stale**, create/update it with the project's real choices — the project layout, the router (stdlib 1.22 / chi), the error and `slog` logging conventions, and concurrency/timeout defaults —
+   then add/refresh the `CLAUDE.md` link (create the `## Knowledge map` section, and
+   `CLAUDE.md` itself, if absent).
+3. **Read it first on every use** and stay consistent; when a convention changes, update the
+   article (bump its `Updated` date) in the same change.
+
+No `02-DOCS/` layer? Skip silently (optionally suggest `risco-project-harness`). Unlike the
+brand study, technical conventions are *recorded, not gated* — never block the task on this.
+
 ## See Also
 
 - `error-handling` - cross-language error envelopes and boundary mapping (the non-Go half).

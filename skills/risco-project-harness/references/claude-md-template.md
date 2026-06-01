@@ -12,6 +12,27 @@ workspace. If you're working in a subproject that also has its own
 
 > One or two sentences describing the product and its audience.
 
+## Knowledge map
+
+The living record of this project's conventions lives under `02-DOCS/wiki/` and is maintained by
+the stack skills. Each skill links its article here as it is created — read the relevant article
+before working in its area, and update it when conventions change.
+
+| Area | Article |
+|------|---------|
+| Brand & voice | `02-DOCS/wiki/brand/` |
+| Design system | `02-DOCS/wiki/stack/design.md` |
+| FastAPI / API | `02-DOCS/wiki/stack/fastapi.md` |
+| Next.js app | `02-DOCS/wiki/stack/nextjs.md` |
+| Go services | `02-DOCS/wiki/stack/go.md` |
+| PostgreSQL | `02-DOCS/wiki/stack/postgresdb.md` |
+| Flutter app | `02-DOCS/wiki/stack/flutter.md` |
+| Agents | `02-DOCS/wiki/stack/agents.md` |
+| Security | `02-DOCS/wiki/stack/security.md` |
+| Deployment | `02-DOCS/wiki/stack/deployment.md` |
+| Presentations | `02-DOCS/wiki/stack/presentations.md` |
+| Course storytelling | `02-DOCS/wiki/stack/course-storytelling.md` |
+
 ## Workspace map
 
 | Path | Role |

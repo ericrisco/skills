@@ -436,6 +436,24 @@ encapsulation → `references/i18n-and-dependencies.md`.
 | deps | `flutter pub outdated` / `melos` | `references/i18n-and-dependencies.md` |
 | verify | `scripts/verify.sh` | `scripts/verify.sh` |
 
+## Project grounding (02-DOCS + CLAUDE.md)
+
+When this skill runs in a project with a `02-DOCS/` layer (the
+[`risco-project-harness`](../risco-project-harness/SKILL.md) Karpathy wiki), record this
+project's app decisions there and index them from the root `CLAUDE.md`, so the next
+agent inherits the conventions instead of re-deriving them.
+
+1. **Find the article** `02-DOCS/wiki/stack/flutter.md`, linked from a `## Knowledge map` section in the root
+   `CLAUDE.md`.
+2. **If missing or stale**, create/update it with the project's real choices — the state-management choice (Riverpod/Bloc), the architecture layers, routing, the Material 3 token system, and codegen setup —
+   then add/refresh the `CLAUDE.md` link (create the `## Knowledge map` section, and
+   `CLAUDE.md` itself, if absent).
+3. **Read it first on every use** and stay consistent; when a convention changes, update the
+   article (bump its `Updated` date) in the same change.
+
+No `02-DOCS/` layer? Skip silently (optionally suggest `risco-project-harness`). Unlike the
+brand study, technical conventions are *recorded, not gated* — never block the task on this.
+
 ## See Also
 
 - `references/architecture-and-state.md` — layering, DI, Result/Failure, Riverpod 3 & Bloc deep dives.

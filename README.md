@@ -56,7 +56,8 @@ Triggers: `"audit my project"`, `"bootstrap workspace"`, `"set up
 
 A tight set of best-in-class skills for the Risco stack — FastAPI/Python,
 Next.js, Go, Flutter, PostgreSQL — plus cross-cutting design, marketing,
-security, agents and deployment. Each is **hybrid**: a focused `SKILL.md`, deep-dive
+presentations, course storytelling, security, agents and deployment. Each is
+**hybrid**: a focused `SKILL.md`, deep-dive
 `references/`, and an executable `scripts/verify.sh` quality gate you run
 inside your own project. Testing, security and production guidance are
 embedded in each stack skill rather than scattered.
@@ -113,6 +114,24 @@ benefit-led, on-brand copy: value props, hero/section copy, CTAs, email and
 launch sequences, channel-adapted messaging. Pairs with `design` (pixels) and
 `nextjs` (build). `references/`: brand-grounding, copy-frameworks, landing-copy,
 campaigns-and-channels.
+
+### [presentations](skills/presentations/)
+
+Stunning PPTX and PDF decks, grounded in the brand study. Two pipelines —
+design-led Markdown (Marp/Slidev themed from the `design` tokens, exported to
+PDF + PPTX) and native editable `python-pptx` — plus deck storytelling/arcs,
+slide copy (from `marketing`) and projection-grade visual design. `references/`:
+storytelling-and-decks, markdown-decks, pptx-python, slide-design,
+brand-grounding.
+
+### [course-storytelling](skills/course-storytelling/)
+
+Turn course/lesson content into teaching that lands — profiles the learner and
+audience first, then runs every concept through Russell Brunson's *Expert
+Secrets* machine (Epiphany Bridge, the three false beliefs, Big Domino, named
+mental models, grounded analogies) into a hook → story → model → analogy →
+proof → application → so-what recipe. `references/`: brunson-frameworks,
+learner-grounding, mental-models, course-analysis, concept-landing-recipe.
 
 ### [building-agents](skills/building-agents/)
 

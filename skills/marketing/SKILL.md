@@ -187,6 +187,15 @@ Run before claiming done. `scripts/verify.sh` automates the greppable subset.
 
 Automate → `scripts/verify.sh` (read-only grep gate; warns by default, `--strict` to gate CI).
 
+## Project grounding (02-DOCS + CLAUDE.md)
+
+This skill's 02-DOCS record is the **brand & voice study** at `02-DOCS/wiki/brand/` — a hard
+gate (see "Brand grounding" above): if the root `CLAUDE.md` lacks the link or the study is
+incomplete (no voice samples, positioning, do/don't lists), ask until complete, persist it, and
+link it from a `## Knowledge map` section in `CLAUDE.md` (create `CLAUDE.md` if absent). Read it
+first on every use and ground all copy in it. Site and visual conventions belong to the sibling
+`design` and `nextjs` articles in the same Knowledge map.
+
 ## See Also
 
 - `../design/SKILL.md` — the pixels: visual system, layout, section anatomy, motion, design QA.

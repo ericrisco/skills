@@ -325,6 +325,21 @@ The checklist above is pass/fail. When the user asks for a *design review*, a *c
 
 Score = Σ(dimension × weight), max 100. **Bands:** < 60 ships generic — redo; 60–79 competent but improvable — name the lowest two and fix; 80–94 premium; 95+ award-tier. For each dimension below 8, give one concrete, actionable fix (not "improve spacing" but "section padding jumps 48→96px with no 64px step — add `py-16` on mobile"). Cite the brand article or trend source that sets the bar where relevant.
 
+## Project grounding (02-DOCS + CLAUDE.md)
+
+This skill's 02-DOCS record has two parts, both indexed from a `## Knowledge map` section in
+the root `CLAUDE.md`:
+
+- The **brand study** at `02-DOCS/wiki/brand/` — a hard gate (see "Brand grounding" above): if
+  missing or incomplete, ask until complete before designing.
+- The **design-system decisions** at `02-DOCS/wiki/stack/design.md` — the chosen tokens
+  (color/OKLCH, type scale, spacing, radius, shadow, motion), the 2026 direction picked, and the
+  reference sites. Recorded, not gated.
+
+Create/update both as decisions are made and add/refresh their `CLAUDE.md` links (create the
+`## Knowledge map` section, and `CLAUDE.md` itself, if absent). Read them first on every use and
+keep outputs consistent with them.
+
 ## See Also
 
 - `marketing` — the WORDS: value prop, hero/section copy, microcopy, launch. Co-owns the `02-DOCS/wiki/brand/` study (it owns the words dimensions; this skill owns the visual ones).
