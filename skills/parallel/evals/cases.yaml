@@ -1,0 +1,44 @@
+skill: parallel
+
+should_trigger:
+  - prompt: "These three modules don't depend on each other at all — the users repo, the invoices repo, and the docs. Fan them out across subagents instead of doing them one by one."
+    why: "Canonical fan-out: multiple disjoint units, no shared state, explicit ask to dispatch concurrently. Squarely this skill's partition→dispatch→gather→reconcile."
+  - prompt: "I've got a bunch of independent tasks in the plan. Split them across agents so they run at the same time, then merge the results."
+    why: "Independent tasks + 'run at the same time' + 'merge the results' is the full fan-out-and-reconcile shape this skill owns."
+  - prompt: "Estas tareas son independientes, no comparten ficheros ni estado. Repártelas en subagentes y hazlas a la vez."
+    why: "Spanish phrasing of the trigger, with the independence preconditions (no shared files/state) named explicitly — this skill's core gate."
+  - prompt: "Dispatch one agent per service to scaffold each one, they're in separate packages and share nothing. Gather what they each produce when they're done."
+    why: "One-subagent-per-unit on disjoint packages plus a gather step — the dispatch and gather phases of this skill, without naming it."
+  - prompt: "Can we parallelize the rest of the build? The auth module and the billing module are in different files and neither reads the other's output."
+    why: "Asks to parallelize while volunteering the independence evidence (different files, no output dependency) — the exact condition this skill checks before fanning out."
+  - prompt: "We have six unrelated cleanup tasks across six different files. Run them concurrently and reconcile at the end so the whole suite still passes."
+    why: "Many disjoint units + concurrency + reconcile-with-combined-suite — non-obvious phrasing that still lands on this skill's reconcile gate (green-together, not green-alone)."
+
+should_not_trigger:
+  - prompt: "First define the User type, then build the endpoint that returns a User. The endpoint needs the type to exist."
+    route_to: "implement"
+    why: "An explicit ordering dependency (second task needs the first's output) — that is a serial unit, handled inside implement, not fanned out. Parallelizing it would fail the independence test."
+  - prompt: "Break this approved plan into an ordered list of small tasks, each with a way to tell when it's done."
+    route_to: "tasks"
+    why: "Producing the ordered task list with done-checks is the tasks phase; parallel consumes that list to decide what can run together, it doesn't create it."
+  - prompt: "I want a clean isolated branch or worktree for this feature so it doesn't touch my current working tree. Set that up."
+    route_to: "worktrees"
+    why: "This is isolation (doing one thing cleanly), not concurrency (doing several at once). Wanting a clean room is worktrees, which parallel explicitly distinguishes itself from."
+  - prompt: "Two of my parallel branches merged and now the combined test suite is red somewhere in the seam. Find the root cause before I change anything."
+    route_to: "debug"
+    why: "Diagnosing a mysterious post-merge failure is the debug protocol (reproduce→isolate→fix); parallel hands the seam off to debug rather than guessing which unit broke."
+  - prompt: "Write each of these tasks test-first — failing test, make it pass, refactor — one commit per task."
+    route_to: "implement"
+    why: "The red→green→refactor TDD loop lives inside implement; parallel runs several such loops at once but never replaces the discipline within a single unit."
+
+capability:
+  - scenario: "User asks: 'I have four tasks left on the plan: (a) add the users repository, (b) add the invoices repository, (c) add a field to the orders migration, (d) add another field to the same orders migration. They feel independent — fan them out across subagents and merge when done.' (FastAPI stack noted in the plan; accompaniment level L2 in the profile.)"
+    must_include:
+      - "Runs the independence test pairwise and correctly identifies that (c) and (d) touch the SAME orders migration/file, so they are NOT independent and must be one serial unit — not two parallel units"
+      - "Partitions into a valid plan: (a) and (b) as disjoint parallel units, (c)+(d) collapsed into a single serial unit, with the partition written down before dispatch"
+      - "Writes one self-contained brief per parallel unit (scope/files owned, goal, done-check, the FastAPI testing constraint, report-back) that does not say 'see the other unit'"
+      - "Freezes any shared contract/type/schema in the serial spine BEFORE dispatching, rather than letting subagents coordinate it live"
+      - "Each unit keeps its own red→green→refactor (delegated to implement + the FastAPI testing reference); parallel does not relax the TDD discipline inside a unit"
+      - "Gathers ALL units, checks each against its done-check before merge, then reconciles: merges, resolves conflicts by hand, folds decision logs into 02-DOCS/wiki/sdd/decisions.md"
+      - "Runs the COMBINED suite across the merged result and refuses to call it done on green-in-isolation; if the seam is red, routes to debug rather than guessing"
+      - "Adapts orchestration verbosity to L2 (shows partition, frozen contracts, and each reconcile conflict with its fix) and hands the green result back to implement → verify"

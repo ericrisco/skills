@@ -1,0 +1,10 @@
+{
+  "name": "rsc-sdd",
+  "version": "0.1.0",
+  "description": "Spec-Driven Development workflow: constitution -> specify -> clarify -> plan -> tasks -> analyze -> implement -> verify -> review -> ship, plus debug, worktrees, and parallel callable on demand. Skills invoke as /rsc-sdd:<phase>.",
+  "author": {
+    "name": "Eric Risco"
+  },
+  "license": "MIT",
+  "mcpServers": {}
+}

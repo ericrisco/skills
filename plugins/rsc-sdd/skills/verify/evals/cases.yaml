@@ -1,0 +1,74 @@
+skill: verify
+
+# Prompts that MUST load the `verify` skill. `verify` is the rsc-sdd
+# post-implementation GATE: run the relevant stack scripts/verify.sh
+# (lint/type/test/audit), walk every task done-check and every spec acceptance
+# criterion, and produce an evidence-backed PASS/FAIL verdict before anyone
+# claims "done". It does NOT write tests/features (implement), diagnose a
+# failing check (debug), or read the diff adversarially (review).
+should_trigger:
+  - prompt: "I finished the orders feature — can you confirm it's actually done before I merge?"
+    why: "Confirming 'done' before a merge is the gate's whole job: run the stack gate, walk the done-checks and acceptance criteria, and produce evidence."
+
+  - prompt: "Run the lint, type-check and tests on this change and tell me if we're green."
+    why: "Running the project's lint/type/test gate and reporting pass/fail is exactly what verify orchestrates via the stack scripts/verify.sh."
+
+  - prompt: "Did all the acceptance criteria from the spec actually pass?"
+    why: "Checking spec acceptance criteria against real evidence is a core WALK step of the verify gate, not implementation or review."
+
+  - prompt: "Are we ready for review yet?"
+    why: "The transition into the review phase is gated by verify; readiness means every check is green and every criterion is proven."
+
+  - prompt: "Prove the fix works — I don't want to just take your word for it."
+    why: "Demanding observable evidence rather than a claim is the skill's founding rule ('no evidence, no claim'); verify produces that proof."
+
+  - prompt: "Walk every task's done-check and show me what's still open."
+    why: "Enumerating task done-checks with evidence (met / not met) is the explicit WALK step verify performs and records."
+
+  - prompt: "Before I say this is shipped, gate it: checks plus criteria, with the receipts."
+    why: "A pre-ship gate that ties stack checks to acceptance criteria with recorded evidence is precisely verify, the phase that precedes review and ship."
+
+  - prompt: "Coverage and the audit need to be green for this PR — can you check and record the result?"
+    why: "Running coverage/dependency-audit through the stack gate and writing a verification record under 02-DOCS/wiki/sdd/ is verify's RUN+RECORD behavior."
+
+# NEAR-MISS prompts that must NOT load `verify`. Each routes to a sibling that
+# actually exists in this repo. The recurring trap: anything that WRITES or
+# RUNS code, or owns the lint/test tooling itself, belongs to a stack skill or
+# another phase — verify only orchestrates and judges.
+should_not_trigger:
+  - prompt: "Write the pytest cases and coverage config for this FastAPI service."
+    route_to: "fastapi"
+    why: "Authoring the actual tests and tooling is owned by the fastapi stack skill (which ships scripts/verify.sh); verify runs that gate, it does not write the suite."
+
+  - prompt: "Our `go test -race` is failing intermittently — find out why and fix it."
+    route_to: "go"
+    why: "Diagnosing and fixing a flaky Go test is root-cause work owned by the go stack skill's testing guidance; verify reports the FAIL and hands off, it does not debug."
+
+  - prompt: "Set up the verify.sh quality gate (eslint, tsc, build) for our Next.js app."
+    route_to: "nextjs"
+    why: "Building/owning the stack gate script itself is the nextjs skill's job; verify consumes that script, it does not create the stack's tooling."
+
+  - prompt: "Audit this auth endpoint for injection and broken access control before we trust it."
+    route_to: "secure-coding"
+    why: "A security audit of code is owned by secure-coding; verify may invoke that audit as part of the gate but the hands-on review belongs to the security skill."
+
+  - prompt: "Check that this migration applies cleanly and the CHECK constraint behaves as expected."
+    route_to: "postgresdb"
+    why: "Schema/migration and constraint verification is data-layer work owned by postgresdb; verify delegates to it rather than hand-rolling SQL checks."
+
+# Concrete tasks verify should guide, with a rubric to grade WITH vs WITHOUT
+# the skill loaded. A skill-guided answer runs the real gate, walks both lists,
+# and refuses to call it done without evidence; an ungrounded answer tends to
+# eyeball the code, trust stale results, or declare success prematurely.
+capability:
+  - scenario: "Implementation of the 'duplicate-submit is a no-op' order feature just finished in a FastAPI service. The user says 'it's done, let's merge'. Verify it."
+    must_include:
+      - "Reads the accompaniment level from 02-DOCS/wiki/harness/user-profile.md and adapts verbosity (verdict legibility unchanged by the dial)."
+      - "LOCATES the spec acceptance criteria and the task done-checks, and identifies the FastAPI subproject as the touched stack from git diff/manifests."
+      - "RUNS the fastapi stack scripts/verify.sh (ruff/black, mypy, pytest+coverage, pip-audit) from the documented root and captures the output verbatim rather than reusing a previous run."
+      - "Treats any tool SKIP (missing tool) as UNVERIFIED, not as a pass, and notes the constitution's coverage floor as part of the gate."
+      - "WALKS every task done-check and every acceptance criterion, marking each with concrete evidence (a passing test / observable result) or as an open FAIL item — specifically flags the duplicate-submit criterion as UNVERIFIED if no test exercises the duplicate-POST path."
+      - "Does NOT fix a failing test inline; if a check fails it records it and hands off to debug, and refuses to fix-then-claim."
+      - "RECORDS a dated verification file under 02-DOCS/wiki/sdd/verifications/ and indexes it in the root CLAUDE.md Knowledge map."
+      - "Returns a VERDICT that is PASS only if EVERY item has passing evidence; a single unverified acceptance criterion makes the whole verdict FAIL — and refuses to call it 'done' otherwise."
+      - "On PASS, points to the review phase; on FAIL, routes failing checks to debug and missing coverage back to implement."

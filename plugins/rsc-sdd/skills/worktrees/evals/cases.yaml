@@ -1,0 +1,47 @@
+skill: worktrees
+
+should_trigger:
+  - prompt: "Before we start building this feature I want it isolated from my main checkout — set up a worktree so my open files don't get disturbed."
+    why: "Explicit request for filesystem isolation via a worktree before code is touched — the exact job this skill owns."
+  - prompt: "I'm on main and about to implement the plan. I don't want to dirty my working tree — get me onto something I can throw away."
+    why: "On the default branch, implement is next, wants disposable isolation first — the on-demand gate that runs right before implement."
+  - prompt: "Spin up an isolated checkout on a branch for the checkout-reservation work, branched off an up-to-date main."
+    why: "Isolated checkout + feature branch + fresh base ref is precisely the worktree creation flow, including the base-ref decision."
+  - prompt: "My dev server is running against the current files and I need to start a second stream of work without yanking the files out from under it."
+    why: "Live process on current files is the textbook reason to prefer a worktree over a branch switch — non-obvious phrasing, no keyword 'worktree'."
+  - prompt: "I've got uncommitted WIP I want to keep, but I also need to start the new feature cleanly somewhere else. How do I do both?"
+    why: "Dirty tree + need both the WIP and clean new work is the canonical worktree case (avoid the stash, isolate the new work)."
+  - prompt: "Keep the working tree clean while I execute this plan — create the branch/worktree and then we code."
+    why: "Wants isolation established before executing the plan, then hand to implement — the open-isolation-then-handoff contract."
+  - prompt: "Make me a parallel checkout for feat/notifications so I can build it alongside what I already have open."
+    why: "Parallel checkout for a named feature branch alongside existing open work — a worktree by definition, even without the framing of SDD phases."
+
+should_not_trigger:
+  - prompt: "The isolated branch is ready. Now walk the task list test-first and write the code, one commit per task."
+    route_to: "implement"
+    why: "Isolation already exists; this is the test-first coding loop, which is implement, not the workspace-setup step."
+  - prompt: "We have the approved plan. Break it into an ordered checklist where each item has a done-check I can verify."
+    route_to: "tasks"
+    why: "Slicing the plan into an ordered, verifiable task list is the tasks phase; no isolation request here."
+  - prompt: "The feature's built and all tests pass. Merge the branch, open the PR, and clean up the worktree afterward."
+    route_to: "ship"
+    why: "Closing the branch — merge/PR/cleanup with Eric-only authorship — is the ship phase; this skill only OPENS isolation."
+  - prompt: "A test is failing for a reason I don't understand on this branch. Help me find the root cause before I change anything."
+    route_to: "debug"
+    why: "Root-cause diagnosis of a failing test is the debug protocol, not workspace isolation."
+  - prompt: "I want the canonical 01-TOOLS and 02-DOCS layout set up for this workspace and the root CLAUDE.md generated."
+    route_to: "harness"
+    why: "Bootstrapping the workspace control plane is the harness skill; nothing to do with git isolation for a feature."
+
+capability:
+  - scenario: "User says: 'I'm on main with a clean tree, the plan for the order-reservation feature (slug: order-reservation) is approved, and I'm about to implement it. My editor and a dev server are open against the current files. Set up isolation.' The agent has the worktrees skill loaded and a native worktree tool available."
+    must_include:
+      - "Runs the pre-flight gate: confirms it's a git repo, checks current branch (main), and checks `git status --short` for tree state before creating anything"
+      - "Reads 02-DOCS/wiki/harness/user-profile.md for the accompaniment dial and matches narration to the level"
+      - "Chooses a WORKTREE over a plain branch and justifies it by the live dev server / open editor on the current files (a branch switch would yank files from the running process)"
+      - "Prefers the native worktree tool (EnterWorktree-style) for creation and session-switch, naming it for the slug (feat/order-reservation); states the git `git worktree add -b feat/order-reservation … origin/<default>` fallback if no native tool exists"
+      - "Branches from an up-to-date default base (fresh origin/<default>) rather than stale local HEAD, or asks which the user wants"
+      - "Names the workspace to match the spec/plan slug (feat/order-reservation) so branch, spec, and plan are traceable"
+      - "Confirms the contract out loud: cwd is now the isolated branch and the main checkout is untouched"
+      - "Writes NO runtime code and NO 02-DOCS artifact in this step (isolation is plumbing, not knowledge)"
+      - "Hands off to the implement phase rather than starting to write the feature code itself"

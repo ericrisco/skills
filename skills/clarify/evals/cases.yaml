@@ -1,0 +1,71 @@
+skill: clarify
+
+# Prompts that MUST load the `clarify` skill. Clarify is the fourth phase of the
+# rsc SDD chain: a spec already exists and needs DE-RISKING before planning —
+# surface ambiguities, edge cases, unstated assumptions, ask the high-leverage
+# questions, bake the answers back into the spec. It creates no new artifact; it
+# sharpens the existing spec in place. It is NOT spec authoring (specify) and NOT
+# the technical plan (plan).
+should_trigger:
+  - prompt: "Here's our spec for the new billing flow — poke holes in it before we start planning."
+    why: "Hunting holes/ambiguities in an existing spec ahead of planning is the literal job of clarify."
+
+  - prompt: "Is this spec actually ready to build, or is something still underspecified?"
+    why: "Readiness-to-plan and underspecified-area detection is the de-risking gate clarify owns; phrased without naming the skill."
+
+  - prompt: "This requirements doc feels vague and I keep getting stuck whenever I try to plan from it."
+    why: "A vague spec that stalls planning is the exact symptom clarify exists to resolve — the gap is in the spec, not the plan."
+
+  - prompt: "Aclara el spec del onboarding: qué casos límite y supuestos nos estamos saltando."
+    why: "Spanish trigger ('clarify the spec', edge cases and assumptions) — clarify is bilingual and edge-cases/assumptions are core taxonomy categories."
+
+  - prompt: "Before we design the architecture, what questions about this feature do I actually need answered first?"
+    why: "Surfacing the high-leverage open questions to answer BEFORE design/plan is clarify's ranking-and-asking step; the user even separates it from the architecture."
+
+  - prompt: "Go through 02-DOCS/wiki/sdd/specs/checkout.md and flag every ambiguous term and missing acceptance criterion."
+    why: "Operating directly on a spec under the canonical SDD specs path, hunting ambiguous terms and missing acceptance criteria — taxonomy categories owned here."
+
+  - prompt: "We wrote what the feature should do but never decided what happens on the error paths or empty states — sort that out in the spec."
+    why: "Underspecified failure/edge behavior that needs deciding and writing back into the spec is precisely clarify's pass, no skill name used."
+
+# NEAR-MISS prompts that must NOT load `clarify`. Each routes to a real sibling.
+# The recurring trap: anything about a spec/feature that is actually authoring it
+# (specify), designing the build (plan), cross-checking artifacts (analyze), or
+# diagnosing a runtime fault (debug).
+should_not_trigger:
+  - prompt: "I have a fuzzy idea for a referral feature but no spec yet — help me write one."
+    route_to: "specify"
+    why: "There is no spec to interrogate yet; turning fuzzy intent into a first spec is specify, the phase before clarify."
+
+  - prompt: "The spec is clear — now give me the architecture, interfaces, and data flow to build it."
+    route_to: "plan"
+    why: "The what is settled and the user wants the technical how; that's plan, the phase after clarify."
+
+  - prompt: "Cross-check our constitution, spec, plan, and task list for contradictions and scope drift."
+    route_to: "analyze"
+    why: "Consistency check ACROSS multiple SDD artifacts is analyze; clarify works on the spec alone, before a plan even exists."
+
+  - prompt: "Checkout throws a 500 in production sometimes — figure out why."
+    route_to: "debug"
+    why: "Diagnosing a runtime fault's root cause is debug; 'figure out why' here is about live behavior, not spec ambiguity."
+
+  - prompt: "Decide our project-wide non-negotiables: stack canon, quality bars, and conventions."
+    route_to: "constitution"
+    why: "Establishing project-wide principles is the constitution phase; clarify reads the constitution but does not author it."
+
+# Capability scenario with a rubric to grade WITH vs WITHOUT the skill loaded.
+# A skill-guided pass walks the taxonomy, resolves what the constitution already
+# fixes, ranks by leverage, asks as decisions, and bakes answers back with a
+# Clarifications log. An ungrounded pass typically free-associates a few
+# questions and never edits the spec or records the reasoning.
+capability:
+  - scenario: "We have a spec at 02-DOCS/wiki/sdd/specs/profile.md whose only line about photos is 'Users can upload a profile photo.' De-risk it before we plan."
+    must_include:
+      - "Reads the spec, the constitution (02-DOCS/wiki/sdd/constitution.md), and the harness profile first — citing anything the constitution already fixes (e.g. storage) as resolved rather than re-asking it."
+      - "Scans against the ambiguity taxonomy and surfaces concrete gaps: accepted formats, max file size / dimensions, empty/no-photo state, upload-failure recovery, old-file deletion on replace, who-can-edit (actor/permission), and security validation of the file type."
+      - "Ranks the gaps by leverage — asks only the build-changing ones (formats+size, security validation, old-file deletion) and proposes safe defaults for the cosmetic ones instead of burning a question on each."
+      - "Frames questions as decisions with a recommendation (e.g. 'soft vs hard delete — recommend X because…'), one dial-sized batch, anchored to the spec line, rather than open-ended essay prompts or one-at-a-time drips."
+      - "Adapts question count to the accompaniment dial from user-profile.md (L0 = only architecture/scope-changing questions + listed assumed-defaults; L3 = broader, taught)."
+      - "Bakes the resolved answers BACK into the spec: tightens the photo section into bounded behavior, adds observable acceptance criteria, and bounds dropped items under '## Out of scope'."
+      - "Appends a dated '## Clarifications' log of Q → decision → why so the reasoning survives, and does a final re-read to confirm no new gap was opened."
+      - "Stays in its lane: decides WHAT, never proposes the technical HOW (no architecture/library choices) and ends by pointing to plan as the next phase."

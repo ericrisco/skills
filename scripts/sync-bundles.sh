@@ -18,16 +18,17 @@ PLUGINS_DIR="$REPO_ROOT/plugins"
 
 # Bundle map: one line per bundle, "bundle skill1 skill2 ...".
 # Parsed with a case dispatch to stay bash 3.2 / set -u safe.
-BUNDLES="rsc-core rsc-backend rsc-frontend rsc-content rsc-agents rsc-ops"
+BUNDLES="rsc-core rsc-backend rsc-frontend rsc-content rsc-agents rsc-ops rsc-sdd"
 
 skills_for_bundle() {
   case "$1" in
-    rsc-core)     echo "init harness" ;;
+    rsc-core)     echo "init harness author-skill" ;;
     rsc-backend)  echo "fastapi go postgresdb" ;;
     rsc-frontend) echo "nextjs flutter design" ;;
     rsc-content)  echo "marketing presentations course-storytelling" ;;
     rsc-agents)   echo "building-agents" ;;
     rsc-ops)      echo "secure-coding deployment" ;;
+    rsc-sdd)      echo "sdd constitution specify clarify plan tasks analyze implement verify review ship debug worktrees parallel" ;;
     *)            echo "" ;;
   esac
 }
