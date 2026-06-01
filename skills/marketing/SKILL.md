@@ -227,5 +227,5 @@ first on every use and ground all copy in it. Site and visual conventions belong
 
 - `../design/SKILL.md` — the pixels: visual system, layout, section anatomy, motion, design QA.
 - `../nextjs/SKILL.md` — the build: App Router, Metadata API, React 19 rendering.
-- `harness` — the `02-DOCS` Karpathy-wiki convention this skill persists the brand study into.
+- `../harness/SKILL.md` — the `02-DOCS` Karpathy-wiki convention this skill persists the brand study into.
 - References: `references/brand-grounding.md`, `references/copy-frameworks.md`, `references/landing-copy.md`, `references/campaigns-and-channels.md`, `references/seo-geo.md` (technical SEO + GEO + schema + keyword research).

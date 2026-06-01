@@ -230,6 +230,83 @@ per route, and alert on error ratio and tail latency rather than averages.
 Keep this a pointer: pick one tracing and one metrics backend, export to your collector, and
 correlate traces with the `request_id` from the logging middleware.
 
+## Customizing the OpenAPI schema
+
+FastAPI builds the OpenAPI document lazily and caches it on `app.openapi_schema`. To inject
+extra metadata (servers, security schemes, a logo, tags) build the base schema once, mutate
+it, cache it, and **assign your function to `app.openapi`** — assigning the callable (not
+calling it eagerly) preserves the lazy-build-and-cache contract and lets `/docs` and
+`/openapi.json` pick it up.
+
+```python
+from typing import Any
+
+from fastapi import FastAPI
+from fastapi.openapi.utils import get_openapi
+
+
+def customize_openapi(app: FastAPI) -> None:
+    def build() -> dict[str, Any]:
+        if app.openapi_schema:                 # serve the cached doc on later calls
+            return app.openapi_schema
+        schema = get_openapi(
+            title=app.title,
+            version=app.version,
+            description="Authenticate via the OAuth2 password flow at /auth/login.",
+            routes=app.routes,
+        )
+        schema["servers"] = [{"url": "https://api.example.com", "description": "production"}]
+        schema.setdefault("components", {})["securitySchemes"] = {
+            "bearerAuth": {"type": "http", "scheme": "bearer", "bearerFormat": "JWT"},
+        }
+        app.openapi_schema = schema
+        return schema
+
+    app.openapi = build  # type: ignore[method-assign]  # assign, don't call — keep it lazy
+```
+
+Call `customize_openapi(app)` inside `create_app()` before returning. **Bad** =
+`app.openapi_schema = customize_openapi(app)()` at import time — it forces the schema to
+build before every route is registered, so late `include_router` calls go missing from the
+docs.
+
+## AppError subclasses
+
+The base `AppError` + `register_exception_handlers` live in `SKILL.md` (Error handling &
+envelope). Each concrete failure is a subclass that fixes a `code` and HTTP status, so call
+sites stay declarative (`raise NotFoundError("User", ident)`) and the handler renders the
+shared envelope.
+
+```python
+from fastapi import status
+
+from app.exceptions import AppError
+
+
+class NotFoundError(AppError):
+    def __init__(self, resource: str, ident: str) -> None:
+        super().__init__(f"{resource} not found: {ident}", "not_found", 404)
+
+
+class ConflictError(AppError):
+    def __init__(self, message: str) -> None:
+        super().__init__(message, "conflict", status.HTTP_409_CONFLICT)
+
+
+class Unauthorized(AppError):
+    def __init__(self, message: str = "Authentication required") -> None:
+        super().__init__(message, "unauthorized", status.HTTP_401_UNAUTHORIZED)
+
+
+class Forbidden(AppError):
+    def __init__(self, message: str = "Insufficient permissions") -> None:
+        super().__init__(message, "forbidden", status.HTTP_403_FORBIDDEN)
+```
+
+`Unauthorized` and `Forbidden` are the ones raised by the auth/RBAC dependencies in
+[`security.md`](security.md). Prefer `NotFoundError` (404) over `Forbidden` (403) for private
+resources whose existence should not leak to an unauthorized caller.
+
 ## Docker note
 
 ```dockerfile

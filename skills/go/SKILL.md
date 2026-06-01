@@ -228,13 +228,10 @@ swallowing with `_ = err`.
 
 ## Concurrency (essentials)
 
-Bound work with a context deadline; bound concurrency with `errgroup` (the derived `ctx`
-cancels siblings on first error):
+Bound work with a context deadline; bound concurrency with `errgroup` — the derived `ctx`
+cancels siblings on first error, and `g.SetLimit(n)` caps in-flight goroutines:
 
 ```go
-ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
-defer cancel()
-
 g, ctx := errgroup.WithContext(ctx)
 g.SetLimit(8)
 for _, id := range ids {
@@ -243,33 +240,20 @@ for _, id := range ids {
 err := g.Wait()
 ```
 
-A started goroutine you cannot stop is a leak. An unbuffered `ch <- v` with no receiver after
-a cancel blocks forever; buffer it and select on `ctx.Done()`:
+Three rules cover most service code: every goroutine needs a known exit path (a started
+goroutine you cannot stop is a leak); an unbuffered `ch <- v` with no receiver after a cancel
+blocks forever, so buffer it and `select` on `ctx.Done()`; **run `-race` in CI**. Low-level
+needs map to `sync.Once` (lazy init), `sync.RWMutex` (read-heavy state), `sync/atomic`
+(`atomic.Int64` counters).
 
-```go
-ch := make(chan T, 1) // buffered: the send always completes or the goroutine exits
-go func() {
-	select {
-	case ch <- compute():
-	case <-ctx.Done():
-	}
-}()
-```
-
-`sync.Once` (lazy init), `sync.RWMutex` (read-heavy state), `sync/atomic` (`atomic.Int64`
-counters) cover most low-level needs. **Run `-race` in CI.**
-
-Resilient upstream calls need a `withRetry` helper: exponential backoff + full jitter, honor
-`ctx`, and a `retryIf` guard that **never retries a 4xx** (retry timeouts/`5xx`/`429` only).
-Full implementation -> `references/concurrency.md`.
-
-Full pipelines, fan-in/out, semaphores, `singleflight`, retry/backoff, leak detection ->
-`references/concurrency.md`.
+Full implementations — context plumbing, channel/select patterns, leak detection, worker
+pools, pipelines, fan-in/out, semaphores, `singleflight`, and a `withRetry` helper (backoff +
+full jitter, `ctx`-aware, **never retries 4xx**) -> `references/concurrency.md`.
 
 ## HTTP services (essentials)
 
-Go 1.22 routed mux - method and path live in the pattern; the `error`-returning adapter
-centralizes status mapping (full `ServeHTTP` body in the ref):
+Go 1.22 routed mux — method and path live in the pattern; the `error`-returning adapter
+centralizes status mapping:
 
 ```go
 mux := http.NewServeMux()
@@ -282,27 +266,14 @@ func (h apiHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 ```
 
-Middleware is the `func(http.Handler) http.Handler` chain (request-id, slog logger,
-panic-recovery, timeout) - composed outermost-first; full stack in the reference.
+Set **all four** `http.Server` timeouts (`ReadHeaderTimeout`, `ReadTimeout`, `WriteTimeout`,
+`IdleTimeout`) — an unbounded read is a Slowloris DoS. Graceful shutdown on signal:
+`signal.NotifyContext(ctx, os.Interrupt, syscall.SIGTERM)`, then `srv.Shutdown(shutdownCtx)`
+on `<-ctx.Done()`.
 
-Set **all four** `http.Server` timeouts (an unbounded read is a Slowloris DoS):
-
-```go
-srv := &http.Server{
-	Addr:              ":8080",
-	Handler:           mux,
-	ReadHeaderTimeout: 5 * time.Second,
-	ReadTimeout:       15 * time.Second,
-	WriteTimeout:      30 * time.Second,
-	IdleTimeout:       120 * time.Second,
-}
-```
-
-Graceful shutdown on signal: `ctx, stop := signal.NotifyContext(context.Background(),
-os.Interrupt, syscall.SIGTERM)`; on `<-ctx.Done()`, `srv.Shutdown(shutdownCtx)`.
-
-Routing patterns, chi vs stdlib, full middleware stack, config, functional-options server,
-JSON helpers -> `references/http-services.md`.
+Routing patterns, chi vs stdlib, the full middleware chain (request-id, slog, panic-recovery,
+timeout), config, timeout values, functional-options server, and JSON helpers ->
+`references/http-services.md`.
 
 ## Project layout
 

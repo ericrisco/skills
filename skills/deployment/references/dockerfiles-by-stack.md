@@ -56,10 +56,11 @@ Image size: ~70–90 MB.
 **Gotchas:**
 
 - Distroless has **no shell** → exec-form (JSON array) `CMD`/`HEALTHCHECK` only, and no `curl`/`wget` — probe with `python -c urllib`.
+- The `-debian12` suffix is **intentional**. An unsuffixed `gcr.io/distroless/python3-debian12` would be `gcr.io/distroless/python3`, which now defaults to **debian13** (Google moved the default forward). We pin `-debian12` to glibc-match the `-bookworm-slim` (Debian 12) builder: the venv's compiled C-extension wheels are linked against the builder's glibc, and running them on a newer-glibc runtime can fail. Keep builder and runtime on the same Debian release; move both together.
 - `uv sync --frozen` requires a committed `uv.lock`; CI fails fast if the lock is stale.
 - Keep `--no-install-project` on the deps layer so editing your source code never busts the cached dependency layer.
 - `gunicorn`/`uvicorn`/`urllib` must resolve on `PATH` — that's why `/app/.venv/bin` is prepended.
-- Keep the builder on **`-bookworm-slim`** to match the Debian 12 runtime: uv 0.11+ defaults its derived images to Debian 13 (Trixie), but the venv (with any compiled C-extension wheels) is copied into `gcr.io/distroless/python3-debian12`, so a Trixie builder's newer glibc can fail at runtime. Bump the runtime to a `debian13` distroless tag in the same change if you ever move the builder to Trixie.
+- Keep the builder on **`-bookworm-slim`** to match the Debian 12 runtime: uv 0.9+ defaults its derived images to Debian 13 (Trixie), but the venv (with any compiled C-extension wheels) is copied into `gcr.io/distroless/python3-debian12`, so a Trixie builder's newer glibc can fail at runtime. Bump the runtime to a `debian13` distroless tag in the same change if you ever move the builder to Trixie.
 
 ## Go (1.26, static + distroless)
 
@@ -114,6 +115,7 @@ Image size: ~8–12 MB.
 
 - No shell or `wget` in static distroless → the healthcheck must be a self `-health` subcommand of the binary.
 - `CGO_ENABLED=0` is mandatory for a fully static binary that runs on `static-debian12`; CGO pulls in libc and breaks it.
+- The `-debian12` suffix is **intentional**: an unsuffixed `gcr.io/distroless/static` now defaults to **debian13**. We pin `-debian12` to glibc-match the `golang:1.26-bookworm` (Debian 12) builder. A `CGO_ENABLED=0` static binary carries no glibc dependency so the runtime Debian version is mostly cosmetic here, but keeping the pin explicit prevents the default from drifting under you and keeps builder/runtime aligned with the FastAPI image.
 - `-trimpath` strips absolute build paths for reproducible builds; `-ldflags="-s -w"` drops the symbol table and DWARF to shrink the binary.
 
 ## Next.js 15 (standalone)
@@ -229,16 +231,16 @@ Image size: ~25–40 MB.
 - A SPA needs the `try_files … /index.html` fallback or every deep link (`/users/42`) returns 404 on refresh.
 - Runtime config: pass it at build with `--dart-define=API_URL=…` (baked) or fetch a `config.json` at runtime — like `NEXT_PUBLIC_*`, dart-defines are baked unless fetched.
 
-## Postgres (17)
+## Postgres (18)
 
-**Do NOT build a custom Postgres image for prod** — use a Coolify managed database or the official `postgres:17-alpine`. A custom image means you own patching, backups, and tuning that the official image and Coolify already handle.
+**Do NOT build a custom Postgres image for prod** — use a Coolify managed database or the official `postgres:18-alpine`. A custom image means you own patching, backups, and tuning that the official image and Coolify already handle.
 
 Local-dev service with init SQL and tuning:
 
 ```yaml
 services:
   db:
-    image: postgres:17-alpine
+    image: postgres:18-alpine
     environment:
       POSTGRES_USER: app
       POSTGRES_PASSWORD: app

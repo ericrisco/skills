@@ -495,6 +495,33 @@ import net from "node:net";
 
 const ALLOWED_HOSTS = new Set(["api.partner.com"]);
 
+// Reject loopback, RFC1918 private, link-local (incl. 169.254.169.254 metadata),
+// IPv6 loopback/ULA/link-local. Normalize IPv4-mapped IPv6 (::ffff:a.b.c.d) so a
+// mapped private address cannot slip through the IPv4 ranges below.
+function isPrivate(address: string): boolean {
+  let addr = address;
+  const mapped = addr.match(/^::ffff:(\d{1,3}(?:\.\d{1,3}){3})$/i); // IPv4-mapped
+  if (mapped) addr = mapped[1];
+
+  if (net.isIPv4(addr)) {
+    const o = addr.split(".").map(Number); // [a, b, c, d]
+    return (
+      o[0] === 10 ||                                  // 10.0.0.0/8
+      (o[0] === 172 && o[1] >= 16 && o[1] <= 31) ||   // 172.16.0.0/12
+      (o[0] === 192 && o[1] === 168) ||               // 192.168.0.0/16
+      o[0] === 127 ||                                 // 127.0.0.0/8 loopback
+      (o[0] === 169 && o[1] === 254)                  // 169.254.0.0/16 link-local + metadata
+    );
+  }
+
+  const ip = addr.toLowerCase().split("%")[0]; // drop zone id (fe80::1%eth0)
+  if (ip === "::1") return true;               // IPv6 loopback
+  if (ip.startsWith("fc") || ip.startsWith("fd")) return true; // fc00::/7 ULA
+  if (ip.startsWith("fe8") || ip.startsWith("fe9") ||
+      ip.startsWith("fea") || ip.startsWith("feb")) return true; // fe80::/10 link-local
+  return false;
+}
+
 export async function fetchUserUrl(raw: string): Promise<Response> {
   const u = new URL(raw);                       // throws on malformed input
   if (u.protocol !== "https:") throw new Error("https required");

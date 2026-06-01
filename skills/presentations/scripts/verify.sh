@@ -194,7 +194,7 @@ static_checks() {
   local hits
 
   # tiny font sizes in themes/build scripts (legibility floor ~24pt body)
-  hits="$(search 'font-size: *(1[0-9]|2[0-3])px|Pt\((1[0-9]|2[0-3])\)' 2>/dev/null || true)"
+  hits="$(search 'font-size: *([1-9]|1[0-9]|2[0-3])px|Pt\(([1-9]|1[0-9]|2[0-3])\)' 2>/dev/null || true)"
   if [ -n "$hits" ]; then
     warn "possible sub-24 font sizes (legibility from the back of the room):"
     printf '%s\n' "$hits" | head -n 5
@@ -236,6 +236,13 @@ Manual deck QA (mechanical checks above don't cover these):
   [ ] Motion = one family <= 300ms; reduced-motion honored (HTML); builds reveal meaning.
   [ ] 16:9; PDF vector with fonts embedded (pdffonts -> emb yes); PPTX opens clean.
   [ ] PPTX editability matches the promise (python-pptx if "editable", not flattened images).
+
+  Score the deck on the 1-5 design rubric (>= 4 each before shipping) ->
+  references/slide-design.md "Diagnostic rubric":
+  [ ] Audience-centered design (one main message, right knowledge level, time-flexible).
+  [ ] Visual clarity (assertion-evidence; visuals balance text; one focal point).
+  [ ] Cognitive load (one concept/slide; spoken-vs-shown split; restrained motion).
+  [ ] Accessibility (contrast, font size, inclusive imagery/language, scales across displays).
 EOF
 
 printf '\nok=%d skip=%d warn=%d fail=%d\n' "$ok_count" "$skip_count" "$warn_count" "$fail_count"

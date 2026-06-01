@@ -204,8 +204,43 @@ Execute in this exact order. Each step writes to disk; abort and report on first
 
 ### Phase 5 — VERIFY
 
+**Syntax gate — `bash -n` on every generated shell.** After scaffolding (APPLY steps 3–4), run `bash -n` on every generated `01-TOOLS/*/test_connection.sh` and any other generated shell script (e.g. `migrated/*.sh`) as a per-tool syntax gate. This parses each script without executing it, catching truncation or copy errors before the user ever runs them:
+
+```bash
+fail=0
+for f in 01-TOOLS/*/test_connection.sh; do
+  [ -f "$f" ] || continue
+  if bash -n "$f" 2>/tmp/harness-bashn.err; then
+    echo "ok   $f"
+  else
+    echo "FAIL $f"
+    sed 's/^/       /' /tmp/harness-bashn.err
+    fail=1
+  fi
+done
+[ "$fail" -eq 0 ] || echo "One or more generated shells failed bash -n — report each above and do not claim the scaffold is clean."
+```
+
+Report any script that fails the gate (with its parse error) in the final report. A failing gate is a red flag: the provider entry in `providers.yaml` is likely malformed — surface it, don't silently ship a broken script.
+
+**Preflight — `python3` availability.** Most provider smoke-tests pipe the API response through `python3 -c '…'` to parse JSON (Stripe, Mailjet, OpenAI, Anthropic, Gemini, Mistral, SendGrid, Vercel and ~30 more). Before telling the user to rely on those `test_connection.sh` scripts, confirm `python3` is on `PATH` and tell them how to install it if not:
+
+```bash
+if command -v python3 >/dev/null 2>&1; then
+  echo "python3 present: $(python3 --version 2>&1)"
+else
+  echo "python3 NOT found — most test_connection.sh scripts parse JSON with it and will fail."
+  echo "  macOS:         brew install python   (or: xcode-select --install)"
+  echo "  Debian/Ubuntu: sudo apt install python3"
+  echo "  Fedora/RHEL:   sudo dnf install python3"
+  echo "  Windows:       winget install -e --id Python.Python.3.13   (bump the version if unavailable)"
+fi
+```
+
 Print a final report:
 
+- `python3` preflight result (present + version, or the install hint above).
+- `bash -n` syntax-gate result (per generated shell: ok / FAIL with parse error).
 - Files written (full list with paths).
 - Folders deleted (with consent quote).
 - Ambiguous files preserved (with locations).

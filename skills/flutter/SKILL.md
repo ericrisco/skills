@@ -174,12 +174,8 @@ Error modeling → `references/architecture-and-state.md`; isolates deep dive �
 ## State management: Riverpod 3 (default)
 
 ```dart
-// Function provider — async read.
-@riverpod
-Future<List<Product>> products(Ref ref) =>
-    ref.watch(productRepositoryProvider).getAll();
-
-// Sync Notifier — list mutation.
+// Sync Notifier — list mutation. (Function providers for async reads and
+// AsyncNotifier guarded mutation -> references/architecture-and-state.md.)
 @riverpod
 class CartNotifier extends _$CartNotifier {
   @override
@@ -187,22 +183,6 @@ class CartNotifier extends _$CartNotifier {
 
   void add(CartItem item) => state = [...state, item];
   void remove(String id) => state = state.where((i) => i.id != id).toList();
-}
-
-// AsyncNotifier — guarded mutation; transitions are loading -> data | error.
-@riverpod
-class UserController extends _$UserController {
-  @override
-  Future<User> build() => ref.watch(userRepositoryProvider).current();
-
-  Future<void> refreshName(String name) async {
-    state = const AsyncLoading();
-    state = await AsyncValue.guard(() async {
-      await ref.read(userRepositoryProvider).rename(name);
-      if (!ref.mounted) throw StateError('disposed'); // v3 ref.mounted guard
-      return ref.read(userRepositoryProvider).current();
-    });
-  }
 }
 ```
 
@@ -214,7 +194,7 @@ final view = switch (ref.watch(productsProvider)) {
   AsyncError(:final error) => ErrorView(error),
   _ => const CircularProgressIndicator(),
 };
-final name = ref.watch(userControllerProvider.select((u) => u.valueOrNull?.name));
+final count = ref.watch(cartNotifierProvider.select((items) => items.length));
 ```
 
 `ref.watch` rebuilds on change; `ref.read` is for callbacks only; `ref.listen` is for side-effects.

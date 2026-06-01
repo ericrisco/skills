@@ -48,7 +48,7 @@ Use each setup action's built-in cache; key custom caches on the lockfile hash s
 Docker layer cache via the GitHub Actions cache backend:
 
 ```yaml
-- uses: docker/build-push-action@v6
+- uses: docker/build-push-action@v7
   with:
     cache-from: type=gha
     cache-to: type=gha,mode=max
@@ -103,7 +103,7 @@ build-push:
         registry: ghcr.io
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
-    - uses: docker/build-push-action@v6
+    - uses: docker/build-push-action@v7
       with:
         push: true
         tags: ${{ steps.meta.outputs.tags }}
@@ -257,7 +257,7 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      - uses: docker/build-push-action@v6
+      - uses: docker/build-push-action@v7
         with:
           push: true
           tags: ${{ steps.meta.outputs.tags }}

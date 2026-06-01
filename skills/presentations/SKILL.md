@@ -59,6 +59,36 @@ These are constraints, not preferences. Violating any one is a defect.
 7. **Motion with restraint.** One transition family, fast (≤ 300ms), builds reveal *meaning* (one bullet at a time), not decoration. Honor reduced-motion in HTML pipelines. A deck is not a video.
 8. **No invented numbers.** Every metric on a slide traces to a source (the model, analytics, a citation). Mark gaps `[[NEEDS PROOF]]`; never fabricate to fill a chart.
 
+## Design first (assertion-evidence + cognitive load)
+
+Before a pipeline, a theme, or a single pixel: a deck is a *communication* artifact, and the design that
+matters most is the message design. The one principle everything below descends from is **audience-centered
+design** — every choice serves the audience's understanding, not the presenter's comfort.
+
+**Plan the message (six questions).** Lock these before storyboarding: (1) who *specifically* is the
+audience and what do they already know; (2) the ONE main message they remember a week later; (3) the 3–5
+supporting points that carry it; (4) the evidence proving each; (5) the single call-to-action; (6) what is
+essential vs. expandable under time pressure. These feed straight into the deck arc — message = thesis,
+points = beats, CTA = closing ask (→ `references/storytelling-and-decks.md`).
+
+**Assertion-evidence is the slide unit.** Each slide = one assertion (a complete claim, written as the
+title) + the visual evidence that proves it — never a topic label over a bullet list. *"User engagement rose
+43% after the redesign"* + a chart, not *"Engagement"* + three bullets. This is non-negotiable #3 made
+concrete: the body proves the headline, it does not repeat it.
+
+**Manage cognitive load: one concept per slide.** Working memory is small and the audience is also listening
+to you. If a slide needs two breaths to explain, it's two slides. Reveal sequential parts progressively
+(build order *is* the explanation) rather than dumping everything at once.
+
+**Spoken vs. shown — never both.** The slide and your mouth are two channels; redundancy wastes both. Show
+the assertion, the visual, the number, the next step; *say* the elaboration, the context, the
+interpretation, the story. Reading slides verbatim is the fastest way to lose a room.
+
+Full frameworks — the planning questions, the spoken/shown table, the **1–5 evaluation rubric**
+(audience-centered / visual clarity / cognitive load / accessibility), the implementation checklist, and the
+communication anti-patterns — live in `references/slide-design.md`. Score any draft against the rubric (≥ 4
+on each axis) before shipping; the Deck QA gate below points back to it.
+
 ## Which pipeline? (decide before building)
 
 Pick once, up front — switching mid-build is expensive.
@@ -142,7 +172,7 @@ If the client will *edit* the slides, this is the wrong pipeline — rebuild wit
 
 ## Tooling & current versions (verified 2026-06)
 
-- **Marp** — `@marp-team/marp-cli`. Run pinned: `npx @marp-team/marp-cli@latest deck.md --pdf`. Exports HTML / PDF / PPTX / PNG / JPEG. Needs a Chromium-family browser (Chrome/Edge/Firefox) for PDF/PPTX/image export. `--pptx` is image-per-slide; `--pptx-editable` is **experimental** and needs LibreOffice (`soffice`). `--notes` / a `.txt` output exports speaker notes. Node 18+. (→ `references/markdown-decks.md`)
+- **Marp** — `@marp-team/marp-cli`. Run pinned: `npx @marp-team/marp-cli@latest deck.md --pdf`. Exports HTML / PDF / PPTX / PNG / JPEG. Needs a Chromium-family browser (Chrome/Edge) or Firefox for PDF/PPTX/image export (v4 added Firefox via WebDriver BiDi as a fallback; Chrome/Edge are preferred and give the most faithful PDF). `--pptx` is image-per-slide; `--pptx-editable` is **experimental** and needs LibreOffice (`soffice`). `--notes` / a `.txt` output exports speaker notes. Node 18+. (→ `references/markdown-decks.md`)
 - **Slidev** — `@slidev/cli` (Vue-based). Scaffold `npm init slidev@latest`; dev `slidev`; export `slidev export` (PDF default; `--format pptx|png`). Export needs `playwright-chromium` installed in the project (`npx playwright install chromium` or `npm i -D playwright-chromium`). PPTX is image-per-slide; notes carry over per slide. Best for code-heavy / developer talks (live code, Monaco, Mermaid, Vue components). (→ `references/markdown-decks.md`)
 - **python-pptx** — `pip install python-pptx` (current major `1.x`, e.g. `1.0.x`). Pure Python, **no** Office/LibreOffice needed to write `.pptx`. Creates masters/layouts, text, tables, **native editable charts**, images, speaker notes. Cannot render to PDF itself — convert via LibreOffice `soffice --headless --convert-to pdf` or open in Office. (→ `references/pptx-python.md`)
 - **decktape / Playwright** — fallback HTML→PDF for any web deck (reveal.js, custom HTML) when Marp/Slidev export isn't available. (→ `references/markdown-decks.md`)
@@ -235,6 +265,7 @@ Run before claiming done. `scripts/verify.sh` automates the mechanical subset.
 - [ ] 16:9; PDF is vector with fonts embedded; PPTX opens clean in PowerPoint/Keynote/Slides.
 - [ ] PPTX editability matches the promise (python-pptx if "editable", not flattened Marp/Slidev images).
 - [ ] File size sane (compressed images, subsetted fonts); ban-list words absent from copy.
+- [ ] Scored ≥ 4/5 on each axis of the design rubric — audience-centered, visual clarity, cognitive load, accessibility (→ `references/slide-design.md`, "Diagnostic rubric").
 
 ## Project grounding (02-DOCS + CLAUDE.md)
 

@@ -8,12 +8,12 @@ origin: risco
 
 *The very first thing you run. It meets the user where they are — assuming non-technical until told otherwise — figures out what they actually want, recommends the right bundles, and hands off to `/rsc-core:harness` to build the workspace.*
 
-This skill does NOT scaffold anything itself. It **profiles, discovers, and recommends**, then prints the exact install commands and the handoff. The scaffolding of `01-TOOLS/` + `02-DOCS/` is done by `/rsc-core:harness`. Think of `init` as the receptionist: it learns who you are and what you need, writes that down where every other skill can read it, and walks you to the right room.
+It **profiles, discovers, and recommends**, then prints the exact install commands and the handoff. The boundary is fixed: **`init` writes ONLY the user-profile + decisions log under `02-DOCS/wiki/harness/` and the `CLAUDE.md` Knowledge-map link; ALL other `01-TOOLS/` + `02-DOCS/` scaffolding is `/rsc-core:harness`'s job.** Think of `init` as the receptionist: it learns who you are and what you need, writes that down where every other skill can read it, and walks you to the right room.
 
 It is **domain-agnostic**. The thing being built or governed may be:
 
 - **Software** — any stack (web, mobile, backend, agents, a CLI, a data pipeline).
-- **A non-code harness** — running a company / operations, a research program, a personal knowledge base, or a content operation that connects to tools (email, calendar, CRM, docs, payments). No code required; the same `01-TOOLS` + `02-DOCS` structure governs it.
+- **A non-code harness** — running a company / operations, a research program, a personal knowledge base, or a content operation that connects to tools (email, calendar, CRM, docs, payments). No code required; the same `01-TOOLS/` + `02-DOCS/` structure governs it (scaffolded by `/rsc-core:harness`, not here).
 
 ## Non-technical-first + the accompaniment dial (read this first)
 
@@ -50,7 +50,7 @@ Before discovery, before any recommendation, write the profile to `02-DOCS` and 
 - `02-DOCS/wiki/harness/decisions.md` — an **append-only** decisions log. Every significant decision gets one entry, never edited or deleted. Format in `references/accompaniment-and-profile.md`.
 - Root `CLAUDE.md` → a `## Knowledge map` section linking to BOTH files. Create `CLAUDE.md` if absent (additive only — never delete existing sections).
 
-If `02-DOCS/` does not yet exist (greenfield), create `02-DOCS/wiki/harness/` now — it is the only part of the structure `init` materializes; the rest is `/rsc-core:harness`'s job.
+If `02-DOCS/` does not yet exist (greenfield), create `02-DOCS/wiki/harness/` now — just enough to hold these two files. That, plus the `CLAUDE.md` Knowledge-map link, is everything `init` writes; ALL other `01-TOOLS/` + `02-DOCS/` scaffolding is `/rsc-core:harness`'s job.
 
 ### How every skill adapts to the dial
 
@@ -144,7 +144,7 @@ Tell the user to run **`/rsc-core:harness`** to actually scaffold the `01-TOOLS/
 5. **Recommend, never install.** A skill cannot run `/plugin install`. Print the commands; the user runs them.
 6. **No speculative bundles.** Recommend a bundle only if the discovery justified it. No "you'll probably want agents too".
 7. **Persist as you learn.** Goals, context, constraints, decisions go to `02-DOCS/wiki/harness/` continuously — `user-profile.md` for state, `decisions.md` append-only for choices.
-8. **`init` does not scaffold.** It creates only `02-DOCS/wiki/harness/`. The full `01-TOOLS/` + `02-DOCS/` build is `/rsc-core:harness`. Hand off; do not do its job.
+8. **`init` writes only the profile + the link.** It writes ONLY the user-profile + decisions log under `02-DOCS/wiki/harness/` and the `CLAUDE.md` Knowledge-map link. ALL other `01-TOOLS/` + `02-DOCS/` scaffolding is `/rsc-core:harness`'s job. Hand off; do not do its job.
 9. **Additive to `CLAUDE.md`.** Create it if absent; otherwise add/update only the `## Knowledge map` section. Never delete user content.
 10. **Domain-agnostic.** Software and non-code harnesses get the same first-class treatment. Never assume "project" means "code".
 
@@ -165,7 +165,7 @@ These thoughts mean the skill is about to break its own rules. Recognize and abo
 
 ## Project grounding (02-DOCS + CLAUDE.md)
 
-This skill's `02-DOCS` record is the **user profile** at `02-DOCS/wiki/harness/user-profile.md` plus the append-only **decisions log** at `02-DOCS/wiki/harness/decisions.md`. Both are written in Phase 1 and updated throughout, and both are linked from a `## Knowledge map` section in the root `CLAUDE.md` (created if absent, additive only). Every rsc skill reads the profile first and adapts its verbosity and question count to `accompaniment_level` and `technical_level`. The full `01-TOOLS` + `02-DOCS` wiki structure is built by `/rsc-core:harness`, which reads this same profile.
+This skill's `02-DOCS` record is the **user profile** at `02-DOCS/wiki/harness/user-profile.md` plus the append-only **decisions log** at `02-DOCS/wiki/harness/decisions.md`. Both are written in Phase 1 and updated throughout, and both are linked from a `## Knowledge map` section in the root `CLAUDE.md` (created if absent, additive only). Every rsc skill reads the profile first and adapts its verbosity and question count to `accompaniment_level` and `technical_level`. Those two files plus the Knowledge-map link are everything `init` writes; ALL other `01-TOOLS/` + `02-DOCS/` scaffolding is `/rsc-core:harness`'s job, and it reads this same profile.
 
 Verify the profile and the Knowledge-map link exist with `scripts/verify.sh` (read-only; warns, never fails).
 

@@ -54,21 +54,24 @@ Generative Engine Optimization* (Aggarwal et al., arXiv:2311.09735, **KDD 2024**
 A/B-tested content edits against a commercial generative engine (Perplexity) and measured the
 change in a page's share of the cited answer. These are the edits that moved the needle.
 
-> **Read the deltas as *relative* lifts, not laws of physics.** They are averages from one 2023–24
-> study on one engine; they rank-order what to try, they do not guarantee a number. The ordering has
-> held up; the exact percentages have not been independently reproduced. Lead with the top three.
+> **Read these as a *directional* ordering, not measured numbers.** They come from one 2023–24
+> study on one engine, so treat them as a ranked priority list — what to try first, not a lift you
+> can promise. The *ordering* has held up; the original per-method percentages have **not** been
+> independently reproduced, so they are deliberately omitted here. Lead with the top three.
 
-| Method | Reported lift | How to apply |
+Listed highest-impact → lowest. Impact is the study's *relative* effect, not a guaranteed number.
+
+| Method | Impact | How to apply |
 | --- | --- | --- |
-| **Cite sources** | up to +40% | Link claims to authoritative references ("According to a 2024 Stanford study…"). Low-ranking pages saw the biggest jump. |
-| **Add statistics** | +37% | Replace vague claims with specific, verifiable numbers and a source. |
-| **Add quotations** | +30% | Quote a named expert with attribution. |
-| **Authoritative tone** | +25% | State findings with confidence; drop "might", "I think", hedging. |
-| **Easy to understand** | +20% | Explain the hard concept in plain language before the jargon. |
-| **Technical terms** | +18% | Use the correct domain vocabulary so the engine matches specialist queries. |
-| **Unique words / vocabulary diversity** | +15% | Avoid repetitive phrasing; vary terminology. |
-| **Fluency optimization** | +15–30% | Clean grammar, logical flow, short focused paragraphs. |
-| ~~**Keyword stuffing**~~ | **−10%** | **Actively hurts GEO.** Unlike old-school SEO, repetition *lowers* citation rate. |
+| **Cite sources** | strong | Link claims to authoritative references ("According to a 2024 Stanford study…"). Low-ranking pages saw the biggest jump. |
+| **Add statistics** | strong | Replace vague claims with specific, verifiable numbers and a source. |
+| **Add quotations** | strong | Quote a named expert with attribution. |
+| **Authoritative tone** | moderate | State findings with confidence; drop "might", "I think", hedging. |
+| **Easy to understand** | moderate | Explain the hard concept in plain language before the jargon. |
+| **Technical terms** | moderate | Use the correct domain vocabulary so the engine matches specialist queries. |
+| **Unique words / vocabulary diversity** | modest | Avoid repetitive phrasing; vary terminology. |
+| **Fluency optimization** | moderate | Clean grammar, logical flow, short focused paragraphs. |
+| ~~**Keyword stuffing**~~ | **negative** | **Actively hurts GEO.** Unlike old-school SEO, repetition *lowers* citation rate. |
 
 **Best combination:** *Fluency + Statistics* gave the highest overall lift. *Citations +
 Authoritative tone* won for professional/B2B content.
@@ -385,4 +388,4 @@ Run before claiming a page is optimized.
 - `../nextjs/SKILL.md` — implements the technical layer: Metadata API for title/description/OG and
   JSON-LD, `next/image` and font strategy for Core Web Vitals.
 - `../design/SKILL.md` — the visual/UX layer; CLS and LCP are as much layout as code.
-- `harness` — the `02-DOCS/wiki/brand/` study whose SEO-keywords dimension seeds the research above.
+- `../harness/SKILL.md` — the `02-DOCS/wiki/brand/` study whose SEO-keywords dimension seeds the research above.

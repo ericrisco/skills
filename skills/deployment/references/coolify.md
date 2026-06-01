@@ -99,7 +99,7 @@ Use `/readyz` (checks DB connectivity) for the swap gate so a new container that
 
 ## Managed databases
 
-- Provision **PostgreSQL 17**, Redis, MySQL, MongoDB, and ClickHouse as first-class Coolify resources.
+- Provision **PostgreSQL 18**, Redis, MySQL, MongoDB, and ClickHouse as first-class Coolify resources.
 - Apps reach them over the internal network via the service name (no public exposure by default).
 - Enable **scheduled S3 backups** on the database resource — Coolify runs `pg_dump`/equivalent to object storage.
 - Keep databases internal: only expose a public port for a deliberate, firewalled admin path.

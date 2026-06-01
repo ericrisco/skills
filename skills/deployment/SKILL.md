@@ -48,7 +48,7 @@ Consult these first. They settle 90% of choices before you write a line.
 | Go | `gcr.io/distroless/static-debian12:nonroot` | `CGO_ENABLED=0` static, ~10 MB |
 | Next.js | `node:24-bookworm-slim` | Active LTS; `output: "standalone"` |
 | Flutter web | `nginxinc/nginx-unprivileged:1.27-alpine` | static SPA + `try_files` fallback |
-| Postgres | `postgres:17-alpine` | managed/official — do NOT build a custom image |
+| Postgres | `postgres:18-alpine` | managed/official — do NOT build a custom image |
 
 **Table B — Coolify build pack**
 
@@ -170,7 +170,7 @@ services:
       db:
         condition: service_healthy
   db:
-    image: postgres:17-alpine
+    image: postgres:18-alpine
     ports:
       - "127.0.0.1:5432:5432"           # host-only; NEVER 0.0.0.0 in prod
     environment:
@@ -236,7 +236,7 @@ jobs:
           tags: |
             type=sha
             type=semver,pattern={{version}}
-      - uses: docker/build-push-action@v6
+      - uses: docker/build-push-action@v7
         with:
           push: true
           tags: ${{ steps.meta.outputs.tags }}

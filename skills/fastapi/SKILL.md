@@ -38,21 +38,21 @@ pip-audit 2.7+, PostgreSQL 16. (All lower bounds; install the latest in each lin
 
 - Django / Flask / DRF apps → not this skill.
 - Sync WSGI services, data-science notebooks, CLI-only scripts with no HTTP surface.
-- Pure REST contract questions (status codes, URL naming, versioning, cursor vs offset) → general REST-design territory, not this skill (this skill covers the FastAPI *implementation* of those contracts).
+- Pure REST contract questions (status codes, URL naming, versioning, cursor vs offset) → general REST-design territory (this skill covers the FastAPI *implementation* of those contracts).
 - Frontend/Next.js, Go, Flutter work → their own skills.
 - Generic secure-coding rules not specific to Python/FastAPI → **See Also `secure-coding`**.
 - Container/Compose/CI deploy mechanics → **See Also `deployment`** (this skill keeps only a Docker *note*).
 
 ## Decision rules
 
-1. `async def` for any I/O route; use async drivers (asyncpg, httpx) — never `requests`, never sync `psycopg2`, never blocking calls in the event loop (offload with `await anyio.to_thread.run_sync` / `run_in_threadpool`).
-2. Three Pydantic models per resource: `XCreate` / `XUpdate` / `XResponse` (`from_attributes=True`). Response models never leak hashes/tokens/internal flags.
-3. All request-scoped resources via `Depends` (`Annotated[T, Depends(...)]`), never constructed inline in handlers — so tests can override them.
-4. One DB session per request via `get_db` with commit-on-success / rollback-on-exception.
-5. Every error leaves as the same envelope `{"error":{"code","message","details?"}}` via centralized handlers. Never leak stack traces / SQL.
-6. Settings come from `pydantic-settings` (`BaseSettings`), never `os.getenv` scattered in code.
-7. Validate JWT `exp`, `iss`, `aud`, and pin `algorithms=["RS256"|"HS256"]` explicitly.
-8. Tests use `ASGITransport` + `dependency_overrides` against a transactional DB; CI gates on `ruff`, `mypy --strict`, `pytest --cov`, `pip-audit`.
+1. `async def` for any I/O route + async drivers (asyncpg, httpx); never `requests`/`psycopg2`/blocking calls on the loop (offload via `await anyio.to_thread.run_sync`).
+2. Three Pydantic models per resource — `XCreate`/`XUpdate`/`XResponse` (`from_attributes=True`); responses never leak hashes/tokens/internal flags.
+3. Request-scoped resources via `Annotated[T, Depends(...)]`, never built inline — so tests can override them.
+4. One DB session per request via `get_db` (commit-on-success / rollback-on-exception); handlers never commit.
+5. One error envelope `{"error":{"code","message","details?"}}` via centralized handlers; never leak stack traces / SQL.
+6. Settings from `pydantic-settings` (`BaseSettings`), never scattered `os.getenv`.
+7. Validate JWT `exp`/`iss`/`aud` and pin `algorithms=["RS256"|"HS256"]` explicitly.
+8. Tests: `ASGITransport` + `dependency_overrides` on a transactional DB; CI gates on `ruff`, `mypy --strict`, `pytest --cov`, `pip-audit`.
 
 ## Project layout
 
@@ -108,11 +108,10 @@ ROUTERS = (
 
 @asynccontextmanager
 async def lifespan(_app: FastAPI):
-    # Open pools/caches here on startup — never at import time, so importing the module
-    # has no side effects (tests and Alembic import it freely).
+    # Open pools/caches on startup (here), never at import time, so importing the module has
+    # no side effects (tests and Alembic import it freely).
     yield
-    # On shutdown, hand pooled DB connections back so workers exit without dangling sockets.
-    await engine.dispose()
+    await engine.dispose()   # release pooled DB connections so workers exit cleanly
 
 
 def _install_cors(app: FastAPI, settings: Settings) -> None:
@@ -147,45 +146,9 @@ without touching the `get_settings` cache. **Bad** = `allow_origins=["*"]` with
 credentialed requests. `→ references/production.md` for proxy headers / logging wiring at
 startup.
 
-## Customizing the OpenAPI schema
-
-FastAPI builds the OpenAPI document lazily and caches it on `app.openapi_schema`. To inject
-extra metadata (servers, security schemes, a logo, tags) build the base schema once, mutate
-it, cache it, and **assign your function to `app.openapi`** — assigning the callable (not
-calling it eagerly) preserves the lazy-build-and-cache contract and lets `/docs` and
-`/openapi.json` pick it up.
-
-```python
-from typing import Any
-
-from fastapi import FastAPI
-from fastapi.openapi.utils import get_openapi
-
-
-def customize_openapi(app: FastAPI) -> None:
-    def build() -> dict[str, Any]:
-        if app.openapi_schema:                 # serve the cached doc on later calls
-            return app.openapi_schema
-        schema = get_openapi(
-            title=app.title,
-            version=app.version,
-            description="Authenticate via the OAuth2 password flow at /auth/login.",
-            routes=app.routes,
-        )
-        schema["servers"] = [{"url": "https://api.example.com", "description": "production"}]
-        schema.setdefault("components", {})["securitySchemes"] = {
-            "bearerAuth": {"type": "http", "scheme": "bearer", "bearerFormat": "JWT"},
-        }
-        app.openapi_schema = schema
-        return schema
-
-    app.openapi = build  # type: ignore[method-assign]  # assign, don't call — keep it lazy
-```
-
-Call `customize_openapi(app)` inside `create_app()` before returning. **Bad** =
-`app.openapi_schema = customize_openapi(app)()` at import time — it forces the schema to
-build before every route is registered, so late `include_router` calls go missing from the
-docs.
+To inject servers / security schemes / a logo into the generated OpenAPI doc, assign a
+custom builder to `app.openapi` inside `create_app()`. `→ references/production.md`
+(Customizing the OpenAPI schema).
 
 ## Configuration (pydantic-settings)
 
@@ -371,21 +334,6 @@ class NotFoundError(AppError):
         super().__init__(f"{resource} not found: {ident}", "not_found", 404)
 
 
-class ConflictError(AppError):
-    def __init__(self, message: str) -> None:
-        super().__init__(message, "conflict", status.HTTP_409_CONFLICT)
-
-
-class Unauthorized(AppError):
-    def __init__(self, message: str = "Authentication required") -> None:
-        super().__init__(message, "unauthorized", status.HTTP_401_UNAUTHORIZED)
-
-
-class Forbidden(AppError):
-    def __init__(self, message: str = "Insufficient permissions") -> None:
-        super().__init__(message, "forbidden", status.HTTP_403_FORBIDDEN)
-
-
 def register_exception_handlers(app: FastAPI) -> None:
     @app.exception_handler(AppError)
     async def _app_error(request: Request, exc: AppError) -> JSONResponse:
@@ -414,8 +362,10 @@ def register_exception_handlers(app: FastAPI) -> None:
 ```
 
 Keep this envelope identical across every handler — one `code`/`message`/`details` shape so
-clients parse errors once. **See Also `secure-coding`** for why error responses must never leak
-internals (stack traces, SQL, secrets).
+clients parse errors once. Subclass `AppError` per failure (each fixes a `code` + status):
+`NotFoundError` (404), `ConflictError` (409), `Unauthorized` (401), `Forbidden` (403) — full
+hierarchy in `→ references/production.md` (AppError subclasses). **See Also `secure-coding`**
+for why error responses must never leak internals (stack traces, SQL, secrets).
 
 ## Async SQLAlchemy 2.0 (essentials)
 
@@ -459,9 +409,7 @@ async def list_users(db: AsyncSession, limit: int, offset: int) -> list[User]:
 ## Background tasks vs real queues
 
 ```python
-from fastapi import APIRouter, BackgroundTasks
-
-router = APIRouter()
+from fastapi import BackgroundTasks
 
 
 # Good: in-request, non-durable side effect (best-effort email).
@@ -471,77 +419,33 @@ async def signup(background: BackgroundTasks) -> dict[str, str]:
     return {"status": "accepted"}
 ```
 
-Anything needing **retries, durability, or cross-process execution** (payment webhooks,
-large jobs) goes to a real broker (Celery / Arq / Dramatiq), **never** `BackgroundTasks` —
-it runs in-process and dies with the worker, with no retry or visibility.
+Anything needing **retries, durability, or cross-process execution** (payment webhooks, large
+jobs) goes to a real broker (Celery / Arq / Dramatiq), **never** `BackgroundTasks` — it runs
+in-process and dies with the worker, with no retry or visibility.
 
-## Testing (embedded summary)
+## Testing
 
-```python
-import pytest
-from fastapi import FastAPI
-from httpx import ASGITransport, AsyncClient
+Drive the app in-process with `httpx.AsyncClient(transport=ASGITransport(app=create_app()))`
+and swap real dependencies via `app.dependency_overrides[get_db] = lambda: db_session` against
+a transactional fixture — so every test rolls back. Use `pytest-asyncio` with
+`asyncio_mode = "auto"` (no `@pytest.mark.asyncio`), and assert secrets never serialize (e.g.
+`assert "hashed_password" not in resp.json()`). TDD red→green→refactor. Full fixtures
+(transactional `begin_nested`, auth overrides, respx, coverage gate) in
+`→ references/testing.md`.
 
-from app.api.deps import get_db
-from app.main import create_app
+## Security
 
+Full hardening playbook — argon2 hashing, OAuth2 + JWT (claims validated, `algorithms`
+pinned), `get_current_user`/`require_roles` RBAC, CORS, shared-store rate limiting, injection,
+`SecretStr` + log redaction, security headers, `pip-audit` — lives in
+`→ references/security.md`. The non-negotiables also appear in the anti-patterns table below.
+**See Also `secure-coding`** for the language-agnostic theory.
 
-@pytest.fixture
-def app(db_session) -> FastAPI:  # db_session: transactional fixture, see references/testing.md
-    application = create_app()
-    application.dependency_overrides[get_db] = lambda: db_session
-    return application
+## Production
 
-
-@pytest.fixture
-async def client(app: FastAPI):
-    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as c:
-        yield c
-    app.dependency_overrides.clear()
-
-
-async def test_create_user(client: AsyncClient) -> None:
-    resp = await client.post("/api/v1/users", json={
-        "email": "a@example.com", "full_name": "Alice", "password": "correct-horse-battery",
-    })
-    assert resp.status_code == 201
-    assert "hashed_password" not in resp.json()
-```
-
-Use `pytest-asyncio` with `asyncio_mode = "auto"` (no `@pytest.mark.asyncio` needed). TDD:
-write the failing assertion first (red), then the minimal handler (green), then refactor.
-`→ references/testing.md` (transactional `begin_nested` fixture, auth overrides, respx,
-coverage gate).
-
-## Security (embedded summary)
-
-- Hash with **argon2-cffi** (`PasswordHasher`); never MD5/SHA/plain; rehash-on-login when params change.
-- Validate JWT `exp`/`iss`/`aud` and **pin `algorithms=[...]`**; reject `alg=none`.
-- Env-specific CORS origins; never `["*"]` with credentials.
-- Rate-limit auth + write endpoints via a **shared store** (Redis/gateway), not per-process counters.
-- Bound params / SQLAlchemy expressions only — never f-string SQL.
-- `SecretStr` for secrets; redact `Authorization`, cookies, tokens, passwords, PII from logs.
-- Run `pip-audit` in CI; pin + hash lockfiles (`uv pip compile --generate-hashes`).
-
-`→ references/security.md`; **See Also `secure-coding`**.
-
-## Production (embedded summary)
-
-```bash
-# Worker count rule of thumb: (2 * CPU cores) + 1
-gunicorn app.main:app \
-  -k uvicorn_worker.UvicornWorker \
-  --workers 5 --timeout 30 --graceful-timeout 30 \
-  --bind 0.0.0.0:8000 --forwarded-allow-ips '*'
-```
-
-- `/health` = liveness (no deps); `/health/ready` = readiness (pings DB/cache).
-- Graceful shutdown via lifespan (`await engine.dispose()`); drain background work; idempotent.
-- Structured JSON logging + request-id middleware; correlate by env.
-- Pagination + caching (`ETag`/`Cache-Control`, Redis cache-aside) at scale.
-- `ORJSONResponse` default; never `--reload` in prod.
-
-`→ references/production.md`; **See Also `deployment`** (Dockerfile/CI).
+ASGI/worker math, structured JSON logging + request-id, liveness vs readiness probes, graceful
+shutdown, keyset pagination, caching, `ORJSONResponse` and proxy headers all live in
+`→ references/production.md`. **See Also `deployment`** for the Dockerfile and CI/CD pipeline.
 
 ## Anti-patterns / rationalizations → STOP
 
@@ -566,36 +470,30 @@ gunicorn app.main:app \
 |---|---|
 | Async route doing I/O | `async def` + `httpx.AsyncClient` / asyncpg |
 | Request DB session | `db: Annotated[AsyncSession, Depends(get_db)]` |
-| Run a query | `await db.execute(select(Model).where(...))` |
-| Get rows | `result.scalars().all()` / `.scalar_one_or_none()` |
+| Run a query / get rows | `await db.execute(select(Model)...)` → `result.scalars().all()` / `.scalar_one_or_none()` |
 | Get by PK | `await db.get(Model, pk)` |
-| Eager-load collection | `selectinload(Model.items)` |
-| Eager-load many-to-one | `joinedload(Model.parent)` |
+| Eager-load | `selectinload(Model.items)` (collection) / `joinedload(Model.parent)` (many-to-one) |
 | Settings | `Annotated[Settings, Depends(get_settings)]` |
 | Serialize ORM → schema | `model_config = ConfigDict(from_attributes=True)` |
 | Created response | `status_code=201` + `Location` header |
-| Test client | `AsyncClient(transport=ASGITransport(app=app))` |
-| Override a dependency | `app.dependency_overrides[dep] = fake` |
-| Hash password | `argon2.PasswordHasher().hash(pw)` |
-| Verify JWT | `jwt.decode(t, key, algorithms=[...], audience=..., issuer=...)` |
+| Test client | `AsyncClient(transport=ASGITransport(app=app))` + `app.dependency_overrides[dep] = fake` |
+| Hash password / verify JWT | `argon2.PasswordHasher().hash(pw)` / `jwt.decode(t, key, algorithms=[...], audience=..., issuer=...)` |
 
 ## Project grounding (02-DOCS + CLAUDE.md)
 
 When this skill runs in a project with a `02-DOCS/` layer (the
-[`harness`](../harness/SKILL.md) Karpathy wiki), record this
-project's API decisions there and index them from the root `CLAUDE.md`, so the next
-agent inherits the conventions instead of re-deriving them.
+[`harness`](../harness/SKILL.md) Karpathy wiki), record this project's API decisions in
+`02-DOCS/wiki/stack/fastapi.md` and link it from a `## Knowledge map` section in the root
+`CLAUDE.md`, so the next agent inherits the conventions instead of re-deriving them.
 
-1. **Find the article** `02-DOCS/wiki/stack/fastapi.md`, linked from a `## Knowledge map` section in the root
-   `CLAUDE.md`.
-2. **If missing or stale**, create/update it with the project's real choices — auth model (JWT/OAuth2 provider, token lifetimes), the DB session + migration tool, the error-envelope shape, the settings/secrets approach, and the deployment target —
-   then add/refresh the `CLAUDE.md` link (create the `## Knowledge map` section, and
-   `CLAUDE.md` itself, if absent).
-3. **Read it first on every use** and stay consistent; when a convention changes, update the
-   article (bump its `Updated` date) in the same change.
+- **Read it first** on every use and stay consistent; bump its `Updated` date when a
+  convention changes.
+- **Create/update it** with the project's real choices — auth model (JWT/OAuth2 provider,
+  token TTLs), DB session + migration tool, error-envelope shape, settings/secrets approach,
+  deployment target — adding the `CLAUDE.md` link (and the file) if absent.
 
-No `02-DOCS/` layer? Skip silently (optionally suggest `harness`). Unlike the
-brand study, technical conventions are *recorded, not gated* — never block the task on this.
+No `02-DOCS/` layer? Skip silently (optionally suggest `harness`). Technical conventions are
+*recorded, not gated* — never block the task on this.
 
 ## See Also
 

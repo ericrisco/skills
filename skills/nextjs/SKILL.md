@@ -77,21 +77,9 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
 }
 ```
 
-```tsx
-// Bad: importing a Server Component into a "use client" file forces it client / breaks the build
-"use client";
-import { ServerChart } from "./server-chart"; // ServerChart reads the DB → build error
-export function Panel() {
-  return <ServerChart />;
-}
-
-// Good: client shell takes `children`; the server content is passed from a server parent
-("use client");
-export function ClientPanel({ children }: { children: React.ReactNode }) {
-  return <section className="panel">{children}</section>;
-}
-// in a server component:  <ClientPanel><ServerChart /></ClientPanel>
-```
+When a Client Component needs server content, give it a `children` (or prop) slot and pass the
+Server Component from a server parent — `<ClientPanel><ServerChart /></ClientPanel>`. The
+import-graph rule and the full Bad/Good contrast are in `references/react.md` (Server vs Client deep dive).
 
 ## "use server": Server Actions
 
@@ -223,11 +211,47 @@ export default function Page() {
 function PageBad({ params }: { params: { id: string } }) {
   return <h1>{params.id}</h1>; // runtime/type error on v15+
 }
-
 // Good: params is a Promise — await it
 async function PageGood({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   return <h1>{id}</h1>;
+}
+```
+
+## Metadata & SEO
+
+The App Router emits `<title>`, `<meta>`, OpenGraph/Twitter tags, `sitemap.xml`, and `robots.txt`
+from code (identical API on v15/v16). Build-side patterns → `references/metadata.md`; the
+strategy/content side — JSON-LD, GEO, keyword research → `../marketing/references/seo-geo.md`.
+
+- `metadata`/`generateMetadata` are **Server-Component-only** — one or the other per file (static
+  object when known at build; async `generateMetadata` when it depends on `params`/data, wrapped in
+  `React.cache` to dedupe with the page). Set `metadataBase` once in the root layout so relative
+  OG/canonical URLs resolve to absolute.
+- `app/sitemap.ts` → `MetadataRoute.Sitemap` (50k-URL cap; shard with `generateSitemaps()` past that);
+  `app/robots.ts` → `MetadataRoute.Robots` (link the sitemap, disallow private paths).
+- Dynamic OG images: `opengraph-image.tsx` returning `ImageResponse` from `next/og` (flexbox-only CSS).
+
+```tsx
+// app/blog/[slug]/page.tsx — dynamic metadata + OpenGraph (sitemap.ts/robots.ts/next/og in references/metadata.md)
+import type { Metadata } from "next";
+import { getPost } from "@/lib/dal";
+
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+  const { slug } = await params; // params is a Promise on v15+
+  const post = await getPost(slug); // React.cache-shared with the page
+  if (!post) return {};
+  return {
+    title: post.title,
+    description: post.excerpt,
+    alternates: { canonical: `/blog/${slug}` },
+    openGraph: {
+      title: post.title,
+      type: "article",
+      images: [{ url: post.cover, width: 1200, height: 630, alt: post.title }], // recommended OG size
+    },
+    twitter: { card: "summary_large_image", title: post.title },
+  };
 }
 ```
 
@@ -296,19 +320,17 @@ For optimistic UI, `useActionState` + zod forms, and full mutation patterns →
 
 ## React 19 in the App Router (essentials)
 
-Full discipline in `references/react.md`. The Next-relevant deltas:
-
-- `useActionState(fn, initial)` → `[state, action, isPending]` (replaces `useFormState`).
-- `useFormStatus()` for a child submit button.
-- `useOptimistic(state, reducer)` — auto-reverts on action error.
-- `use(promise)` — unwrap an RSC-passed Promise inside a Client Component under `<Suspense>`.
-- `ref` as a normal prop (no `forwardRef`); `<Context value={...}>` as the provider.
-- **React Compiler on (`reactCompiler: true`) ⇒ drop manual memoization.**
+The Next-relevant deltas (full discipline, hooks, state-location tree, composition →
+`references/react.md`): `useActionState(fn, initial)` → `[state, action, isPending]` (replaces
+`useFormState`); `useFormStatus()` for a child submit button; `useOptimistic` auto-reverts on
+action error; `use(promise)` unwraps an RSC-passed Promise under `<Suspense>`; `ref` is a normal
+prop (no `forwardRef`); `<Context value>` is the provider; React Compiler on
+(`reactCompiler: true`) ⇒ drop manual memoization.
 
 ```tsx
 "use client";
 import { useActionState } from "react";
-import { renameProject } from "./actions";
+import { renameProject } from "./actions"; // the "use server" action defined above
 
 export function RenameForm({ id }: { id: string }) {
   const [state, action, isPending] = useActionState(renameProject, null);
@@ -342,52 +364,21 @@ const r = schema.safeParse(Object.fromEntries(formData));
 if (!r.success) return { status: "error", message: "Invalid" };
 ```
 
-## Auth (Auth.js v5) — defense in depth
+## Auth & security (deep dive → references/security.md)
 
-**Three layers, and the middleware layer is NOT one of the security layers.**
+Defense in depth with **three layers — middleware is NOT one of them**. Full wiring (Auth.js v5
+`auth.ts`, the DAL, CSRF, cookies, CSP, SSRF) lives in `references/security.md`; apply this checklist
+on every review:
 
-- `proxy.ts`/`middleware.ts`: coarse redirect only (NOT security).
-- `auth()` check inside **every** Server Action and Route Handler.
-- A **Data Access Layer (DAL)** that re-checks the session before any read/write.
-- Secure cookies: `httpOnly`, `secure`, `sameSite: "lax"`.
-
-```ts
-// auth.ts
-import NextAuth from "next-auth";
-import GitHub from "next-auth/providers/github";
-
-export const { handlers, auth, signIn, signOut } = NextAuth({
-  providers: [GitHub],
-  session: { strategy: "jwt" },
-});
-
-// lib/dal.ts — the real boundary
-import { cache } from "react";
-import { redirect } from "next/navigation";
-import { auth } from "@/auth";
-
-export const getCurrentUser = cache(async () => {
-  const session = await auth();
-  if (!session?.user) redirect("/login");
-  return session.user;
-});
-```
-
-Deep dive → `references/security.md`.
-
-## Security (deep dive → references/security.md)
-
-Apply on every review:
-
-- No `dangerouslySetInnerHTML` without sanitization (DOMPurify, server-side).
-- CSRF: Server Actions verify `Origin`/`Host`; SameSite cookies; never expose mutations as
-  unauthenticated GET. Set `serverActions.allowedOrigins` in `next.config.ts`.
+- `proxy.ts`/`middleware.ts` is a coarse redirect only (NOT a security boundary).
+- `auth()` check inside **every** Server Action and Route Handler (shown in those sections above);
+  re-check the session in a **Data Access Layer (DAL)** before any read/write — the DAL is the real boundary.
+- Secure cookies: `httpOnly`, `secure`, `sameSite: "lax"`; rotate the session on any privilege change.
+- CSRF: Server Actions verify `Origin`/`Host`; never expose a mutation as an unauthenticated GET;
+  set `serverActions.allowedOrigins` in `next.config.ts`.
 - **Never put secrets in `NEXT_PUBLIC_*`** — they ship to the browser; proxy via a Route Handler.
 - SSRF: allowlist host/scheme before `fetch` in Route Handlers; block internal/metadata ranges.
-- CSP with a nonce via `proxy.ts`/headers.
-- Auth on every action (see the Auth section above).
-
-See Also: `secure-coding`.
+- CSP with a nonce via `proxy.ts`/headers. See also `secure-coding`.
 
 ## Performance (deep dive → references/performance.md)
 
@@ -430,6 +421,8 @@ See Also: `secure-coding`.
 | Client island             | `"use client"` leaf                              | keep small, push down          |
 | Secrets                   | server-only env (`import 'server-only'`)         | never `NEXT_PUBLIC_*`          |
 | Image                     | `next/image` + `priority`                        | LCP image                      |
+| Page metadata             | `generateMetadata` / static `metadata`           | server-only; set `metadataBase`|
+| Sitemap / robots          | `app/sitemap.ts` / `app/robots.ts`               | `MetadataRoute.*`              |
 | Protect route             | middleware redirect + DAL `auth()`               | DAL is the real boundary       |
 
 ## Verify
@@ -445,6 +438,7 @@ never a false failure. The lint/type/test steps are read-only; the final `next b
 
 - `references/react.md` — React 19 discipline for the App Router (hooks, boundaries, forms, state).
 - `references/data-and-caching.md` — both caching models, mutations, end-to-end zod forms.
+- `references/metadata.md` — `generateMetadata`, `sitemap.ts`, `robots.ts`, OpenGraph + `next/og`.
 - `references/testing.md` — Vitest 3 + RTL + MSW 2 + Playwright; RSC testing reality.
 - `references/performance.md` — Core Web Vitals, images, fonts, bundles, streaming.
 - `references/security.md` — auth, CSRF, XSS, CSP, env leakage, SSRF.
@@ -472,4 +466,5 @@ brand study, technical conventions are *recorded, not gated* — never block the
 - `../secure-coding/SKILL.md` — generic security; this skill complements, does not duplicate it.
 - `../fastapi/SKILL.md` and `../go/SKILL.md` — the backend APIs the frontend calls.
 - `../postgresdb/SKILL.md` — the data layer behind the DAL.
+- `../marketing/SKILL.md` — SEO/GEO strategy, JSON-LD, AI-engine citation (`../marketing/references/seo-geo.md`); this skill emits the tags, that one decides the content.
 - `../harness/SKILL.md` — workspace conventions.
