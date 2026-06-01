@@ -45,9 +45,9 @@ figures out what you're building, recommends which other bundles to install,
 and hands off to `/rsc-core:harness` to scaffold the workspace.
 
 The six bundles map to one marketplace under `.claude-plugin/marketplace.json`;
-each bundle lives at `plugins/<bundle>/` and points back at the flat
-`skills/<name>/` directories, so a skill is authored once and shipped through
-both install paths.
+each bundle lives at `plugins/<bundle>/`. A skill is authored once under
+`skills/<name>/` (the canonical source) and copied into each bundle for
+distribution — see [Repo layout & contributing](#repo-layout--contributing).
 
 ## Install with `npx skills`
 
@@ -253,7 +253,26 @@ description: Use when [specific triggering conditions]
 
 The full spec lives at [agentskills.io/specification](https://agentskills.io/specification).
 
-## Contributing
+## Repo layout & contributing
+
+`skills/<name>/` is the **canonical source of truth** — every skill is authored
+and edited there, once. `plugins/<bundle>/skills/` directories are **generated
+copies** for distribution, not originals: they are real copies (not symlinks),
+so each bundle is fully self-contained and survives `zip`/tarball packaging and
+Windows installs.
+
+After editing any skill:
+
+```bash
+scripts/sync-bundles.sh   # refresh the plugin copies from skills/ (idempotent)
+scripts/eval-lint.sh      # validate every skills/*/evals/cases.yaml
+```
+
+`scripts/sync-bundles.sh` removes the current bundle copies and re-copies from
+`skills/`, so the plugins always match canon. `scripts/eval-lint.sh` enforces
+the eval minimums per skill (>=5 `should_trigger`, >=4 `should_not_trigger`,
+>=1 `capability`) and exits non-zero on any failure. Never edit a skill under
+`plugins/` directly — those edits are overwritten on the next sync.
 
 This is a personal catalog. Bug reports welcome via GitHub issues. PRs
 fixing detector patterns, provider endpoints, or English typos are

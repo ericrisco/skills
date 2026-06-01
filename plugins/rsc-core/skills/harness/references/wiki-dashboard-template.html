@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>{{PROJECT_NAME}} — Wiki Dashboard</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+  :root {
+    --bg: #0f1115;
+    --panel: #161a22;
+    --panel-2: #1d2230;
+    --border: #2a3140;
+    --text: #e6e8ee;
+    --muted: #8b94a8;
+    --accent: #7aa2f7;
+    --good: #9ece6a;
+    --warn: #e0af68;
+    --bad: #f7768e;
+    --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+  }
+  @media (prefers-color-scheme: light) {
+    :root {
+      --bg: #fafbfc;
+      --panel: #ffffff;
+      --panel-2: #f4f6f9;
+      --border: #e5e7eb;
+      --text: #1a1d23;
+      --muted: #6b7280;
+      --accent: #2563eb;
+      --good: #16a34a;
+      --warn: #d97706;
+      --bad: #dc2626;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; padding: 24px; background: var(--bg); color: var(--text); font-family: var(--sans); font-size: 14px; line-height: 1.5; }
+  h1 { font-size: 22px; margin: 0 0 4px; font-weight: 600; }
+  h2 { font-size: 14px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); margin: 28px 0 10px; font-weight: 600; }
+  .grid { display: grid; gap: 16px; }
+  .meta { color: var(--muted); font-family: var(--mono); font-size: 12px; margin-bottom: 24px; }
+  .stats { grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); }
+  .stat { background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 14px 16px; }
+  .stat-value { font-size: 24px; font-weight: 600; line-height: 1; }
+  .stat-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; margin-top: 6px; }
+  .panel { background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 16px; }
+  .two-col { grid-template-columns: 1fr 1fr; }
+  @media (max-width: 720px) { .two-col { grid-template-columns: 1fr; } }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th { text-align: left; color: var(--muted); font-weight: 500; padding: 6px 8px; border-bottom: 1px solid var(--border); }
+  td { padding: 8px; border-bottom: 1px solid var(--border); }
+  td:last-child { text-align: right; font-family: var(--mono); }
+  tr:last-child td { border-bottom: none; }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .score-good { color: var(--good); }
+  .score-warn { color: var(--warn); }
+  .score-bad { color: var(--bad); }
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 11px; font-family: var(--mono); border: 1px solid var(--border); color: var(--muted); }
+  .log { font-family: var(--mono); font-size: 12px; color: var(--muted); line-height: 1.7; max-height: 260px; overflow-y: auto; background: var(--panel-2); padding: 12px; border-radius: 6px; }
+  .log .date { color: var(--accent); }
+  .gap { padding: 8px 0; border-bottom: 1px solid var(--border); }
+  .gap:last-child { border-bottom: none; }
+  .gap-title { font-weight: 500; }
+  .gap-meta { font-size: 11px; color: var(--muted); margin-top: 2px; }
+  svg.histogram { display: block; width: 100%; height: 100px; }
+  svg.histogram rect { fill: var(--accent); }
+</style>
+</head>
+<body>
+  <header>
+    <h1>{{PROJECT_NAME}} — Wiki</h1>
+    <div class="meta">Generated {{GENERATED_AT}} · workspace: <code>{{WORKSPACE_ROOT}}</code></div>
+  </header>
+
+  <section class="grid stats">
+    <div class="stat"><div class="stat-value">{{TOTAL_ARTICLES}}</div><div class="stat-label">Articles</div></div>
+    <div class="stat"><div class="stat-value">{{TOTAL_TOPICS}}</div><div class="stat-label">Topics</div></div>
+    <div class="stat"><div class="stat-value">{{TOTAL_RAW_SOURCES}}</div><div class="stat-label">Raw sources</div></div>
+    <div class="stat"><div class="stat-value">{{OPEN_GAPS}}</div><div class="stat-label">Open gaps</div></div>
+    <div class="stat"><div class="stat-value">{{FILLED_GAPS}}</div><div class="stat-label">Filled gaps</div></div>
+    <div class="stat"><div class="stat-value">{{INTERACTIONS_SINCE_IMPROVE}}</div><div class="stat-label">Since last Improve</div></div>
+  </section>
+
+  <h2>Score distribution</h2>
+  <div class="panel">
+    <!-- Replace with N <rect> bars; each rect's height is proportional to bucket count. -->
+    {{SCORE_HISTOGRAM_SVG}}
+    <!-- Example shape:
+    <svg class="histogram" viewBox="0 0 100 100" preserveAspectRatio="none">
+      <rect x="0"  y="60" width="9" height="40"/>
+      <rect x="10" y="40" width="9" height="60"/>
+      ...
+    </svg> -->
+  </div>
+
+  <section class="grid two-col">
+    <div class="panel">
+      <h2 style="margin-top:0">Top 5 (highest score)</h2>
+      <table>
+        <thead><tr><th>Article</th><th>Topic</th><th>Score</th></tr></thead>
+        <tbody>
+          {{TOP_5_ROWS}}
+          <!-- Each row: <tr><td><a href="...">title</a></td><td>topic</td><td class="score-good">N.N</td></tr> -->
+        </tbody>
+      </table>
+    </div>
+    <div class="panel">
+      <h2 style="margin-top:0">Worst 5 (next Improve targets)</h2>
+      <table>
+        <thead><tr><th>Article</th><th>Topic</th><th>Score</th></tr></thead>
+        <tbody>
+          {{WORST_5_ROWS}}
+          <!-- Use class="score-bad" or "score-warn" on the score cell. -->
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <h2>Open gaps</h2>
+  <div class="panel">
+    {{OPEN_GAPS_LIST}}
+    <!-- Each: <div class="gap"><div class="gap-title">{concept}</div><div class="gap-meta">Mentioned in {N} articles · suggested topic: {topic}</div></div> -->
+  </div>
+
+  <h2>Recent activity</h2>
+  <div class="log">
+    {{RECENT_LOG_HTML}}
+    <!-- Render the last 20 lines of wiki/log.md, each prefixed with <span class="date">[YYYY-MM-DD]</span>. -->
+  </div>
+
+  <footer style="margin-top: 32px; color: var(--muted); font-size: 11px; font-family: var(--mono);">
+    Regenerated by harness on every Maintenance Pass. Gitignored — never check this file in.
+  </footer>
+</body>
+</html>
