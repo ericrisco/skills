@@ -23,7 +23,7 @@ Build production LLM agents that are model-agnostic by construction — a thin p
 - One-shot throwaway prompt, no tools, no eval, no production path → just call the SDK directly.
 - Pure prompt-wording improvement with no architecture → that's prompt engineering, not this.
 - Anthropic-SDK-specific tuning (caching internals, thinking, batch) in a file that *only* imports `anthropic` → defer to the **`claude-api`** skill; this skill stays multi-provider.
-- Workspace scaffolding (`01-TOOLS`/`02-DOCS` layout) → **`risco-project-harness`**.
+- Workspace scaffolding (`01-TOOLS`/`02-DOCS` layout) → **`harness`**.
 - Picking *which* coding agent (Claude Code vs Aider) → agent-eval territory, not this.
 - No retrieval, no tools, no loop, no evals at all → you don't need an agent; say so.
 
@@ -443,7 +443,7 @@ if __name__ == "__main__":
 ## Project grounding (02-DOCS + CLAUDE.md)
 
 When this skill runs in a project with a `02-DOCS/` layer (the
-[`risco-project-harness`](../risco-project-harness/SKILL.md) Karpathy wiki), record this
+[`harness`](../harness/SKILL.md) Karpathy wiki), record this
 project's agent decisions there and index them from the root `CLAUDE.md`, so the next
 agent inherits the conventions instead of re-deriving them.
 
@@ -455,13 +455,13 @@ agent inherits the conventions instead of re-deriving them.
 3. **Read it first on every use** and stay consistent; when a convention changes, update the
    article (bump its `Updated` date) in the same change.
 
-No `02-DOCS/` layer? Skip silently (optionally suggest `risco-project-harness`). Unlike the
+No `02-DOCS/` layer? Skip silently (optionally suggest `harness`). Unlike the
 brand study, technical conventions are *recorded, not gated* — never block the task on this.
 
 ## See Also
 
 - `../claude-api/SKILL.md` — Anthropic-SDK-specific tuning (caching internals, thinking, batch) when a file only imports `anthropic`.
-- `../risco-project-harness/SKILL.md` — workspace `01-TOOLS`/`02-DOCS` scaffolding.
+- `../harness/SKILL.md` — workspace `01-TOOLS`/`02-DOCS` scaffolding.
 - `../deep-research/SKILL.md` — the research-harness fan-out / verify pattern.
 - Stack siblings the examples target: `../fastapi/SKILL.md`, `../nextjs/SKILL.md`, `../go/SKILL.md`, `../postgresdb/SKILL.md`, `../flutter/SKILL.md`; plus `../secure-coding/SKILL.md` and `../deployment/SKILL.md` for hardening and shipping the agent service.
 - ECC analogues (external, no links): `agent-harness-construction`, `eval-harness`, `cost-aware-llm-pipeline`, `mcp-server-patterns`, `context-budget`.

@@ -35,7 +35,7 @@ Do NOT use when (delegate or decline):
 
 Run this gate before reframing a single concept:
 
-1. **Locate the teaching profile.** Read the project's root `CLAUDE.md` and look for a `## Knowledge map` section linking into `02-DOCS/wiki/teaching/` (the `risco-project-harness` Karpathy-wiki convention: compiled profile articles live under `02-DOCS/wiki/teaching/`, raw inputs the user pastes live under `02-DOCS/raw/teaching/`). If `CLAUDE.md` is absent, the link is missing, or it points nowhere, treat the profile as ABSENT.
+1. **Locate the teaching profile.** Read the project's root `CLAUDE.md` and look for a `## Knowledge map` section linking into `02-DOCS/wiki/teaching/` (the `harness` Karpathy-wiki convention: compiled profile articles live under `02-DOCS/wiki/teaching/`, raw inputs the user pastes live under `02-DOCS/raw/teaching/`). If `CLAUDE.md` is absent, the link is missing, or it points nowhere, treat the profile as ABSENT.
 
 2. **Check completeness** against the checklist in `references/learner-grounding.md`. The profile is complete only when every dimension is filled: the LEARNER (level, prior knowledge, pains, desires, current false beliefs, what they want to DO after); the AUDIENCE (same as the buyer or not? live vs recorded? size? context?); the target TRANSFORMATION (the one result, before→after); and constraints/format. **Any empty dimension = INCOMPLETE.**
 
@@ -199,5 +199,5 @@ Create/update both as decisions are made and refresh their `CLAUDE.md` links. Re
 - `../presentations/SKILL.md` — turn the landed lesson into a deck (Marp/Slidev/PPTX, speaker notes).
 - `../design/SKILL.md` — the visual system and pixels behind the slides/diagrams.
 - `review-content` — audit an existing lesson/module/notebook for gaps, redundancy, anachronisms, and storytelling problems (run it first; bring its report here).
-- `risco-project-harness` — the `02-DOCS` Karpathy-wiki convention this skill persists the teaching profile into.
+- `harness` — the `02-DOCS` Karpathy-wiki convention this skill persists the teaching profile into.
 - References: `references/brunson-frameworks.md`, `references/learner-grounding.md`, `references/mental-models.md`, `references/course-analysis.md`, `references/concept-landing-recipe.md`.

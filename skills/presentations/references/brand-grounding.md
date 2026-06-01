@@ -8,7 +8,7 @@ use — it does not fork it. This file holds the **completeness checklist** (the
 
 ## Where the brand study lives
 
-Following the `risco-project-harness` Karpathy-wiki convention (identical to `marketing`/`design`):
+Following the `harness` Karpathy-wiki convention (identical to `marketing`/`design`):
 
 ```text
 02-DOCS/

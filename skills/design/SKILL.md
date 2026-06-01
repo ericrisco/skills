@@ -33,7 +33,7 @@ Do NOT use when (delegate or decline):
 
 Before producing ANY landing / web-page / marketing output, ground in the project's brand study. A design with no brand behind it is a guess, and a guess defaults to your AI-generic prior. This step is mandatory and self-reinforcing: **an incomplete brand study is a hard stop, not a warning.**
 
-Follow the risco-project-harness 02-DOCS convention (brand study = wiki articles under `02-DOCS/wiki/brand/`, raw inputs under `02-DOCS/raw/brand/`, linked from root `CLAUDE.md`):
+Follow the harness 02-DOCS convention (brand study = wiki articles under `02-DOCS/wiki/brand/`, raw inputs under `02-DOCS/raw/brand/`, linked from root `CLAUDE.md`):
 
 1. **Locate the brand study.** Read the project root `CLAUDE.md` and look for a `## Brand & voice` section pointing into `02-DOCS/wiki/brand/...`. If present, read those articles.
 2. **If the link is MISSING, or the brand study is ABSENT or INCOMPLETE** (any checklist dimension empty), STOP. Do not design yet. Instead:
@@ -351,5 +351,5 @@ keep outputs consistent with them.
 - `seo` — deep technical SEO + keyword work.
 - `product-lens` — validate the "why" before you build.
 - `liquid-glass-design` — native iOS 26 Liquid Glass (this skill = web glass only).
-- `risco-project-harness` — the `02-DOCS` wiki protocol the brand study follows.
+- `harness` — the `02-DOCS` wiki protocol the brand study follows.
 - References: `references/brand-grounding.md`, `references/research-method.md`, `references/trends-2026.md`, `references/visual-system.md`, `references/landing-anatomy-and-cro.md`, `references/copywriting-frameworks.md`, `references/motion-and-interaction.md`.

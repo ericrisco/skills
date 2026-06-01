@@ -579,7 +579,7 @@ gunicorn app.main:app \
 ## Project grounding (02-DOCS + CLAUDE.md)
 
 When this skill runs in a project with a `02-DOCS/` layer (the
-[`risco-project-harness`](../risco-project-harness/SKILL.md) Karpathy wiki), record this
+[`harness`](../harness/SKILL.md) Karpathy wiki), record this
 project's API decisions there and index them from the root `CLAUDE.md`, so the next
 agent inherits the conventions instead of re-deriving them.
 
@@ -591,7 +591,7 @@ agent inherits the conventions instead of re-deriving them.
 3. **Read it first on every use** and stay consistent; when a convention changes, update the
    article (bump its `Updated` date) in the same change.
 
-No `02-DOCS/` layer? Skip silently (optionally suggest `risco-project-harness`). Unlike the
+No `02-DOCS/` layer? Skip silently (optionally suggest `harness`). Unlike the
 brand study, technical conventions are *recorded, not gated* — never block the task on this.
 
 ## See Also

@@ -39,7 +39,7 @@ hard gate the `marketing` and `design` skills enforce; decks share the study, th
 
 Run this gate before writing a single slide headline:
 
-1. **Locate the brand study.** Read the project's root `CLAUDE.md` for a `## Brand & voice` section linking into `02-DOCS/wiki/brand/` (the `risco-project-harness` Karpathy-wiki convention: compiled brand articles under `02-DOCS/wiki/brand/`, raw inputs the user pastes under `02-DOCS/raw/brand/`). If `CLAUDE.md` is absent, the link is missing, or it points nowhere, treat the study as ABSENT.
+1. **Locate the brand study.** Read the project's root `CLAUDE.md` for a `## Brand & voice` section linking into `02-DOCS/wiki/brand/` (the `harness` Karpathy-wiki convention: compiled brand articles under `02-DOCS/wiki/brand/`, raw inputs the user pastes under `02-DOCS/raw/brand/`). If `CLAUDE.md` is absent, the link is missing, or it points nowhere, treat the study as ABSENT.
 2. **Check completeness** against the checklist in `references/brand-grounding.md` (it extends the shared brand checklist with **deck-specific** dimensions: deck purpose, audience & setting, length, presenter-vs-leave-behind, and must-include slides). Any empty dimension = INCOMPLETE.
 3. **If ABSENT or INCOMPLETE, STOP and interview the user** — one focused batch at a time (never dump all questions at once). Voice samples are mandatory; never fabricate a voice. Then persist: write/update the brand study under `02-DOCS/wiki/brand/` (raw inputs verbatim under `02-DOCS/raw/brand/`), and add/update the `## Brand & voice` link in root `CLAUDE.md`. Exact format → `references/brand-grounding.md`.
 4. **Only once the study is complete, proceed** — and cite which articles drove the deck (e.g. "narrative grounded in `02-DOCS/wiki/brand/value-proposition.md`, voice in `voice.md`").
@@ -195,7 +195,7 @@ Run before claiming done. `scripts/verify.sh` automates the mechanical subset.
 ## Project grounding (02-DOCS + CLAUDE.md)
 
 When this skill runs in a project with a `02-DOCS/` layer (the
-[`risco-project-harness`](../risco-project-harness/SKILL.md) Karpathy wiki), record this project's deck
+[`harness`](../harness/SKILL.md) Karpathy wiki), record this project's deck
 conventions there and index them from the root `CLAUDE.md`, so the next agent inherits them instead of
 re-deriving them.
 
@@ -206,7 +206,7 @@ re-deriving them.
 The deck theme is downstream of the design tokens: always reconcile `02-DOCS/wiki/stack/presentations.md`
 with `02-DOCS/wiki/stack/design.md` so the deck and the product share one palette and type system.
 
-No `02-DOCS/` layer? Skip silently (optionally suggest `risco-project-harness`). Like the other technical
+No `02-DOCS/` layer? Skip silently (optionally suggest `harness`). Like the other technical
 conventions and unlike the brand study, deck conventions are *recorded, not gated* — never block the task
 on this.
 
@@ -215,5 +215,5 @@ on this.
 - `../marketing/SKILL.md` — **the copy**: headlines, value prop, benefit-led claims, the deck's voice. This skill consumes that copy and lays it out.
 - `../design/SKILL.md` — **the visuals**: OKLCH tokens, type pairing, spacing, motion personality. This skill maps those tokens into the slide theme and reads `02-DOCS/wiki/stack/design.md`.
 - `../nextjs/SKILL.md` — when a "deck" is actually a web-native landing/microsite, the build belongs there.
-- `../risco-project-harness/SKILL.md` — the `02-DOCS` Karpathy-wiki convention the brand study and deck conventions persist into.
+- `../harness/SKILL.md` — the `02-DOCS` Karpathy-wiki convention the brand study and deck conventions persist into.
 - References: `references/storytelling-and-decks.md` (arcs + slide-by-slide skeletons), `references/markdown-decks.md` (Marp + Slidev theming & export), `references/pptx-python.md` (python-pptx recipes), `references/slide-design.md` (visual system + data viz + motion), `references/brand-grounding.md` (checklist + question script).

@@ -26,7 +26,7 @@ Do NOT use when (delegate or decline):
 - Choosing type/color/spacing/layout/motion, or the section visual anatomy → `design`.
 - Implementing the page in React/Next.js (Metadata API, rendering, components) → `nextjs`.
 - A deep technical SEO audit or keyword research program → `seo` (this skill only writes SEO-aware *copy structure*).
-- Capturing or persisting a project's brand/voice profile → that is THIS skill's brand-grounding step, persisted under `02-DOCS` per `risco-project-harness`.
+- Capturing or persisting a project's brand/voice profile → that is THIS skill's brand-grounding step, persisted under `02-DOCS` per `harness`.
 - Long-form articles, blog posts, or social content systems with no landing/web surface → that is a content job, not landing copy; this skill stays on landings, web pages, and the launch/email/channel copy around them.
 
 ## Brand grounding (read this first)
@@ -35,7 +35,7 @@ Do NOT use when (delegate or decline):
 
 Run this gate before writing a single line of copy:
 
-1. **Locate the brand study.** Read the project's root `CLAUDE.md` and look for a `## Brand & voice` section linking into `02-DOCS/wiki/brand/` (the `risco-project-harness` Karpathy-wiki convention: compiled brand articles live under `02-DOCS/wiki/brand/`, raw inputs the user pastes live under `02-DOCS/raw/brand/`). If `CLAUDE.md` is absent, the link is missing, or it points nowhere, treat the study as ABSENT.
+1. **Locate the brand study.** Read the project's root `CLAUDE.md` and look for a `## Brand & voice` section linking into `02-DOCS/wiki/brand/` (the `harness` Karpathy-wiki convention: compiled brand articles live under `02-DOCS/wiki/brand/`, raw inputs the user pastes live under `02-DOCS/raw/brand/`). If `CLAUDE.md` is absent, the link is missing, or it points nowhere, treat the study as ABSENT.
 
 2. **Check completeness** against the checklist in `references/brand-grounding.md`. The study is complete only when every dimension is filled: brand name & one-line positioning; ICP / audience & their pains & desires; value proposition & differentiation; tone & voice WITH do/don't word lists and 3–5 voice samples pasted from the user's real writing; proof/credibility; offers & primary CTA; channels; SEO keywords. **Any empty dimension = INCOMPLETE.**
 
@@ -200,6 +200,6 @@ first on every use and ground all copy in it. Site and visual conventions belong
 
 - `../design/SKILL.md` — the pixels: visual system, layout, section anatomy, motion, design QA.
 - `../nextjs/SKILL.md` — the build: App Router, Metadata API, React 19 rendering.
-- `risco-project-harness` — the `02-DOCS` Karpathy-wiki convention this skill persists the brand study into.
+- `harness` — the `02-DOCS` Karpathy-wiki convention this skill persists the brand study into.
 - `seo` — deep technical SEO and keyword research (this skill enforces SEO-aware copy structure only).
 - References: `references/brand-grounding.md`, `references/copy-frameworks.md`, `references/landing-copy.md`, `references/campaigns-and-channels.md`.

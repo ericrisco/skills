@@ -1,0 +1,11 @@
+{
+  "name": "rsc-core",
+  "version": "0.1.0",
+  "description": "The front door and control plane: init bootstraps a workspace; harness governs the 01-TOOLS operational layer and the 02-DOCS chaos-to-knowledge engine. Skills invoke as /rsc-core:init and /rsc-core:harness.",
+  "author": {
+    "name": "Eric Risco",
+    "email": "ericriscodelatorre@gmail.com"
+  },
+  "license": "MIT",
+  "mcpServers": {}
+}

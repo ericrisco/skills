@@ -1,17 +1,22 @@
 ---
 name: deployment
-description: "Use when containerizing an app, writing a Dockerfile, setting up GitHub Actions CI/CD, or deploying to Coolify — multi-stage builds (FastAPI/uv, Go/distroless, Next.js standalone, Flutter web, Postgres), BuildKit build secrets, image scanning (trivy/hadolint), OIDC to registries (no long-lived secrets), least-privilege GITHUB_TOKEN, zero-downtime/rolling deploys, env/secrets flow GitHub→Coolify, healthchecks, and rollback strategy. Trigger phrases: 'dockerize', 'write a Dockerfile', 'CI pipeline', 'GitHub Actions', 'deploy', 'ship it', 'Coolify', 'docker-compose for local dev'."
+description: "Use when containerizing an app, writing a Dockerfile, setting up GitHub Actions CI/CD, choosing a deploy target, or deploying to Coolify, Vercel, or a Hetzner VPS — multi-stage builds (FastAPI/uv, Go/distroless, Next.js standalone, Flutter web, Postgres), BuildKit build secrets, image scanning (trivy/hadolint), OIDC to registries (no long-lived secrets), least-privilege GITHUB_TOKEN, zero-downtime/rolling deploys, env/secrets flow GitHub→Coolify, healthchecks, rollback, and a hosting decision matrix (Vercel vs Hetzner+Coolify vs a third option). Trigger phrases: 'dockerize', 'write a Dockerfile', 'CI pipeline', 'GitHub Actions', 'deploy', 'ship it', 'where should I host this', 'Coolify', 'Vercel', 'Hetzner', 'VPS', 'docker-compose for local dev'."
 origin: risco
 ---
 
-# Ship it — Docker, GitHub Actions, Coolify
+# Ship it — Docker, GitHub Actions, and a deploy target (Coolify · Vercel · Hetzner)
 
-Take any app in this repo from source → hardened container → green CI/CD → live on
-Coolify, with secrets that never leak into image layers or logs, and a defined rollback
-path.
+Take any app in this repo from source → hardened container → green CI/CD → live on the right
+host, with secrets that never leak into image layers or logs, and a defined rollback path.
+The default self-hosted target is **Coolify** (covered in depth); for the *where to host*
+question, this skill also covers **Vercel** (zero-ops serverless/edge, ideal Next.js) and
+**Hetzner** (cheapest control; run Coolify on it for a self-hosted PaaS), plus a decision
+matrix and an "always 3 options" framework — see `references/hosting-targets.md`.
 
 ```text
-source → Dockerfile (multi-stage) → CI (lint·test·build·scan) → registry (ghcr) → Coolify (rolling) → live + rollback
+source → Dockerfile (multi-stage) → CI (lint·test·build·scan) → registry (ghcr) → target (Coolify·Vercel·Hetzner, rolling) → live + rollback
+                                                                                     ▲
+                                                              choose via references/hosting-targets.md
 ```
 
 ## When to use / When NOT to use
@@ -22,10 +27,11 @@ source → Dockerfile (multi-stage) → CI (lint·test·build·scan) → registr
 - Writing or hardening `.github/workflows/*.yml` (build, test, scan, release, deploy).
 - Wiring a service onto Coolify: build-pack choice, env/secrets, domains, healthcheck, auto-deploy, previews, rollback.
 - Designing the secrets flow GitHub → registry → Coolify, or choosing rolling vs blue-green.
+- **Choosing where to host** (Vercel vs Hetzner+Coolify vs a third option) from real requirements — see `references/hosting-targets.md`.
 
 **When NOT to use:**
 
-- Kubernetes / Helm / ECS / Nomad orchestration → out of scope (this skill targets Docker + GHA + Coolify). Say so and stop.
+- Kubernetes / Helm / ECS / Nomad orchestration → out of scope (this skill targets Docker + GHA, and hosting on Coolify/Vercel/Hetzner-class targets). Say so and stop.
 - Application runtime code, DB schema/migration logic, or business logic → wrong skill (see the per-stack skills below).
 - Cloud IaC (Terraform, Pulumi, CloudFormation) → out of scope; only the GHA↔cloud **OIDC handshake** is covered, not provisioning.
 - Pure local dev with no container ambition → likely overkill; mention the `compose.yaml` option and defer.
@@ -252,6 +258,28 @@ jobs:
 
 → matrix, reusable workflows, OIDC-to-cloud, environments/approvals, releases: `references/github-actions.md`
 
+## Choosing a deploy target (3 options)
+
+Never recommend a single host. **Gather requirements → recommend exactly three targets with
+trade-offs**, so the choice is made with eyes open. The canonical slate:
+
+1. **Hetzner VPS + Coolify** — cheapest control, EU residency, sustained/always-on/stateful;
+   you own ops. (The combo `references/coolify.md` runs on; see below.)
+2. **Vercel** — zero-ops serverless/edge, ideal Next.js, scales to zero for spiky traffic;
+   metered cost climbs at sustained scale, US-default region.
+3. **A third that fits the case's sharpest constraint** — Railway (tiny/simple, predictable
+   bill), Fly.io (true global edge, 30+ regions), or a hyperscaler (enterprise compliance).
+
+Requirements to gather first: expected total/concurrent users · traffic shape (steady vs
+spiky) · budget ceiling · data region/residency & compliance · team ops comfort · scaling
+needs (scale-to-zero, global latency) · stateful needs (own DB/queue/websockets).
+
+**Quick steer:** Next.js + spiky traffic + ops-averse → Vercel. Cost-sensitive / EU-resident /
+sustained / own stateful services → Hetzner+Coolify. The Dockerfile this skill produces is the
+escape hatch — start on Vercel, move to Hetzner+Coolify when the bill grows, same artifact.
+
+→ deep coverage (limits, regions, pricing, decision matrix, worked examples): `references/hosting-targets.md`
+
 ## Coolify — deploy target
 
 - Pick the **Dockerfile** build pack when a Dockerfile exists — same artifact CI builds, full control, prod/CI parity.
@@ -378,7 +406,7 @@ async def readyz() -> dict[str, str]:
 ## Project grounding (02-DOCS + CLAUDE.md)
 
 When this skill runs in a project with a `02-DOCS/` layer (the
-[`risco-project-harness`](../risco-project-harness/SKILL.md) Karpathy wiki), record this
+[`harness`](../harness/SKILL.md) Karpathy wiki), record this
 project's deploy decisions there and index them from the root `CLAUDE.md`, so the next
 agent inherits the conventions instead of re-deriving them.
 
@@ -390,15 +418,15 @@ agent inherits the conventions instead of re-deriving them.
 3. **Read it first on every use** and stay consistent; when a convention changes, update the
    article (bump its `Updated` date) in the same change.
 
-No `02-DOCS/` layer? Skip silently (optionally suggest `risco-project-harness`). Unlike the
+No `02-DOCS/` layer? Skip silently (optionally suggest `harness`). Unlike the
 brand study, technical conventions are *recorded, not gated* — never block the task on this.
 
 ## See Also
 
-- `../risco-project-harness/SKILL.md` — 01-TOOLS provider creds (Stripe, Postgres, OAuth…) that become Coolify runtime env.
+- `../harness/SKILL.md` — 01-TOOLS provider creds (Stripe, Postgres, OAuth…) that become Coolify runtime env.
 - `../secure-coding/SKILL.md` — input validation, authn/z, and secret-handling that this skill assumes the app already does.
 - `../fastapi/SKILL.md`, `../go/SKILL.md`, `../flutter/SKILL.md` — runtime code for the stacks you containerize here (this skill stops at the container boundary; `nextjs` and `postgresdb` skills if present cover those runtimes).
-- `references/dockerfiles-by-stack.md`, `references/github-actions.md`, `references/coolify.md`, and `scripts/verify.sh`.
+- `references/dockerfiles-by-stack.md`, `references/github-actions.md`, `references/coolify.md`, `references/hosting-targets.md`, and `scripts/verify.sh`.
 
 FastAPI / Next.js / Go application-code skills (if present in this skills dir) own runtime code — this skill stops at the container boundary.
 
@@ -407,4 +435,5 @@ FastAPI / Next.js / Go application-code skills (if present in this skills dir) o
 - `references/dockerfiles-by-stack.md` — complete runnable Dockerfile + .dockerignore per stack.
 - `references/github-actions.md` — least-privilege workflows, OIDC, matrix, releases, deploy.
 - `references/coolify.md` — build packs, secrets, volumes, SSL, previews, rolling, blue-green, rollback.
+- `references/hosting-targets.md` — Vercel, Hetzner (+Coolify), Fly.io/Railway/managed-cloud; decision matrix and the "always 3 options" framework with worked examples.
 - `scripts/verify.sh` — the hadolint+actionlint+trivy+build-smoke gate (runs locally and in CI).

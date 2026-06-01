@@ -1,0 +1,66 @@
+{
+  "name": "rsc-skills",
+  "owner": {
+    "name": "Eric Risco",
+    "email": "ericriscodelatorre@gmail.com"
+  },
+  "metadata": {
+    "description": "Eric Risco's agent-skills catalog, packaged as six installable Claude Code plugins (core, backend, frontend, content, agents, ops). Each bundle namespaces its skills as /<plugin>:<skill>."
+  },
+  "plugins": [
+    {
+      "name": "rsc-core",
+      "source": "./plugins/rsc-core",
+      "description": "The front door and control plane: init bootstraps a workspace and recommends bundles; harness governs the 01-TOOLS operational layer and the 02-DOCS Karpathy chaos->knowledge engine. Invoked as /rsc-core:init and /rsc-core:harness.",
+      "version": "0.1.0",
+      "license": "MIT",
+      "category": "workflow",
+      "keywords": ["bootstrap", "harness", "workspace", "wiki", "01-tools", "02-docs", "init"]
+    },
+    {
+      "name": "rsc-backend",
+      "source": "./plugins/rsc-backend",
+      "description": "Backend stack: FastAPI / async Python services, idiomatic Go HTTP services, and engine-level PostgreSQL 16. Invoked as /rsc-backend:fastapi, /rsc-backend:go, /rsc-backend:postgresdb.",
+      "version": "0.1.0",
+      "license": "MIT",
+      "category": "development",
+      "keywords": ["fastapi", "python", "go", "postgresql", "backend", "api", "database"]
+    },
+    {
+      "name": "rsc-frontend",
+      "source": "./plugins/rsc-frontend",
+      "description": "Frontend and product surface: Next.js 15 App Router, Flutter / Dart 3 apps, and research-first product design with high-converting landing pages. Invoked as /rsc-frontend:nextjs, /rsc-frontend:flutter, /rsc-frontend:design.",
+      "version": "0.1.0",
+      "license": "MIT",
+      "category": "development",
+      "keywords": ["nextjs", "react", "flutter", "dart", "design", "ux", "frontend", "landing-page"]
+    },
+    {
+      "name": "rsc-content",
+      "source": "./plugins/rsc-content",
+      "description": "Words and narrative: conversion copywriting, brand-grounded PPTX/PDF decks, and course storytelling that makes concepts land. Invoked as /rsc-content:marketing, /rsc-content:presentations, /rsc-content:course-storytelling.",
+      "version": "0.1.0",
+      "license": "MIT",
+      "category": "content",
+      "keywords": ["marketing", "copywriting", "presentations", "pptx", "storytelling", "course", "content"]
+    },
+    {
+      "name": "rsc-agents",
+      "source": "./plugins/rsc-agents",
+      "description": "Build production LLM agents that are model-agnostic by construction: provider adapters, disciplined agent loops, schema-validated tools, RAG, evals, OTel tracing, and MCP servers. Invoked as /rsc-agents:building-agents.",
+      "version": "0.1.0",
+      "license": "MIT",
+      "category": "ai",
+      "keywords": ["agents", "llm", "mcp", "rag", "evals", "observability", "anthropic", "openai"]
+    },
+    {
+      "name": "rsc-ops",
+      "source": "./plugins/rsc-ops",
+      "description": "Ship safely: transversal secure coding (STRIDE + OWASP Top 10 mapped to FastAPI/Go/Next.js) and source-to-live deployment (multi-stage Docker, GitHub Actions, Coolify). Invoked as /rsc-ops:secure-coding, /rsc-ops:deployment.",
+      "version": "0.1.0",
+      "license": "MIT",
+      "category": "operations",
+      "keywords": ["security", "owasp", "stride", "deployment", "docker", "ci-cd", "coolify", "github-actions"]
+    }
+  ]
+}

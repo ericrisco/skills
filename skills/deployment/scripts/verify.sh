@@ -11,7 +11,13 @@
 #   4. trivy config (Dockerfile/compose/IaC misconfig)
 #   5. docker build smoke  (skippable: SKIP_DOCKER_BUILD=1)
 #   6. trivy image  (only if step 5 built an image)
-#   7. summary; exit non-zero only on a real failure
+#   7. hosting config lint  (vercel.json JSON validity — detect-or-skip)
+#   8. summary; exit non-zero only on a real failure
+#
+# Hosting targets (Vercel / Hetzner+Coolify / …) are documented in
+# references/hosting-targets.md. Most are config-light: there is nothing to lint for a
+# Hetzner box or a Coolify resource (state lives in the platform, not the repo). The one
+# repo-local artifact worth a sanity check is vercel.json, and only if it exists.
 #
 # Env: SKIP_DOCKER_BUILD=1 to skip the build smoke; NO_COLOR=1 to disable color.
 #
@@ -101,7 +107,28 @@ if [[ -n "$BUILT_IMAGE" ]]; then
   else warn "trivy not installed — skipping image scan"; fi
 fi
 
-# 7. summary
+# 7. hosting config lint — vercel.json JSON validity (detect-or-skip).
+# Only runs if a vercel.json exists. Prefer python3/node: they set a reliable non-zero
+# exit on malformed JSON. jq is the last resort and MUST use `-e` — some jq builds (e.g.
+# Apple's jq-1.6) print a parse error to stderr but still exit 0 without it. If none of
+# the three is installed, skip — never fail on a missing linter.
+VERCEL_JSON=$(find . -maxdepth 2 -name 'vercel.json' -not -path '*/node_modules/*' 2>/dev/null | head -n1 || true)
+if [[ -n "$VERCEL_JSON" ]]; then
+  if have python3; then
+    if python3 -c 'import json,sys; json.load(open(sys.argv[1]))' "$VERCEL_JSON" >/dev/null 2>&1; then
+      ok "vercel.json valid JSON ($VERCEL_JSON)"
+    else fail "vercel.json is not valid JSON ($VERCEL_JSON)"; FAILED=1; fi
+  elif have node; then
+    if node -e 'JSON.parse(require("fs").readFileSync(process.argv[1],"utf8"))' "$VERCEL_JSON" >/dev/null 2>&1; then
+      ok "vercel.json valid JSON ($VERCEL_JSON)"
+    else fail "vercel.json is not valid JSON ($VERCEL_JSON)"; FAILED=1; fi
+  elif have jq; then
+    if jq -e . "$VERCEL_JSON" >/dev/null 2>&1; then ok "vercel.json valid JSON ($VERCEL_JSON)"
+    else fail "vercel.json is not valid JSON ($VERCEL_JSON)"; FAILED=1; fi
+  else warn "no python3/node/jq — skipping vercel.json validation"; fi
+fi
+
+# 8. summary
 if [[ $FAILED -eq 0 ]]; then ok "all checks passed (skips are not failures)"
 else fail "one or more checks failed"; fi
 exit "$FAILED"

@@ -6,7 +6,7 @@ This skill **co-owns the brand study with the `marketing` skill**. Marketing own
 
 ## Where the brand study lives
 
-Following the `risco-project-harness` Karpathy-wiki convention (compiled articles in `wiki/`, immutable raw inputs in `raw/`):
+Following the `harness` Karpathy-wiki convention (compiled articles in `wiki/`, immutable raw inputs in `raw/`):
 
 ```text
 02-DOCS/
@@ -184,4 +184,4 @@ Also update `02-DOCS/wiki/index.md` (add the new brand articles) and append a on
 - `research-method.md` — uses the reference sites (V6) as archetypes for the research loop.
 - `trends-2026.md` — researched defaults to offer when a visual dimension has no user direction.
 - `marketing/references/brand-grounding.md` — the co-owned words dimensions of the same study.
-- `risco-project-harness` — the canonical `02-DOCS` wiki protocol and article templates.
+- `harness` — the canonical `02-DOCS` wiki protocol and article templates.

@@ -345,7 +345,7 @@ never connects without `DATABASE_URL`.
 ## Project grounding (02-DOCS + CLAUDE.md)
 
 When this skill runs in a project with a `02-DOCS/` layer (the
-[`risco-project-harness`](../risco-project-harness/SKILL.md) Karpathy wiki), record this
+[`harness`](../harness/SKILL.md) Karpathy wiki), record this
 project's database decisions there and index them from the root `CLAUDE.md`, so the next
 agent inherits the conventions instead of re-deriving them.
 
@@ -357,7 +357,7 @@ agent inherits the conventions instead of re-deriving them.
 3. **Read it first on every use** and stay consistent; when a convention changes, update the
    article (bump its `Updated` date) in the same change.
 
-No `02-DOCS/` layer? Skip silently (optionally suggest `risco-project-harness`). Unlike the
+No `02-DOCS/` layer? Skip silently (optionally suggest `harness`). Unlike the
 brand study, technical conventions are *recorded, not gated* — never block the task on this.
 
 ## See Also
@@ -366,4 +366,4 @@ brand study, technical conventions are *recorded, not gated* — never block the
 - [references/query-optimization.md](references/query-optimization.md) — EXPLAIN, joins, concurrency, JSONB/FTS/pgvector.
 - [references/migrations.md](references/migrations.md) — zero-downtime DDL, lock-impact table, per-ORM.
 - [references/operations-and-security.md](references/operations-and-security.md) — roles, RLS, pooling, vacuum, partitioning, backups.
-- Sibling skills: `prisma-patterns` (Prisma ORM surface traps), `database-migrations` (multi-ORM migration workflow), `risco-project-harness` (scaffolds the `01-TOOLS/POSTGRES` operational tool). Stack siblings: `fastapi`, `nextjs`, `go`, `flutter`, `secure-coding`, `deployment`.
+- Sibling skills: `prisma-patterns` (Prisma ORM surface traps), `database-migrations` (multi-ORM migration workflow), `harness` (scaffolds the `01-TOOLS/POSTGRES` operational tool). Stack siblings: `fastapi`, `nextjs`, `go`, `flutter`, `secure-coding`, `deployment`.

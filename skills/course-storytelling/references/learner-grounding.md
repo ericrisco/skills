@@ -4,7 +4,7 @@ The learner + audience profile is the source of truth every reframing is grounde
 
 ## Where the profile lives
 
-Following the `risco-project-harness` Karpathy-wiki convention:
+Following the `harness` Karpathy-wiki convention:
 
 ```text
 02-DOCS/
@@ -180,4 +180,4 @@ If a `## Knowledge map` section already exists (e.g. from `marketing`/`design`),
 - `../SKILL.md` — the runtime grounding mechanism (hard STOP) that uses this checklist.
 - `brunson-frameworks.md` — consumes the typed false beliefs and the transformation.
 - `course-analysis.md` — uses the "do after" + transformation to sequence the spine.
-- `risco-project-harness` — the canonical `02-DOCS` wiki protocol and article templates.
+- `harness` — the canonical `02-DOCS` wiki protocol and article templates.

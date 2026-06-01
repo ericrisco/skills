@@ -4,7 +4,7 @@ The brand study is the source of truth every piece of marketing copy is grounded
 
 ## Where the brand study lives
 
-Following the `risco-project-harness` Karpathy-wiki convention:
+Following the `harness` Karpathy-wiki convention:
 
 ```text
 02-DOCS/
@@ -194,4 +194,4 @@ if any dimension is missing.
 
 - `../SKILL.md` — the runtime grounding mechanism (hard STOP) that uses this checklist.
 - `copy-frameworks.md` — turns the value proposition and voice into headlines and copy.
-- `risco-project-harness` — the canonical `02-DOCS` wiki protocol and article templates.
+- `harness` — the canonical `02-DOCS` wiki protocol and article templates.
