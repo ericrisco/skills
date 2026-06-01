@@ -1,0 +1,514 @@
+---
+name: fastapi
+description: >
+  Use when building, reviewing, testing, securing or deploying a FastAPI / async Python
+  service. Triggers: creating endpoints/routers, Pydantic v2 models (Create/Update/Response),
+  dependency injection, async SQLAlchemy 2.0 + Alembic, OAuth2/JWT auth + RBAC, pytest +
+  httpx ASGITransport tests, CORS / rate limiting / secret handling, uvicorn/gunicorn +
+  structured logging + healthchecks + graceful shutdown, pyproject + ruff + mypy strict + uv.
+  Any .py file importing fastapi, pydantic, sqlalchemy, starlette, or a pyproject.toml
+  declaring those.
+origin: risco
+---
+
+# FastAPI & modern Python services
+
+The single authoritative skill for building, reviewing, testing, securing and shipping an
+async FastAPI service on Python 3.12+. The mental model: **the app is a thin async HTTP
+layer over typed dependencies, a service/repository core, and explicit DB sessions. Routes
+validate and delegate; they never own business logic, raw SQL, or secrets.**
+
+Pinned stack: Python 3.12+, FastAPI 0.115+, Starlette 0.41+, Pydantic v2 (2.9+) +
+pydantic-settings 2.x, SQLAlchemy 2.0 async, Alembic 1.13+, asyncpg 0.30 / psycopg 3,
+httpx 0.28+, pytest 8 + pytest-asyncio 0.24+ (`asyncio_mode=auto`), ruff 0.7+, mypy 1.13+
+strict, uv 0.5+, uvicorn 0.32+ / gunicorn 23+, PyJWT 2.9, argon2-cffi 23+, pip-audit 2.7+,
+PostgreSQL 16.
+
+## When to use
+
+- Writing or reviewing any FastAPI route, router, dependency, schema, or app factory.
+- Designing async DB access (SQLAlchemy 2.0), migrations (Alembic), or eager-loading.
+- Adding auth (OAuth2 password flow + JWT), RBAC, password hashing.
+- Writing pytest suites for an async API (ASGITransport, `dependency_overrides`, transactional DB).
+- Hardening (CORS, rate limit, secrets, log redaction, dependency audit) or productionizing.
+- Setting up `pyproject.toml`, ruff + mypy strict, uv/pip-tools dependency management.
+
+## When NOT to use
+
+- Django / Flask / DRF apps → not this skill.
+- Sync WSGI services, data-science notebooks, CLI-only scripts with no HTTP surface.
+- Pure REST contract questions (status codes, URL naming, versioning, cursor vs offset) → **See Also `api-design`**.
+- Frontend/Next.js, Go, Flutter work → their own skills.
+- Generic secure-coding rules not specific to Python/FastAPI → **See Also `secure-coding`**.
+- Container/Compose/CI deploy mechanics → **See Also `deployment`** (this skill keeps only a Docker *note*).
+
+## Decision rules
+
+1. `async def` for any I/O route; use async drivers (asyncpg, httpx) — never `requests`, never sync `psycopg2`, never blocking calls in the event loop (offload with `await anyio.to_thread.run_sync` / `run_in_threadpool`).
+2. Three Pydantic models per resource: `XCreate` / `XUpdate` / `XResponse` (`from_attributes=True`). Response models never leak hashes/tokens/internal flags.
+3. All request-scoped resources via `Depends` (`Annotated[T, Depends(...)]`), never constructed inline in handlers — so tests can override them.
+4. One DB session per request via `get_db` with commit-on-success / rollback-on-exception.
+5. Every error leaves as the same envelope `{"error":{"code","message","details?"}}` via centralized handlers. Never leak stack traces / SQL.
+6. Settings come from `pydantic-settings` (`BaseSettings`), never `os.getenv` scattered in code.
+7. Validate JWT `exp`, `iss`, `aud`, and pin `algorithms=["RS256"|"HS256"]` explicitly.
+8. Tests use `ASGITransport` + `dependency_overrides` against a transactional DB; CI gates on `ruff`, `mypy --strict`, `pytest --cov`, `pip-audit`.
+
+## Project layout
+
+```text
+app/
+├── main.py            # create_app() factory + lifespan; app = create_app()
+├── core/
+│   ├── config.py      # Settings(BaseSettings) + get_settings()
+│   ├── security.py    # hashing, JWT encode/decode
+│   └── logging.py     # structlog / JSON logging setup
+├── api/
+│   ├── deps.py        # get_db, get_current_user, Pagination, require_roles
+│   └── routers/
+│       ├── users.py
+│       └── health.py
+├── schemas/           # Pydantic v2 models (Create/Update/Response)
+│   └── user.py
+├── models/            # SQLAlchemy 2.0 DeclarativeBase models
+│   └── user.py
+├── db/
+│   ├── base.py        # engine, async_sessionmaker, Base
+│   └── repository.py  # generic async Repository[ModelT]
+├── services/          # business logic (no FastAPI imports)
+│   └── user_service.py
+├── exceptions.py      # AppError hierarchy + register_exception_handlers
+tests/                 # pytest-asyncio + ASGITransport
+alembic/               # async env.py + versions/
+pyproject.toml         # ruff + mypy strict + pytest config
+```
+
+Routers stay thin, services hold the logic, the repository/CRUD layer owns persistence.
+
+## Application factory + lifespan
+
+```python
+from contextlib import asynccontextmanager
+
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+
+from app.api.routers import health, users
+from app.core.config import get_settings
+from app.db.base import engine
+from app.exceptions import register_exception_handlers
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup: connections/caches are created here, never at import time.
+    yield
+    # Shutdown: release pooled connections so workers exit cleanly.
+    await engine.dispose()
+
+
+def create_app() -> FastAPI:
+    settings = get_settings()
+    app = FastAPI(title=settings.api_title, version=settings.api_version, lifespan=lifespan)
+
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=settings.cors_origins,            # explicit list, never ["*"] with creds
+        allow_credentials=bool(settings.cors_origins),
+        allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE"],
+        allow_headers=["Authorization", "Content-Type"],
+    )
+
+    register_exception_handlers(app)
+    app.include_router(health.router, prefix="/health", tags=["health"])
+    app.include_router(users.router, prefix="/api/v1/users", tags=["users"])
+    return app
+
+
+app = create_app()
+```
+
+**Bad** = `allow_origins=["*"]` with `allow_credentials=True` — browsers reject it and
+Starlette disallows it for credentialed requests. `→ references/production.md` for proxy
+headers / logging wiring at startup.
+
+## Configuration (pydantic-settings)
+
+```python
+from functools import lru_cache
+
+from pydantic import PostgresDsn, SecretStr
+from pydantic_settings import BaseSettings, SettingsConfigDict
+
+
+class Settings(BaseSettings):
+    model_config = SettingsConfigDict(env_file=".env", env_prefix="APP_", extra="ignore")
+
+    api_title: str = "Service API"
+    api_version: str = "1.0.0"
+    environment: str = "development"
+    database_url: PostgresDsn
+    jwt_secret: SecretStr
+    jwt_algorithm: str = "HS256"
+    jwt_issuer: str = "service-api"
+    jwt_audience: str = "service-clients"
+    access_token_ttl_seconds: int = 900
+    cors_origins: list[str] = []
+
+
+@lru_cache
+def get_settings() -> Settings:
+    return Settings()  # type: ignore[call-arg]  # values come from env/.env
+```
+
+**Bad** = `DB_URL = os.environ["DB_URL"]` at import time (crashes on import, untyped,
+unmockable). **Good** = inject `get_settings` as a dependency so tests override it.
+
+## Pydantic v2 models (Create/Update/Response split)
+
+```python
+from datetime import datetime
+from typing import Annotated
+from uuid import UUID
+
+from pydantic import BaseModel, ConfigDict, EmailStr, Field, computed_field
+
+
+class UserBase(BaseModel):
+    email: EmailStr
+    full_name: Annotated[str, Field(min_length=1, max_length=100)]
+
+
+class UserCreate(UserBase):
+    password: Annotated[str, Field(min_length=12, max_length=128)]
+
+
+class UserUpdate(BaseModel):
+    email: EmailStr | None = None
+    full_name: Annotated[str | None, Field(min_length=1, max_length=100)] = None
+
+
+class UserResponse(UserBase):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: UUID
+    created_at: datetime
+
+    @computed_field  # type: ignore[prop-decorator]
+    @property
+    def display(self) -> str:
+        return f"{self.full_name} <{self.email}>"
+```
+
+v2 migration cheats: use `.model_dump()` not `.dict()`; `.model_validate(obj)` not
+`.from_orm()`; `model_config = ConfigDict(...)` not class `Config`;
+`field_validator`/`model_validator` not `@validator`/`@root_validator`.
+
+**Bad** = a response model with `hashed_password: str` (leaks the hash). **Good** = the
+`UserResponse` above (no secret fields). `→ references/security.md`.
+
+## Dependency injection
+
+```python
+from collections.abc import AsyncIterator
+from dataclasses import dataclass
+from typing import Annotated
+
+from fastapi import Depends, Query
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.db.base import async_session_factory
+
+
+async def get_db() -> AsyncIterator[AsyncSession]:
+    async with async_session_factory() as session:
+        try:
+            yield session
+            await session.commit()
+        except Exception:
+            await session.rollback()
+            raise
+
+
+DbSession = Annotated[AsyncSession, Depends(get_db)]
+
+
+@dataclass(frozen=True)
+class Pagination:
+    limit: int
+    offset: int
+
+
+def get_pagination(
+    limit: Annotated[int, Query(ge=1, le=100)] = 50,
+    offset: Annotated[int, Query(ge=0)] = 0,
+) -> Pagination:
+    return Pagination(limit=limit, offset=offset)
+
+
+PageParams = Annotated[Pagination, Depends(get_pagination)]
+```
+
+`→ references/database.md` for `async_session_factory` wiring; `→ references/security.md`
+for `get_current_user` and `require_roles`.
+
+## Routers & endpoints
+
+```python
+from fastapi import APIRouter, Response, status
+
+from app.api.deps import CurrentUser, DbSession, PageParams
+from app.schemas.user import UserCreate, UserResponse
+from app.services import user_service
+
+router = APIRouter()
+
+
+@router.get("", response_model=list[UserResponse])
+async def list_users(db: DbSession, page: PageParams) -> list[UserResponse]:
+    return await user_service.list_users(db, limit=page.limit, offset=page.offset)
+
+
+@router.post("", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
+async def create_user(payload: UserCreate, db: DbSession, response: Response) -> UserResponse:
+    user = await user_service.create_user(db, payload)
+    response.headers["Location"] = f"/api/v1/users/{user.id}"
+    return user
+```
+
+**Bad** = hashing the password + building `select()` + business rules inline in the route.
+**Good** = `await user_service.create_user(db, payload)` (route stays thin). `CurrentUser`
+is defined in `references/security.md`.
+
+## Error handling & envelope
+
+```python
+from fastapi import FastAPI, Request, status
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse
+
+from app.core.logging import logger
+
+
+class AppError(Exception):
+    def __init__(self, message: str, code: str, status_code: int = 500,
+                 details: list[dict] | None = None) -> None:
+        super().__init__(message)
+        self.message = message
+        self.code = code
+        self.status_code = status_code
+        self.details = details or []
+
+
+class NotFoundError(AppError):
+    def __init__(self, resource: str, ident: str) -> None:
+        super().__init__(f"{resource} not found: {ident}", "not_found", 404)
+
+
+class ConflictError(AppError):
+    def __init__(self, message: str) -> None:
+        super().__init__(message, "conflict", status.HTTP_409_CONFLICT)
+
+
+class Unauthorized(AppError):
+    def __init__(self, message: str = "Authentication required") -> None:
+        super().__init__(message, "unauthorized", status.HTTP_401_UNAUTHORIZED)
+
+
+class Forbidden(AppError):
+    def __init__(self, message: str = "Insufficient permissions") -> None:
+        super().__init__(message, "forbidden", status.HTTP_403_FORBIDDEN)
+
+
+def register_exception_handlers(app: FastAPI) -> None:
+    @app.exception_handler(AppError)
+    async def _app_error(request: Request, exc: AppError) -> JSONResponse:
+        return JSONResponse(
+            status_code=exc.status_code,
+            content={"error": {"code": exc.code, "message": exc.message, "details": exc.details}},
+        )
+
+    @app.exception_handler(RequestValidationError)
+    async def _validation(request: Request, exc: RequestValidationError) -> JSONResponse:
+        details = [{"field": ".".join(map(str, e["loc"][1:])), "message": e["msg"], "code": e["type"]}
+                   for e in exc.errors()]
+        return JSONResponse(
+            status_code=422,
+            content={"error": {"code": "validation_error", "message": "Request validation failed",
+                               "details": details}},
+        )
+
+    @app.exception_handler(Exception)
+    async def _unhandled(request: Request, exc: Exception) -> JSONResponse:
+        logger.exception("unhandled_error", path=request.url.path)
+        return JSONResponse(
+            status_code=500,
+            content={"error": {"code": "internal_error", "message": "An unexpected error occurred"}},
+        )
+```
+
+`→ See Also error-handling` (ECC) for cross-language typed-error theory.
+
+## Async SQLAlchemy 2.0 (essentials)
+
+```python
+from datetime import datetime
+from uuid import UUID, uuid4
+
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
+
+from app.core.config import get_settings
+
+engine = create_async_engine(str(get_settings().database_url), pool_pre_ping=True)
+async_session_factory = async_sessionmaker(engine, expire_on_commit=False)
+
+
+class Base(DeclarativeBase):
+    pass
+
+
+class User(Base):
+    __tablename__ = "users"
+
+    id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
+    email: Mapped[str] = mapped_column(unique=True, index=True)
+    full_name: Mapped[str]
+    hashed_password: Mapped[str]
+    created_at: Mapped[datetime] = mapped_column(server_default="now()")
+
+
+async def list_users(db: AsyncSession, limit: int, offset: int) -> list[User]:
+    result = await db.execute(
+        select(User).order_by(User.created_at.desc()).limit(limit).offset(offset)
+    )
+    return list(result.scalars().all())
+```
+
+`→ references/database.md` for relationships, N+1 / eager loading, repository, Alembic, pooling.
+
+## Background tasks vs real queues
+
+```python
+from fastapi import APIRouter, BackgroundTasks
+
+router = APIRouter()
+
+
+# Good: in-request, non-durable side effect (best-effort email).
+@router.post("/signup")
+async def signup(background: BackgroundTasks) -> dict[str, str]:
+    background.add_task(send_welcome_email, "user@example.com")
+    return {"status": "accepted"}
+```
+
+Anything needing **retries, durability, or cross-process execution** (payment webhooks,
+large jobs) goes to a real broker (Celery / Arq / Dramatiq), **never** `BackgroundTasks` —
+it runs in-process and dies with the worker, with no retry or visibility.
+
+## Testing (embedded summary)
+
+```python
+import pytest
+from httpx import ASGITransport, AsyncClient
+
+from app.api.deps import get_db
+from app.main import create_app
+
+
+@pytest.fixture
+async def client(db_session):  # db_session: transactional fixture, see references/testing.md
+    app = create_app()
+    app.dependency_overrides[get_db] = lambda: db_session
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as c:
+        yield c
+    app.dependency_overrides.clear()
+
+
+async def test_create_user(client: AsyncClient) -> None:
+    resp = await client.post("/api/v1/users", json={
+        "email": "a@example.com", "full_name": "Alice", "password": "correct-horse-battery",
+    })
+    assert resp.status_code == 201
+    assert "hashed_password" not in resp.json()
+```
+
+Use `pytest-asyncio` with `asyncio_mode = "auto"` (no `@pytest.mark.asyncio` needed). TDD:
+write the failing assertion first (red), then the minimal handler (green), then refactor.
+`→ references/testing.md` (transactional `begin_nested` fixture, auth overrides, respx,
+coverage gate).
+
+## Security (embedded summary)
+
+- Hash with **argon2-cffi** (`PasswordHasher`); never MD5/SHA/plain; rehash-on-login when params change.
+- Validate JWT `exp`/`iss`/`aud` and **pin `algorithms=[...]`**; reject `alg=none`.
+- Env-specific CORS origins; never `["*"]` with credentials.
+- Rate-limit auth + write endpoints via a **shared store** (Redis/gateway), not per-process counters.
+- Bound params / SQLAlchemy expressions only — never f-string SQL.
+- `SecretStr` for secrets; redact `Authorization`, cookies, tokens, passwords, PII from logs.
+- Run `pip-audit` in CI; pin + hash lockfiles (`uv pip compile --generate-hashes`).
+
+`→ references/security.md`; **See Also `secure-coding`**.
+
+## Production (embedded summary)
+
+```bash
+# Worker count rule of thumb: (2 * CPU cores) + 1
+gunicorn app.main:app \
+  --worker-class uvicorn.workers.UvicornWorker \
+  --workers 5 --timeout 30 --graceful-timeout 30 \
+  --bind 0.0.0.0:8000 --forwarded-allow-ips '*'
+```
+
+- `/health` = liveness (no deps); `/health/ready` = readiness (pings DB/cache).
+- Graceful shutdown via lifespan (`await engine.dispose()`); drain background work; idempotent.
+- Structured JSON logging + request-id middleware; correlate by env.
+- Pagination + caching (`ETag`/`Cache-Control`, Redis cache-aside) at scale.
+- `ORJSONResponse` default; never `--reload` in prod.
+
+`→ references/production.md`; **See Also `deployment`** (Dockerfile/CI).
+
+## Anti-patterns / rationalizations → STOP
+
+| Rationalization | Reality → STOP |
+|---|---|
+| "I'll just call `requests` in this async route, it's one call" | Blocks the event loop → use `httpx.AsyncClient`. |
+| "`.dict()` still works" | Pydantic v2: use `.model_dump()`; `.dict()`/`from_orm` are deprecated. |
+| "Return the ORM object directly, FastAPI will handle it" | Leaks columns + lazy-loads in serializer → declare `response_model`. |
+| "`allow_origins=['*']` + credentials is fine for now" | Browser rejects it; Starlette blocks it. Pin origins. |
+| "I'll decode the JWT without checking `exp`/`aud`" | Forged/replayed tokens. Validate exp/iss/aud + pin alg. |
+| "Build the WHERE with an f-string, it's internal" | SQLi. Bound params / SQLAlchemy expressions only. |
+| "One global session for the whole app is simpler" | Cross-request data bleed + concurrency bugs. One session per request. |
+| "Catch `Exception` and return the message to the client" | Leaks internals. Log it, return generic 500. |
+| "`BackgroundTasks` is good enough for the payment webhook retry" | No durability/retry. Use a real broker. |
+| "mypy strict is too noisy, I'll skip it" | Strict catches the bugs FastAPI's runtime won't. Keep it. |
+| "Commit inside the handler so I control it" | Let `get_db` own commit/rollback; handlers stay thin. |
+| "Default-mutable arg / module-level engine at import is fine" | Mutable defaults bite; engine must live in lifespan. |
+
+## Quick reference
+
+| Task | Idiom |
+|---|---|
+| Async route doing I/O | `async def` + `httpx.AsyncClient` / asyncpg |
+| Request DB session | `db: Annotated[AsyncSession, Depends(get_db)]` |
+| Run a query | `await db.execute(select(Model).where(...))` |
+| Get rows | `result.scalars().all()` / `.scalar_one_or_none()` |
+| Get by PK | `await db.get(Model, pk)` |
+| Eager-load collection | `selectinload(Model.items)` |
+| Eager-load many-to-one | `joinedload(Model.parent)` |
+| Settings | `Annotated[Settings, Depends(get_settings)]` |
+| Serialize ORM → schema | `model_config = ConfigDict(from_attributes=True)` |
+| Created response | `status_code=201` + `Location` header |
+| Test client | `AsyncClient(transport=ASGITransport(app=app))` |
+| Override a dependency | `app.dependency_overrides[dep] = fake` |
+| Hash password | `argon2.PasswordHasher().hash(pw)` |
+| Verify JWT | `jwt.decode(t, key, algorithms=[...], audience=..., issuer=...)` |
+
+## See Also
+
+- `api-design` — REST contract (status codes, URL naming, pagination semantics, versioning).
+- `secure-coding` — language-agnostic injection/secret/authz hardening.
+- `deployment` — Dockerfile, Compose, CI/CD, container runtime.
+- `error-handling` — cross-language typed-error theory.
+- References: [`references/testing.md`](references/testing.md), [`references/database.md`](references/database.md), [`references/security.md`](references/security.md), [`references/production.md`](references/production.md).
+- Verify gate: [`scripts/verify.sh`](scripts/verify.sh).

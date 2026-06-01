@@ -1,0 +1,450 @@
+---
+name: nextjs
+description: "Use when building, reviewing, testing, securing, or optimizing a Next.js App Router app (Next.js 15/16, React Server Components, \"use client\"/\"use server\", server actions, route handlers, layouts, streaming/Suspense, the App Router caching model, TypeScript, Auth.js, Vitest/Playwright, CSP/security headers). Triggers on `app/` directory work, `next.config.ts`, `proxy.ts`/`middleware.ts`, server actions, route handlers, `use cache`, `useActionState`, RSC boundary questions, hydration errors, and Next.js perf/Core Web Vitals."
+origin: risco
+---
+
+# Next.js App Router — RSC, Server Actions, React 19, TypeScript
+
+> Build, review, test, secure, and optimize Next.js App Router apps with correct handling of
+> both the Next.js 15 (uncached-by-default) and Next.js 16 (`use cache`) caching models.
+
+## When to use / When NOT to use
+
+**Use when:**
+
+- Editing or creating files under `app/` (pages, layouts, `route.ts`, server actions).
+- Deciding Server vs Client Component, or fixing an RSC boundary / hydration mismatch.
+- Writing server actions or route handlers; wiring `useActionState` + zod forms.
+- Configuring caching/revalidation (either model), auth, middleware/`proxy.ts`, or CSP.
+- Diagnosing waterfalls, bundle bloat, or Core Web Vitals regressions.
+- Writing Vitest/Playwright tests for Next.js code.
+
+**Do NOT use when (redirect target each):**
+
+- Pages Router (`pages/`) work → note the difference, defer to the Next.js Pages docs.
+- Pure React SPA (Vite/CRA) or React Native / Expo → use a generic React skill; out of scope here.
+- Non-Next backend (FastAPI/Go) → see `../fastapi/SKILL.md`, `../go/SKILL.md`.
+- Generic React-shape questions with no Next/RSC dimension → keep brief, point to `references/react.md`.
+
+## First: detect the project's version & caching model
+
+**Run this before prescribing or reviewing any caching, middleware, or React-Compiler behavior.
+Never mix v15 and v16 advice.**
+
+1. Read `package.json` → the `next` version.
+2. Read `next.config.{ts,js,mjs}` for `cacheComponents`, `ppr`, `reactCompiler`, `experimental`.
+3. `proxy.ts` at the root ⇒ v16; `middleware.ts` ⇒ v15 (or v16 not yet migrated).
+4. `cacheComponents: true` OR any `"use cache"` in the tree ⇒ **Cache Components model** (opt-in
+   caching). Otherwise ⇒ **v15 model** (uncached `fetch` by default, `revalidate`/`tags`).
+
+**Do not flag `proxy.ts`, `use cache`, or `cacheComponents` as errors — they are correct on
+Next.js 16.**
+
+| Signal in repo                                | Model                  | Caching API to use                                                              |
+| --------------------------------------------- | ---------------------- | ------------------------------------------------------------------------------- |
+| `cacheComponents: true` or any `"use cache"`  | Cache Components (v16) | `"use cache"` + `cacheLife()` + `cacheTag()`/`updateTag()`                       |
+| `middleware.ts`, no `cacheComponents`         | v15 baseline           | `fetch(..., { next: { revalidate, tags } })`, `unstable_cache`, `revalidateTag` |
+| `proxy.ts` present                            | v16 routing            | middleware logic lives in `proxy.ts` (NOT a security boundary)                  |
+| `reactCompiler: true`                         | Compiler on            | drop manual `useMemo`/`useCallback`/`React.memo` (review-only)                  |
+
+## The boundary: Server vs Client Components
+
+Default is a Server Component (async, can touch the DB and secrets, ships zero JS). Opt into a
+Client Component only for state, effects, event handlers, or browser APIs.
+
+The four boundary laws:
+
+- Server → Client: pass **serializable** props or `children` (no functions except Server Actions).
+- Never `import` a Server Component into a Client Component; compose via `children`.
+- `"use client"` marks a module **and its whole import subtree** as client.
+- Keep `"use client"` leaves small; push the directive **down** the tree.
+
+```tsx
+// app/projects/[id]/page.tsx — Good: server async page + a tiny client island
+import { getProject } from "@/lib/dal";
+import { LikeButton } from "./like-button";
+
+export default async function Page({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  const project = await getProject(id); // DB call stays on the server
+  return (
+    <main>
+      <h1>{project.name}</h1>
+      <LikeButton projectId={project.id} initialLikes={project.likes} />
+    </main>
+  );
+}
+```
+
+```tsx
+// Bad: importing a Server Component into a "use client" file forces it client / breaks the build
+"use client";
+import { ServerChart } from "./server-chart"; // ServerChart reads the DB → build error
+export function Panel() {
+  return <ServerChart />;
+}
+
+// Good: client shell takes `children`; the server content is passed from a server parent
+("use client");
+export function ClientPanel({ children }: { children: React.ReactNode }) {
+  return <section className="panel">{children}</section>;
+}
+// in a server component:  <ClientPanel><ServerChart /></ClientPanel>
+```
+
+## "use server": Server Actions
+
+**Every Server Action is a public POST endpoint. It MUST authenticate and authorize itself.
+Middleware/proxy does NOT protect it.**
+
+```ts
+// app/projects/actions.ts
+"use server";
+import { z } from "zod";
+import { revalidateTag } from "next/cache";
+import { auth } from "@/auth";
+import { db } from "@/lib/db";
+
+const RenameSchema = z.object({ id: z.string().uuid(), name: z.string().min(1).max(120) });
+
+type RenameResult =
+  | { status: "ok"; data: { id: string; name: string } }
+  | { status: "error"; message: string };
+
+export async function renameProject(_prev: RenameResult | null, formData: FormData): Promise<RenameResult> {
+  const session = await auth();
+  if (!session?.user) return { status: "error", message: "Not authenticated" };
+
+  const parsed = RenameSchema.safeParse(Object.fromEntries(formData));
+  if (!parsed.success) return { status: "error", message: "Invalid input" };
+
+  const owned = await db.project.findFirst({ where: { id: parsed.data.id, ownerId: session.user.id } });
+  if (!owned) return { status: "error", message: "Forbidden" };
+
+  const updated = await db.project.update({ where: { id: parsed.data.id }, data: { name: parsed.data.name } });
+  revalidateTag(`project:${updated.id}`);
+  return { status: "ok", data: { id: updated.id, name: updated.name } };
+}
+```
+
+Two invocation modes:
+
+- `<form action={renameProject}>` — progressive enhancement, works without JS.
+- Imperative from a client handler wrapped in `startTransition(() => renameProject(null, fd))`.
+
+Deep dives: `references/security.md` (auth/CSRF) and `references/data-and-caching.md` (mutations).
+
+## Route Handlers (`route.ts`)
+
+Use a Route Handler for: webhooks, a public JSON API, OAuth callbacks, streaming responses, and
+non-form clients. Use a **Server Action instead** for internal form mutations.
+
+```ts
+// app/api/projects/route.ts
+import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
+import { auth } from "@/auth";
+import { db } from "@/lib/db";
+
+// GET handlers are uncached by default on v15. Control with: export const dynamic / runtime.
+export async function GET(_req: NextRequest) {
+  const session = await auth();
+  if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const projects = await db.project.findMany({ where: { ownerId: session.user.id } });
+  return NextResponse.json({ projects });
+}
+
+const CreateSchema = z.object({ name: z.string().min(1).max(120) });
+
+export async function POST(req: NextRequest) {
+  const session = await auth();
+  if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const parsed = CreateSchema.safeParse(await req.json());
+  if (!parsed.success) return NextResponse.json({ error: parsed.error.flatten() }, { status: 422 });
+  const created = await db.project.create({ data: { name: parsed.data.name, ownerId: session.user.id } });
+  return NextResponse.json({ project: created }, { status: 201 });
+}
+```
+
+## Layouts, templates, loading & error boundaries
+
+| File               | Role / when it runs                                           |
+| ------------------ | ------------------------------------------------------------- |
+| `layout.tsx`       | Wraps a segment; persists across navigation, does NOT remount |
+| `template.tsx`     | Like layout but remounts on every navigation (fresh state)    |
+| `loading.tsx`      | Instant Suspense fallback for the segment while it streams    |
+| `error.tsx`        | `"use client"` error boundary for the segment, gets `reset()` |
+| `not-found.tsx`    | Rendered by `notFound()` and unmatched routes                 |
+| `global-error.tsx` | Replaces the root layout when the root throws                 |
+
+```tsx
+// app/projects/error.tsx — Good: error boundaries are Client Components
+"use client";
+export default function Error({ error, reset }: { error: Error & { digest?: string }; reset: () => void }) {
+  return (
+    <div role="alert">
+      <h2>Could not load projects</h2>
+      <p>{error.message}</p>
+      <button onClick={() => reset()}>Try again</button>
+    </div>
+  );
+}
+```
+
+```tsx
+// app/dashboard/page.tsx — Good: stream the shell, Suspense the slow part
+import { Suspense } from "react";
+import { Stats } from "./stats";
+
+export default function Page() {
+  return (
+    <main>
+      <h1>Dashboard</h1>
+      <Suspense fallback={<p>Loading stats…</p>}>
+        <Stats /> {/* async Server Component; the shell paints immediately */}
+      </Suspense>
+    </main>
+  );
+}
+```
+
+## Routing: groups, parallel, intercepting, dynamic, metadata
+
+- Route groups `(marketing)/` — organize without affecting the URL.
+- Dynamic `[id]`, catch-all `[...slug]`, optional `[[...slug]]`.
+- **`params` and `searchParams` are Promises on v15+ — `await` them.**
+- Parallel routes `@modal` + `default.tsx`.
+- Intercepting `(.)photo` — modal-on-navigation.
+- `generateMetadata` (async) + `generateStaticParams`.
+
+```tsx
+// Bad: treating params as a plain object (the top v15-migration bug)
+function PageBad({ params }: { params: { id: string } }) {
+  return <h1>{params.id}</h1>; // runtime/type error on v15+
+}
+
+// Good: params is a Promise — await it
+async function PageGood({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  return <h1>{id}</h1>;
+}
+```
+
+## Caching & data fetching (both models)
+
+Which block applies is decided by the detection gate above. Deep dive →
+`references/data-and-caching.md`.
+
+**v15 model** — `fetch` is uncached by default; opt in explicitly.
+
+```ts
+// uncached on v15 (re-fetched every request):
+const live = await fetch("https://api.example.com/now").then((r) => r.json());
+
+// opt into the data cache + tag it:
+const products = await fetch("https://api.example.com/products", {
+  next: { revalidate: 3600, tags: ["products"] },
+}).then((r) => r.json());
+
+// from a Server Action: invalidate the tag
+import { revalidateTag } from "next/cache";
+revalidateTag("products");
+
+// request-scoped dedupe (one query per render); see also unstable_cache + route segment config
+import { cache } from "react";
+export const getUser = cache(async (id: string) => db.user.findUnique({ where: { id } }));
+```
+
+**v16 Cache Components** — everything dynamic by default; opt in with `"use cache"`.
+
+```ts
+// lib/products.ts
+import { unstable_cacheLife as cacheLife, unstable_cacheTag as cacheTag, revalidateTag as updateTag } from "next/cache";
+
+export async function getProducts() {
+  "use cache";
+  cacheLife("hours");
+  cacheTag("products");
+  return db.product.findMany();
+}
+
+// from a Server Action: invalidate
+updateTag("products");
+```
+
+```ts
+// Bad: reading request APIs inside "use cache" hangs/errors the build
+export async function getCartBad() {
+  "use cache";
+  const c = await cookies(); // ✗ not allowed inside use cache
+  return db.cart.find(c.get("cartId")?.value);
+}
+
+// Good: read the request value OUTSIDE, pass it as an argument
+export async function getCart(cartId: string) {
+  "use cache";
+  cacheTag(`cart:${cartId}`);
+  return db.cart.find(cartId);
+}
+```
+
+For optimistic UI, `useActionState` + zod forms, and full mutation patterns →
+`references/data-and-caching.md`.
+
+## React 19 in the App Router (essentials)
+
+Full discipline in `references/react.md`. The Next-relevant deltas:
+
+- `useActionState(fn, initial)` → `[state, action, isPending]` (replaces `useFormState`).
+- `useFormStatus()` for a child submit button.
+- `useOptimistic(state, reducer)` — auto-reverts on action error.
+- `use(promise)` — unwrap an RSC-passed Promise inside a Client Component under `<Suspense>`.
+- `ref` as a normal prop (no `forwardRef`); `<Context value={...}>` as the provider.
+- **React Compiler on (`reactCompiler: true`) ⇒ drop manual memoization.**
+
+```tsx
+"use client";
+import { useActionState } from "react";
+import { renameProject } from "./actions";
+
+export function RenameForm({ id }: { id: string }) {
+  const [state, action, isPending] = useActionState(renameProject, null);
+  return (
+    <form action={action}>
+      <input type="hidden" name="id" value={id} />
+      <input name="name" aria-label="Project name" required />
+      <button disabled={isPending}>{isPending ? "Saving…" : "Save"}</button>
+      {state?.status === "error" && <p role="alert">{state.message}</p>}
+    </form>
+  );
+}
+```
+
+## TypeScript discipline
+
+- `strict: true` + `noUncheckedIndexedAccess: true`.
+- Typed routes (`typedRoutes: true`, or `experimental.typedRoutes` on older v15).
+- **zod-inferred end-to-end types** (`z.infer`) shared across action input, form, and DB layer.
+- Discriminated-union action result `{ status: "ok"; data } | { status: "error"; message }`.
+- `params`/`searchParams` typed as `Promise<...>`.
+
+```ts
+// Bad: untyped form data
+const data: any = Object.fromEntries(formData);
+
+// Good: validate + infer one shared type
+const schema = z.object({ name: z.string().min(1), email: z.string().email() });
+type Input = z.infer<typeof schema>; // reuse for form + DB layer
+const r = schema.safeParse(Object.fromEntries(formData));
+if (!r.success) return { status: "error", message: "Invalid" };
+```
+
+## Auth (Auth.js v5) — defense in depth
+
+**Three layers, and the middleware layer is NOT one of the security layers.**
+
+- `proxy.ts`/`middleware.ts`: coarse redirect only (NOT security).
+- `auth()` check inside **every** Server Action and Route Handler.
+- A **Data Access Layer (DAL)** that re-checks the session before any read/write.
+- Secure cookies: `httpOnly`, `secure`, `sameSite: "lax"`.
+
+```ts
+// auth.ts
+import NextAuth from "next-auth";
+import GitHub from "next-auth/providers/github";
+
+export const { handlers, auth, signIn, signOut } = NextAuth({
+  providers: [GitHub],
+  session: { strategy: "jwt" },
+});
+
+// lib/dal.ts — the real boundary
+import { cache } from "react";
+import { redirect } from "next/navigation";
+import { auth } from "@/auth";
+
+export const getCurrentUser = cache(async () => {
+  const session = await auth();
+  if (!session?.user) redirect("/login");
+  return session.user;
+});
+```
+
+Deep dive → `references/security.md`.
+
+## Security (deep dive → references/security.md)
+
+Apply on every review:
+
+- No `dangerouslySetInnerHTML` without sanitization (DOMPurify, server-side).
+- CSRF: Server Actions verify `Origin`/`Host`; SameSite cookies; never expose mutations as
+  unauthenticated GET. Set `serverActions.allowedOrigins` in `next.config.ts`.
+- **Never put secrets in `NEXT_PUBLIC_*`** — they ship to the browser; proxy via a Route Handler.
+- SSRF: allowlist host/scheme before `fetch` in Route Handlers; block internal/metadata ranges.
+- CSP with a nonce via `proxy.ts`/headers.
+- Auth on every action (see the Auth section above).
+
+See Also: `secure-coding`.
+
+## Performance (deep dive → references/performance.md)
+
+- `next/image` — always width/height or `fill` + a sized parent; `priority` on the LCP image; `sizes`.
+- `next/font` — self-host, `display: "swap"`, subset → zero CLS + no extra round-trip.
+- `next/dynamic` for heavy client islands; `optimizePackageImports`; `@next/bundle-analyzer`.
+- Kill waterfalls with parallel `Promise.all` / split sibling fetches into parallel children; PPR/streaming, reserve space to avoid CLS.
+- Core Web Vitals targets: **LCP < 2.5s, CLS < 0.1, INP < 200ms** (INP replaced FID).
+
+## Anti-patterns → STOP
+
+| Rationalization                                            | Reality / STOP                                                             |
+| ---------------------------------------------------------- | -------------------------------------------------------------------------- |
+| "The client already checks the user, the action is safe"   | Server Actions are public POST endpoints — authenticate inside the action  |
+| "`fetch` caches by default, skip `revalidate`"             | v15: `fetch` is uncached by default; that's the v13/14 mental model        |
+| "Read `cookies()` inside `use cache` for convenience"      | Build hangs/errors; read outside, pass the value as an argument            |
+| "`proxy.ts` looks misnamed, rename to `middleware.ts`"     | Correct on v16; renaming breaks middleware execution                       |
+| "Just `import` the Server Component into this client file"  | Compose via `children`; importing forces it client / breaks the build      |
+| "Put the API key in `NEXT_PUBLIC_API_KEY`"                 | It ships to the browser; proxy through a Route Handler/Server Action       |
+| "Add `useMemo` everywhere for perf"                        | Measure first; with React Compiler manual memoization is noise             |
+| "`await params` is unnecessary"                            | v15+: `params`/`searchParams` are Promises — you must `await`              |
+| "Middleware protects my dashboard, the data fetch is safe" | Middleware is not a security boundary; check in the DAL                    |
+| "Snapshot-test the RSC page"                               | Async Server Components aren't jsdom-renderable; test data fns + Playwright |
+
+## Quick reference
+
+| Task                      | API / file                                       | Note                           |
+| ------------------------- | ------------------------------------------------ | ------------------------------ |
+| New mutation              | Server Action (`"use server"`)                   | auth + zod inside              |
+| Public JSON / webhook     | Route Handler (`route.ts`)                       | uncached GET on v15            |
+| Per-request dedupe        | `React.cache(fn)`                                | one query per render           |
+| Cache cross-request (v15) | `fetch tags` / `unstable_cache`                  | opt-in                         |
+| Cache (v16)               | `"use cache"` + `cacheTag`                       | opt-in, `cacheLife()`          |
+| Invalidate                | `revalidateTag` / `updateTag` / `revalidatePath` | from an action                 |
+| Loading UI                | `loading.tsx` / `<Suspense>`                     | stream the shell               |
+| Error UI                  | `error.tsx`                                      | `"use client"`, gets `reset()` |
+| Form                      | `useActionState` + zod                           | `isPending`, `role="alert"`    |
+| Optimistic UI             | `useOptimistic`                                  | auto-revert on error           |
+| Client island             | `"use client"` leaf                              | keep small, push down          |
+| Secrets                   | server-only env (`import 'server-only'`)         | never `NEXT_PUBLIC_*`          |
+| Image                     | `next/image` + `priority`                        | LCP image                      |
+| Protect route             | middleware redirect + DAL `auth()`               | DAL is the real boundary       |
+
+## Verify
+
+Run `bash scripts/verify.sh` from the Next.js project root. It runs ESLint, `tsc --noEmit`,
+Vitest, and `next build`, skipping any tool not installed. Safe to re-run (read-only, no installs).
+
+## References
+
+- `references/react.md` — React 19 discipline for the App Router (hooks, boundaries, forms, state).
+- `references/data-and-caching.md` — both caching models, mutations, end-to-end zod forms.
+- `references/testing.md` — Vitest 3 + RTL + MSW 2 + Playwright; RSC testing reality.
+- `references/performance.md` — Core Web Vitals, images, fonts, bundles, streaming.
+- `references/security.md` — auth, CSRF, XSS, CSP, env leakage, SSRF.
+
+## See Also
+
+- `../secure-coding/SKILL.md` — generic security; this skill complements, does not duplicate it.
+- `../fastapi/SKILL.md` and `../go/SKILL.md` — the backend APIs the frontend calls.
+- `../postgresdb/SKILL.md` — the data layer behind the DAL.
+- `../risco-project-harness/SKILL.md` — workspace conventions.
