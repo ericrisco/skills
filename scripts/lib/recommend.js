@@ -18,6 +18,10 @@ const OUTCOMES = {
   deployment: 'Publicarlo online',
 };
 
+export function hasOutcome(id) {
+  return Object.prototype.hasOwnProperty.call(OUTCOMES, id);
+}
+
 export function expandRecommends(manifest, chosen) {
   const set = new Set(chosen);
   for (const id of chosen) {
