@@ -1,6 +1,6 @@
 ---
 name: bookkeeping
-description: "Use when a small business needs clean, audit-ready books — standing up a chart of accounts, recording a transaction and unsure which account or which side (debit vs credit), a bank feed full of uncategorized lines, a month-end ledger that won't reconcile to the bank, or choosing cash vs accrual. Triggers: 'set up a chart of accounts', 'where does this transaction post', 'which side is a debit when I pay rent', 'my books don't tie out to the bank', '300 transactions sitting uncategorized', 'cash or accrual accounting', 'how long do I keep receipts', 'categoriza los movimientos del banco', 'mi contabilidad está hecha un desastre', 'cuadra el libro con el extracto', 'comptabilitat feta un desastre'. The loop is record → classify → reconcile so the numbers downstream skills read are trustworthy. NOT analyzing runway/burn/P&L or the monthly finance cadence (that is finance-ops), NOT issuing a customer invoice (that is invoicing), NOT setting a price (that is pricing), NOT future projections (that is financial-model)."
+description: "Use when a small business needs clean, audit-ready books — standing up a chart of accounts, recording a transaction and unsure which account or which side (debit vs credit), a bank feed full of uncategorized lines, a month-end ledger that won't reconcile to the bank, or choosing cash vs accrual. Triggers: 'set up a chart of accounts', 'where does this transaction post', 'which side is a debit when I pay rent', 'my books don't tie out to the bank', '300 transactions sitting uncategorized', 'cash or accrual accounting', 'how long do I keep receipts', 'categoriza los movimientos del banco', 'mi contabilidad está hecha un desastre', 'cuadra el libro con el extracto', 'comptabilitat feta un desastre'. The loop is record → classify → reconcile so the numbers are trustworthy. NOT analyzing runway/burn/P&L or the monthly finance cadence (that is finance-ops), NOT issuing a customer invoice (that is invoicing), NOT setting a price (that is pricing), NOT future projections (that is financial-model)."
 tags: [bookkeeping, double-entry, chart-of-accounts, reconciliation, ledger, accounting, categorization]
 recommends: [finance-ops, invoicing, pricing, financial-model, cost-tracking, stripe, spreadsheet-ops]
 origin: risco
@@ -95,6 +95,24 @@ Debits 1200 = Credits 1200  ✓
 
 Note the second one: the cash arrived but you have **not earned it yet**, so it is a *liability* (you owe the work), not revenue. Recording it as revenue is the single most common classification error — it inflates income and understates what you owe.
 
+## Rule 4.5 — the classification decision procedure (run this on every confusing line)
+
+The easy lines classify themselves. This procedure is for the ones that don't — and it is where a careless ledger goes wrong. Run it **in order** and stop at the first rule that fires; the order matters because later rules assume the earlier tests already failed.
+
+1. **Is it cash moving between two accounts you own?** (operating → savings, owner topping up the business, paying down the company credit card from operating cash.) Then it is a **transfer, not income or expense** — both legs net to zero across the books. The single most common bank-feed error is booking the incoming side of a transfer as Revenue. A transfer never touches a P&L account. *Test:* would the company's net worth change? If no, it's a transfer.
+
+2. **Did value flow in or out of the business, or just timing?** Cash moving does not mean expense/revenue happened. Paying down a loan, paying a supplier invoice you already booked to AP, collecting an invoice you already booked to AR — these only move a **balance-sheet** account (liability or asset) against Cash. Booking them again as expense/revenue **double-counts**. *Test:* "did I already record the expense/revenue when this was incurred/earned?" If yes, this cash event only clears the receivable/payable.
+
+3. **Is this the principal or the cost?** Split blended payments. A loan payment is **interest (expense) + principal (liability reduction)** — never all expense. An asset purchased on finance is the asset (capitalized) + interest over time. A payroll run is **net wages + tax withheld (liability) + employer taxes (expense)**. Decompose before posting; one line on the bank, two-to-three lines in the journal.
+
+4. **Capitalize or expense?** If the thing has useful life beyond this period and exceeds the business's capitalization threshold (set one, e.g. $2,500), it is an **asset** depreciated over time, not an expense booked now. Below the threshold or consumed this period → expense. *Refund/credit:* a refund of an expense **credits the original expense account** (it reverses the cost) — it is not Revenue.
+
+5. **Earned/incurred, or just paid/received?** Under accrual: revenue posts when **earned** (delivery/performance), expense when **incurred** (obligation arises) — regardless of when cash moves. Cash received before earning → Unearned Revenue (liability). Expense incurred before paying → Accounts Payable / accrued liability. A 12-month prepaid (insurance, annual SaaS) is a **Prepaid asset** amortized monthly, not a lump expense in month one. (Cash basis collapses steps 5's timing distinctions — but steps 1–4 still apply.)
+
+6. **Is it actually a business transaction at all?** Owner's personal spend run through the business is **Owner Draws** (equity), never an expense. A genuinely mixed charge (phone, car, home office) is split by business-use percentage; only the business portion is deductible.
+
+If a line survives all six and you still can't place it: **post it to a holding/suspense account and flag it — never guess into "Misc."** A flagged suspense line gets resolved; a wrong guess in Misc never does. Full catalog of the transactions agents most often misclassify, each with the worked entry: `references/tricky-transactions.md`.
+
 ## Rule 5 — pick cash or accrual once, deliberately
 
 | Method | Income recorded | Expense recorded | Use when |
@@ -163,3 +181,4 @@ Spain (autónomo, estimación directa simplificada): the obligation is **libros 
 
 - `references/chart-of-accounts.md` — full numbered example COA across the five categories, contra accounts (accumulated depreciation, allowance for doubtful accounts), add-vs-merge rules, the over-splitting failure mode.
 - `references/reconciliation-playbook.md` — step-by-step month-end reconciliation, the full won't-tie-out diagnostic ladder, and the jurisdiction detail (IRS retention table + Spain libros registro de IVA fields).
+- `references/tricky-transactions.md` — the classification cases that bare judgment gets wrong: transfers, refunds, partial/overpayments, loan & finance splits, payroll decomposition, prepaids & deferrals, accruals, sales tax/VAT collected, merchant-fee netting (Stripe/PayPal gross-vs-net), bad debt, foreign currency, personal/mixed-use — each with the right journal entry and the wrong one it replaces.
