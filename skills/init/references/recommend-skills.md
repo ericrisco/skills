@@ -1,7 +1,7 @@
 # Recommend Skills — the skill map, sample printouts & the "siempre 3 opciones" pattern
 
 Phase 3 detail. Map discovery to individual rsc skills, print the exact
-`npx rsc add` commands, and run the requirements-first 3-option decision pattern
+`npx @ericrisco/rsc add` commands, and run the requirements-first 3-option decision pattern
 for any significant choice. A skill **cannot install anything** — it recommends
 and prints commands the user runs.
 
@@ -27,11 +27,11 @@ usually does NOT want `fastapi`/`nextjs` unless they're also building software.
 
 ## What to print
 
-One `npx rsc add` line per recommendation (or batch them on one line), each with
+One `npx @ericrisco/rsc add` line per recommendation (or batch them on one line), each with
 its *why* in the user's language and level.
 
 ```text
-npx rsc add <skill> [<skill> ...]
+npx @ericrisco/rsc add <skill> [<skill> ...]
 ```
 
 ### Sample printout — software, full-stack web app with marketing
@@ -40,11 +40,11 @@ npx rsc add <skill> [<skill> ...]
 Based on what you described (a web app with a backend, a Next.js UI, a landing
 page, and you want to ship it securely), install these:
 
-npx rsc add harness        # the control plane — scaffolds and governs the workspace
-npx rsc add fastapi postgresdb   # the API and the database
-npx rsc add nextjs design  # the web UI people see
-npx rsc add marketing      # the words for your landing page
-npx rsc add secure-coding deployment   # ship it safely
+npx @ericrisco/rsc add harness        # the control plane — scaffolds and governs the workspace
+npx @ericrisco/rsc add fastapi postgresdb   # the API and the database
+npx @ericrisco/rsc add nextjs design  # the web UI people see
+npx @ericrisco/rsc add marketing      # the words for your landing page
+npx @ericrisco/rsc add secure-coding deployment   # ship it safely
 
 Once they're installed, run the harness skill and I'll build the project structure.
 ```
@@ -55,9 +55,9 @@ Once they're installed, run the harness skill and I'll build the project structu
 You're organizing how your agency runs — client emails, contracts, invoicing,
 and you want it all findable. That's a non-code harness; install:
 
-npx rsc add harness        # your 01-TOOLS (connections) + 02-DOCS (your second brain)
-npx rsc add secure-coding deployment   # connect email, payments, drive — and keep credentials safe
-npx rsc add marketing      # for the proposals, decks and copy you send clients
+npx @ericrisco/rsc add harness        # your 01-TOOLS (connections) + 02-DOCS (your second brain)
+npx @ericrisco/rsc add secure-coding deployment   # connect email, payments, drive — and keep credentials safe
+npx @ericrisco/rsc add marketing      # for the proposals, decks and copy you send clients
 
 Once installed, run the harness skill and I'll set up the structure that holds it all.
 ```
@@ -67,10 +67,10 @@ Once installed, run the harness skill and I'll set up the structure that holds i
 ```text
 You want an AI agent that answers questions over your own documents. Install:
 
-npx rsc add harness            # the control plane
-npx rsc add building-agents    # agent loops, tools, RAG
-npx rsc add fastapi postgresdb # an API + database to serve it
-npx rsc add secure-coding deployment   # ship it safely
+npx @ericrisco/rsc add harness            # the control plane
+npx @ericrisco/rsc add building-agents    # agent loops, tools, RAG
+npx @ericrisco/rsc add fastapi postgresdb # an API + database to serve it
+npx @ericrisco/rsc add secure-coding deployment   # ship it safely
 
 Then run the harness skill.
 ```

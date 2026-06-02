@@ -57,7 +57,7 @@ If any runner is detected, set `testing.strict_tdd: true`. Strict TDD means impl
 Refresh the project registry:
 
 ```bash
-npx rsc registry refresh
+npx @ericrisco/rsc registry refresh
 ```
 
 This writes:
@@ -68,6 +68,19 @@ This writes:
 ```
 
 Later phases use this as a cheap index: id, trigger, tags, path, installed/available, hash. Do not load every skill into context. Select the few matching the phase and stack, then digest them into compact rules for subagents.
+
+## Equip the repo — install the skills this stack needs
+
+Calibration is the moment to make sure the relevant skills are actually present, not just indexed. Detect → propose → install:
+
+1. **Detect what this repo needs.** Use the stack you just detected, or ask the CLI: `npx @ericrisco/rsc consult "<one line: stack + what we're building>"`. Map signals to skills — e.g. `next`→`nextjs`+`design`, `go.mod`→`go`, FastAPI→`fastapi`, `*.sql`/Prisma→`postgresdb`/`prisma-orm`, Stripe→`stripe`, Dockerfile/CI→`docker`/`github-actions`, tests→`testing-*`/`e2e-testing`. The SDD phase skills (`specify`…`ship`) should already be present from `--profile core`; install any that are missing.
+2. **Show the shortlist + confirm.** List the skills with a one-line *why* each, matched to the accompaniment dial, and get a one-word confirm before touching their environment.
+3. **Install them yourself.** You have a terminal — run it via Bash:
+   ```bash
+   npx @ericrisco/rsc add <skill> [<skill> ...]
+   ```
+   If you genuinely cannot run a shell, print the exact command and ask the user to paste it in another terminal tab.
+4. **Flag the new session.** Newly installed skills load at the START of a session. Tell the user: *"Instaladas. Abre una pestaña/sesión nueva de tu asistente (o recarga) en esta carpeta para que se activen."* Then refresh the registry again so `installed/available` is accurate.
 
 ## Config Shape
 
@@ -129,7 +142,7 @@ End with the standard SDD result envelope:
       "Use .rsc/skill-registry.json as the cheap skill index."
     ]
   },
-  "evidence": ["npx rsc registry refresh", "detected test commands recorded"]
+  "evidence": ["npx @ericrisco/rsc registry refresh", "detected test commands recorded"]
 }
 ```
 

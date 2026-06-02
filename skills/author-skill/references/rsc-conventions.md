@@ -2,7 +2,7 @@
 
 A skill is not done when `SKILL.md` reads well. It is done when it is *in the
 catalog* — frontmatter valid, indexed in the manifest, discoverable by the
-`npx rsc` recommender, and reachable where the agent will find it. This reference
+`npx @ericrisco/rsc` recommender, and reachable where the agent will find it. This reference
 is the rsc plumbing.
 
 ## The layout (single source of truth)
@@ -52,7 +52,7 @@ profiles: [core, full]           # optional: named-profile membership
 There are no bundles and no `/<bundle>:<id>` namespacing. A skill installs under
 the target's rsc namespace (e.g. `~/.claude/skills/rsc/<id>/`) and is invoked by
 its `name`. The `suggest` detector is always installed (the floor) and proposes
-installing any skill a task needs via `npx rsc add <id>`.
+installing any skill a task needs via `npx @ericrisco/rsc add <id>`.
 
 ## Wiring steps for a new skill
 

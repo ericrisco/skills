@@ -1,6 +1,6 @@
 ---
 name: suggest
-description: "Always-on. Use whenever the current task would clearly benefit from an rsc skill that is not yet installed — detect the gap, name the skill, and (with a one-word confirm) install it via `npx rsc add <id>`. Triggers on any task that maps to a known rsc capability the session lacks: building a web/app/API, a database, security, deployment, agents, content, or connecting/documenting a company."
+description: "Always-on. Use whenever the current task would clearly benefit from an rsc skill that is not yet installed — detect the gap, name the skill, and (with a one-word confirm) install it via `npx @ericrisco/rsc add <id>`. Triggers on any task that maps to a known rsc capability the session lacks: building a web/app/API, a database, security, deployment, agents, content, or connecting/documenting a company."
 tags: [suggest, detect, install, meta, always-on]
 recommends: []
 profiles: [minimal, core, full]
@@ -14,14 +14,14 @@ When the current task would clearly benefit from an rsc skill that is **not inst
 
 1. Name it in plain language: "Para esto va bien `<id>`, que aún no tienes."
 2. Ask one short confirm: "¿La instalo? (sí/no)".
-3. On yes, run `npx rsc add <id>` (Bash). Then continue the task.
+3. On yes, run `npx @ericrisco/rsc add <id>` (Bash). Then continue the task.
 
 Rules:
 
 - Installing changes the user's environment — always confirm first.
-- To know what exists, run `npx rsc consult "<the task>"` instead of guessing.
-- For a project-level view, prefer `.rsc/skill-registry.json` when present; if it is missing or stale, suggest `npx rsc registry refresh`. This is a cheap index, not a reason to load every skill.
-- Never recommend something already installed (`npx rsc list`).
+- To know what exists, run `npx @ericrisco/rsc consult "<the task>"` instead of guessing.
+- For a project-level view, prefer `.rsc/skill-registry.json` when present; if it is missing or stale, suggest `npx @ericrisco/rsc registry refresh`. This is a cheap index, not a reason to load every skill.
+- Never recommend something already installed (`npx @ericrisco/rsc list`).
 - One suggestion at a time. Don't interrupt the flow for nice-to-haves.
 
 ## Orientación (siempre)

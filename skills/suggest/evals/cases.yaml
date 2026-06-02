@@ -2,12 +2,12 @@ skill: suggest
 
 # The always-on detector. It fires when the current task would clearly benefit
 # from an rsc skill that is NOT yet installed, names it, and (with confirmation)
-# runs `npx rsc add <id>`. It should stay silent for trivial work and defer to a
+# runs `npx @ericrisco/rsc add <id>`. It should stay silent for trivial work and defer to a
 # skill that already owns the task.
 
 should_trigger:
   - prompt: "Ayúdame a montar la tabla de pedidos en la base de datos."
-    why: "A database task with no DB skill present — the detector should propose `npx rsc add postgresdb` before diving in."
+    why: "A database task with no DB skill present — the detector should propose `npx @ericrisco/rsc add postgresdb` before diving in."
 
   - prompt: "Quiero publicar mi web online, creo que con Docker."
     why: "A deployment task with no deploy skill present — propose installing `deployment`."
@@ -46,6 +46,6 @@ capability:
     must_include:
       - "Names the missing skill in plain language ('para esto va bien `postgresdb`, que aún no tienes')"
       - "Asks a single short confirmation (sí/no) before doing anything — never auto-installs"
-      - "On confirmation, runs `npx rsc add postgresdb` via Bash, then continues the original task"
-      - "Checks what is already installed (npx rsc list) and never proposes a skill the user already has"
+      - "On confirmation, runs `npx @ericrisco/rsc add postgresdb` via Bash, then continues the original task"
+      - "Checks what is already installed (npx @ericrisco/rsc list) and never proposes a skill the user already has"
       - "Makes at most one suggestion and does not interrupt the flow for nice-to-haves"
