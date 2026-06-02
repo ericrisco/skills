@@ -1,0 +1,46 @@
+skill: cloudflare
+
+should_trigger:
+  - prompt: "Set up wrangler.jsonc with an R2 bucket and a D1 binding for my Worker."
+    why: Core config/binding task — the heart of the skill (declare bindings in wrangler.jsonc).
+  - prompt: "My KV reads are returning stale data right after I write — what's wrong?"
+    why: Non-obvious symptom; the answer is KV eventual consistency (~60s propagation), a load-bearing fact.
+  - prompt: "Deploy my Vite React SPA to Cloudflare Workers."
+    why: Static Assets path — the modern default for hosting SPAs on Workers.
+  - prompt: "Volem desplegar una API a Cloudflare Workers amb una cua per processar emails."
+    why: Catalan trigger; Workers + Queues producer/consumer wiring.
+  - prompt: "I'm hitting 'too many subrequests' in my Worker — how do I restructure it?"
+    why: Non-obvious; a Workers runtime limit that forces an architecture fix (batch / KV / Queue).
+  - prompt: "Should I use D1 or KV to store user sessions on Cloudflare?"
+    why: Storage decision-table trigger; sessions are read-after-write so KV's eventual consistency is wrong.
+  - prompt: "Where do I put my Stripe secret key for a Cloudflare Worker — in wrangler.jsonc vars?"
+    why: Secrets handling; answer is wrangler secret put / .dev.vars, never committed vars.
+
+should_not_trigger:
+  - prompt: "Set up a CI pipeline to deploy my app on every push to main."
+    route_to: deployment
+    why: Generic release automation with no Cloudflare primitive involved.
+  - prompt: "Configure my Next.js app router and server components."
+    route_to: nextjs
+    why: Framework wiring, not the Cloudflare adapter/binding side.
+  - prompt: "Add an A record and configure DNS for my domain on Cloudflare."
+    route_to: domains-dns
+    why: Cloudflare DNS product, not Workers/bindings.
+  - prompt: "Design a Postgres schema with foreign keys and indexes."
+    route_to: postgresdb
+    why: D1 is SQLite and the ask is relational schema design, not edge deployment.
+  - prompt: "Set up Redis caching with TTL eviction and LRU for my API."
+    route_to: redis
+    why: Redis-specific semantics; KV is not Redis (no atomic ops, eventual consistency).
+
+capability:
+  - scenario: "Wire a Worker that serves a React SPA, stores uploads in R2, reads/writes user records in D1, and pushes a thumbnail-generation job to a Queue. Give me wrangler.jsonc and the binding code."
+    must_include:
+      - "valid wrangler.jsonc with name, main, and compatibility_date set to a real date"
+      - "assets block with directory, binding ASSETS, and not_found_handling: single-page-application"
+      - "r2_buckets and d1_databases binding blocks"
+      - "queues with both a producers and a consumers entry"
+      - "an Env interface typing every binding (Fetcher, R2Bucket, D1Database, Queue)"
+      - "env.QUEUE/JOBS.send in the fetch handler and a queue() consumer handler"
+      - "note that secrets go via wrangler secret put, not vars in wrangler.jsonc"
+      - "idempotency note on the consumer (at-least-once delivery)"

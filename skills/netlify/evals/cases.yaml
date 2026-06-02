@@ -1,0 +1,43 @@
+skill: netlify
+
+should_trigger:
+  - prompt: "My React SPA shows 'Page not found' when I refresh a deep link on Netlify."
+    why: "Non-obvious — the symptom is a missing SPA fallback redirect (status 200 to /index.html), a core Netlify routing config concern."
+  - prompt: "Set up a Netlify function at /api/hello that returns JSON."
+    why: "Direct Functions authoring — modern Web-API handler plus config.path routing in netlify/functions/."
+  - prompt: "Write a netlify.toml with different build commands for deploy previews vs production."
+    why: "Deploy-context overrides ([context.deploy-preview] vs [context.production]) live squarely in this skill."
+  - prompt: "Configura el netlify.toml i desplega-ho a producció amb la CLI."
+    why: "Catalan phrasing for writing netlify.toml and shipping with netlify deploy --prod."
+  - prompt: "My Netlify build passes locally but fails because it detected a secret in env."
+    why: "Non-obvious — Netlify build-time secrets scanning; resolution is env-context handling, a platform-mechanics concern."
+  - prompt: "Add an edge function that geolocates the request and rewrites the path."
+    why: "Edge Functions on Deno with [[edge_functions]] declaration and context.geo — Netlify edge surface."
+
+should_not_trigger:
+  - prompt: "Deploy my Next.js app to Vercel with ISR."
+    route_to: vercel
+    why: "Different platform; Vercel config and function model do not map onto Netlify."
+  - prompt: "Set up Cloudflare Workers with Wrangler and KV."
+    route_to: cloudflare
+    why: "Cloudflare Workers/Wrangler is a separate platform with its own config."
+  - prompt: "How do I implement the React Router routes themselves in my app?"
+    route_to: nextjs
+    why: "Application routing code, not the Netlify deploy/redirect config layer."
+  - prompt: "Point my domain's A and MX records at the right hosts."
+    route_to: domains-dns
+    why: "DNS record management, not Netlify build or redirect configuration."
+  - prompt: "Build a GitHub Actions matrix CI pipeline for tests."
+    route_to: github-actions
+    why: "Generic CI unrelated to Netlify's own build system."
+
+capability:
+  - scenario: "A Vite SPA with a contact form needs: SPA fallback so deep links work, a /api/contact serverless function that emails via an env-stored API key, and a deploy-preview-only banner via a context env var. Produce the netlify.toml plus the function."
+    must_include:
+      - "SPA redirect with status = 200 to /index.html (not 301)"
+      - "netlify/functions handler using Request/Response with export const config { path }"
+      - "import type from @netlify/functions"
+      - "API key read via Netlify.env.get or process.env, not hardcoded"
+      - "[context.deploy-preview] environment override for the banner var"
+      - "netlify deploy --prod mentioned as the ship step"
+      - "explicit note that the secret is set via netlify env:set / not committed"

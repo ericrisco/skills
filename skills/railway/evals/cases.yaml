@@ -1,0 +1,44 @@
+skill: railway
+
+should_trigger:
+  - prompt: "Deploy my Next.js app to Railway."
+    why: "Names the platform plus deploy intent — the core 'push a repo / railway up' path this skill owns."
+  - prompt: "Add a Postgres database to my Railway project and connect it to the API service."
+    why: "DB provisioning on Railway plus reference-variable wiring (${{Postgres.DATABASE_URL}}) — squarely in scope."
+  - prompt: "My Railway service returns 502, it builds fine but the healthcheck keeps failing."
+    why: "Non-obvious: the symptom never says 'bind' or '$PORT', but this is the classic localhost/PORT-bind failure that is the skill's #1 triage item."
+  - prompt: "How do I set up a railway.json with a custom start command and a healthcheck path?"
+    why: "Config-as-code authoring — startCommand / healthcheckPath fields the skill documents directly."
+  - prompt: "Desplegar mi worker en Railway con una variable que referencie el DATABASE_URL del Postgres."
+    why: "Spanish phrasing for deploying a worker plus reference variables — same in-scope reference-variable wiring."
+  - prompt: "Two of my Railway services need to talk to each other privately without going over the public internet."
+    why: "Non-obvious phrasing for private networking (*.railway.internal); never says 'private DNS' but that is exactly the surface."
+  - prompt: "Mi servicio de Railway no arranca después del build, ¿qué reviso?"
+    why: "Spanish failed-deploy triage — start command / bind / missing var checklist the skill provides."
+
+should_not_trigger:
+  - prompt: "Deploy this to Render with a render.yaml blueprint."
+    route_to: "render"
+    why: "Different PaaS named explicitly with its own Blueprint format; the boundary routes Render work to the render skill."
+  - prompt: "Set up fly.toml and scale machines across regions with flyctl."
+    route_to: "fly-io"
+    why: "Fly-specific surface (fly.toml, fly machine, flyctl) that Railway has no equivalent of."
+  - prompt: "Write the SQL migration to add an index to the orders table."
+    route_to: "db-migrations"
+    why: "Schema change / migration authoring, not provisioning or connecting a database — that work lives in db-migrations."
+  - prompt: "Point my apex domain's DNS A and CNAME records at the host at my registrar."
+    route_to: "domains-dns"
+    why: "Registrar-side DNS record management; Railway only hands you a CNAME target, the record work is domains-dns."
+  - prompt: "Install Coolify on my Hetzner box and self-host the app."
+    route_to: "coolify"
+    why: "Self-hosted PaaS on your own server — the opposite of Railway's fully-managed model."
+
+capability:
+  - scenario: "I have a Node API in a GitHub repo. Deploy it to Railway with a managed Postgres, wire DATABASE_URL by reference, add a /healthz healthcheck, and make sure it actually serves traffic."
+    must_include:
+      - "Uses the CLI or GitHub repo connect: railway init/link plus railway up, OR connects the repo for auto-deploy — does not invent commands like 'railway deploy --prod'"
+      - "Adds Postgres via railway add (or + New in dashboard) and references it as ${{Postgres.DATABASE_URL}}, NOT a hardcoded connection string"
+      - "App reads $PORT and binds 0.0.0.0 (or ::), not localhost/127.0.0.1"
+      - "Sets healthcheckPath: \"/healthz\" in railway.json (or dashboard) and confirms the route exists"
+      - "Mentions cost awareness (no permanent free tier / billed by the minute) OR generates a public domain with railway domain"
+      - "Routes Postgres schema/migration work to postgresdb / db-migrations rather than doing SQL design here"

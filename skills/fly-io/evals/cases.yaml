@@ -1,0 +1,42 @@
+skill: fly-io
+
+should_trigger:
+  - prompt: "Deploy my Dockerized API to Fly.io in Frankfurt and Virginia"
+    why: Core use — a multi-region Fly deploy with explicit region placement (fra + iad).
+  - prompt: "My fly.toml scales to zero but cold starts are slow, how do I keep one machine warm?"
+    why: Autostop tuning (min_machines_running tradeoff) — Fly-specific, not generic scaling theory.
+  - prompt: "Users in Sydney get high latency and my app only runs in iad"
+    why: Non-obvious — no 'Fly' keyword, but 'iad' region code + latency-by-distance is a Fly region-placement problem (add a Machine in syd).
+  - prompt: "Need to attach a persistent disk to my Fly machine for SQLite"
+    why: Fly Volumes — region/machine-pinned disk attached via [[mounts]].
+  - prompt: "Vull desplegar a Fly.io amb secrets i rèpliques per regió"
+    why: Catalan — deploy to Fly.io with secrets and per-region replicas; secrets + multi-region.
+  - prompt: "How do I forward writes to the primary region while reads stay local on Fly?"
+    why: Non-obvious — the fly-replay write-forwarding pattern for stateful multi-region.
+
+should_not_trigger:
+  - prompt: "Deploy my app to Railway with git push"
+    route_to: railway
+    why: Railway is a git-push PaaS with no Machines/regions model — different platform.
+  - prompt: "Host my Next.js site on the edge with a CDN"
+    route_to: vercel
+    why: Frontend/serverless edge hosting, not Fly Machines.
+  - prompt: "Write a multi-stage Dockerfile for my Go service"
+    route_to: docker
+    why: Image build mechanics — Fly consumes the Dockerfile but does not author it.
+  - prompt: "Design a load-shedding and queue strategy for traffic spikes"
+    route_to: scaling
+    why: Generic horizontal-scaling theory, platform-agnostic.
+
+capability:
+  - scenario: >
+      A single-region (iad) Express app talks to Postgres via DATABASE_URL. Make it
+      serve EU + US users and scale to zero outside business hours, keeping cold-start
+      pain in mind.
+    must_include:
+      - "fly.toml with primary_region = \"iad\" and an [http_service] with internal_port"
+      - "auto_stop_machines and auto_start_machines set together (not one alone)"
+      - "min_machines_running = 0 for scale-to-zero, with the cold-start tradeoff called out (set to 1 to keep one warm; honored only in primary region)"
+      - "fly scale count with --region to add an EU region (e.g. ams) for nearby users"
+      - "secrets via `fly secrets set DATABASE_URL=...`, never in [env]"
+      - "note that Fly Volumes/Postgres are region-pinned with no replication; cross-region writes need a replica + fly-replay or a managed/external DB"
