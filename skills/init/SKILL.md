@@ -1,6 +1,6 @@
 ---
 name: init
-description: "Use when starting from nothing or pointing the rsc-skills harness at an existing project — the front door / bootstrapper. It gauges the user's technical level FIRST (non-technical by default), sets an explanation/accompaniment dial, then discovers what they want to build OR govern (any software stack, OR a non-code harness: running a company/ops, research, personal knowledge, content). It detects greenfield vs brownfield, profiles the user into 02-DOCS, RECOMMENDS which rsc bundles to install (printing the exact install commands), and hands off to /rsc-core:harness to scaffold 01-TOOLS + 02-DOCS. Triggers: 'empezar de cero', 'no sé por dónde empezar', 'start a new project', 'bootstrap', 'set up the harness', 'monta el proyecto', 'quiero montar una empresa/ops/wiki con esto', 'arranca', 'init'. NOT the scaffolder itself (that's /rsc-core:harness) and NOT a specific stack skill."
+description: "Use when starting from nothing or pointing the rsc-skills harness at an existing project — the front door / bootstrapper. It gauges the user's technical level FIRST (non-technical by default), sets an explanation/accompaniment dial, then discovers what they want to build OR govern (any software stack, OR a non-code harness: running a company/ops, research, personal knowledge, content). It detects greenfield vs brownfield, profiles the user into 02-DOCS, RECOMMENDS which rsc skills to install (printing the exact `npx rsc add` commands), and hands off to the harness skill to scaffold 01-TOOLS + 02-DOCS. Triggers: 'empezar de cero', 'no sé por dónde empezar', 'start a new project', 'bootstrap', 'set up the harness', 'monta el proyecto', 'quiero montar una empresa/ops/wiki con esto', 'arranca', 'init'. NOT the scaffolder itself (that's the harness skill) and NOT a specific stack skill."
 tags: [init, bootstrap, start, new, setup]
 recommends: [harness]
 profiles: [minimal, core, full]
@@ -9,14 +9,14 @@ origin: risco
 
 # init — the rsc-skills Front Door
 
-*The very first thing you run. It meets the user where they are — assuming non-technical until told otherwise — figures out what they actually want, recommends the right bundles, and hands off to `/rsc-core:harness` to build the workspace.*
+*The very first thing you run. It meets the user where they are — assuming non-technical until told otherwise — figures out what they actually want, recommends the right skills, and hands off to the `harness` skill to build the workspace.*
 
-It **profiles, discovers, and recommends**, then prints the exact install commands and the handoff. The boundary is fixed: **`init` writes ONLY the user-profile + decisions log under `02-DOCS/wiki/harness/` and the `CLAUDE.md` Knowledge-map link; ALL other `01-TOOLS/` + `02-DOCS/` scaffolding is `/rsc-core:harness`'s job.** Think of `init` as the receptionist: it learns who you are and what you need, writes that down where every other skill can read it, and walks you to the right room.
+It **profiles, discovers, and recommends**, then prints the exact install commands and the handoff. The boundary is fixed: **`init` writes ONLY the user-profile + decisions log under `02-DOCS/wiki/harness/` and the `CLAUDE.md` Knowledge-map link; ALL other `01-TOOLS/` + `02-DOCS/` scaffolding is the `harness` skill's job.** Think of `init` as the receptionist: it learns who you are and what you need, writes that down where every other skill can read it, and walks you to the right room.
 
 It is **domain-agnostic**. The thing being built or governed may be:
 
 - **Software** — any stack (web, mobile, backend, agents, a CLI, a data pipeline).
-- **A non-code harness** — running a company / operations, a research program, a personal knowledge base, or a content operation that connects to tools (email, calendar, CRM, docs, payments). No code required; the same `01-TOOLS/` + `02-DOCS/` structure governs it (scaffolded by `/rsc-core:harness`, not here).
+- **A non-code harness** — running a company / operations, a research program, a personal knowledge base, or a content operation that connects to tools (email, calendar, CRM, docs, payments). No code required; the same `01-TOOLS/` + `02-DOCS/` structure governs it (scaffolded by the `harness` skill, not here).
 
 ## Non-technical-first + the accompaniment dial (read this first)
 
@@ -53,7 +53,7 @@ Before discovery, before any recommendation, write the profile to `02-DOCS` and 
 - `02-DOCS/wiki/harness/decisions.md` — an **append-only** decisions log. Every significant decision gets one entry, never edited or deleted. Format in `references/accompaniment-and-profile.md`.
 - Root `CLAUDE.md` → a `## Knowledge map` section linking to BOTH files. Create `CLAUDE.md` if absent (additive only — never delete existing sections).
 
-If `02-DOCS/` does not yet exist (greenfield), create `02-DOCS/wiki/harness/` now — just enough to hold these two files. That, plus the `CLAUDE.md` Knowledge-map link, is everything `init` writes; ALL other `01-TOOLS/` + `02-DOCS/` scaffolding is `/rsc-core:harness`'s job.
+If `02-DOCS/` does not yet exist (greenfield), create `02-DOCS/wiki/harness/` now — just enough to hold these two files. That, plus the `CLAUDE.md` Knowledge-map link, is everything `init` writes; ALL other `01-TOOLS/` + `02-DOCS/` scaffolding is the `harness` skill's job.
 
 ### How every skill adapts to the dial
 
@@ -83,7 +83,7 @@ Canonical deploy example (tailor the third option to the case):
 2. **Vercel** — zero-ops, fully managed, scales itself; gets expensive at scale and locks you into its model.
 3. **A third matched to the case** — Fly.io (run close to users, simple containers), Railway (managed, gentle learning curve), or a managed cloud (AWS/GCP) when compliance or an existing org demands it.
 
-Full pattern, the requirements-gathering checklists per decision type, and the worked deploy example → `references/recommend-bundles.md`.
+Full pattern, the requirements-gathering checklists per decision type, and the worked deploy example → `references/recommend-skills.md`.
 
 ## The flow
 
@@ -112,31 +112,30 @@ Record everything to `02-DOCS/wiki/harness/` as you go. Use the greenfield and b
 
 ### Phase 3 — RECOMMEND
 
-Map what you learned to rsc bundles and **print the exact install commands**. A skill cannot install plugins itself — it recommends and prints commands the user runs. Bundle map:
+Map what you learned to individual rsc skills and **print the exact `npx rsc add` commands**. A skill cannot install anything itself — it recommends and prints commands the user runs. Skill map:
 
-| Need | Bundle | Why (one line, matched to level) |
+| Need | Skills | Why (one line, matched to level) |
 | --- | --- | --- |
-| Always | `rsc-core` | The harness itself: `init` + `harness` to scaffold and govern the workspace. |
-| Software backend | `rsc-backend` | FastAPI, Go, PostgreSQL — the server, the database, the API. |
-| Software frontend | `rsc-frontend` | Next.js, Flutter, design — the web/mobile UI people see. |
-| Marketing / landing / decks / teaching | `rsc-content` | Marketing copy, presentations, course storytelling — the words and slides. |
-| AI agents | `rsc-agents` | building-agents — agent loops, tools, RAG. |
-| Security & shipping / ops (incl. non-code company harness connecting tools) | `rsc-ops` | secure-coding + deployment — ship it safely and wire up external tools. |
+| Always | `harness` | The control plane that scaffolds and governs the workspace (`suggest` comes with it as the floor). |
+| Software backend | `fastapi` / `go`, `postgresdb` | The server, the database, the API. |
+| Software frontend | `nextjs` / `flutter`, `design` | The web/mobile UI people see. |
+| Marketing / landing / decks / teaching | `marketing`, `presentations`, `course-storytelling` | The words and slides. |
+| AI agents | `building-agents` | Agent loops, tools, RAG. |
+| Security & shipping / ops (incl. non-code company harness connecting tools) | `secure-coding`, `deployment` | Ship it safely and wire up external tools. |
 
-Print, with a one-line *why* per recommended bundle (language matched to the user's level):
+Print, with a one-line *why* per recommended skill (language matched to the user's level):
 
 ```text
-/plugin marketplace add ericrisco/skills
-/plugin install <bundle>@rsc-skills
+npx rsc add <skill> [<skill> ...]
 ```
 
-Recommend only bundles their answers justify — same discipline as "no speculative tools". Full bundle map, sample printouts per scenario, and the requirements-first decision pattern → `references/recommend-bundles.md`.
+Recommend only skills their answers justify — same discipline as "no speculative tools". Full skill map, sample printouts per scenario, and the requirements-first decision pattern → `references/recommend-skills.md`.
 
 ### Phase 4 — HANDOFF
 
-Tell the user to run **`/rsc-core:harness`** to actually scaffold the `01-TOOLS/` + `02-DOCS/` workspace. `init` stops here — it has set the profile, recorded the discovery, and recommended the bundles. `harness` reads the profile and builds the structure.
+Tell the user to install `harness` (`npx rsc add harness`) and then run the **`harness`** skill to actually scaffold the `01-TOOLS/` + `02-DOCS/` workspace. `init` stops here — it has set the profile, recorded the discovery, and recommended the skills. `harness` reads the profile and builds the structure.
 
-> "Tu perfil y lo que hemos hablado ya están guardados. Cuando hayas instalado los bundles de arriba, ejecuta `/rsc-core:harness` y monto el esqueleto del proyecto (`01-TOOLS/` + `02-DOCS/`) leyendo todo lo que acabamos de decidir."
+> "Tu perfil y lo que hemos hablado ya están guardados. Cuando hayas instalado las skills de arriba (`npx rsc add …`), ejecuta `harness` y monto el esqueleto del proyecto (`01-TOOLS/` + `02-DOCS/`) leyendo todo lo que acabamos de decidir."
 
 ## Iron rules (non-negotiable)
 
@@ -144,10 +143,10 @@ Tell the user to run **`/rsc-core:harness`** to actually scaffold the `01-TOOLS/
 2. **Non-technical by default.** Plain language until told otherwise. Never assume the user reads code.
 3. **The dial governs verbosity AND question count.** Read it, obey it, in this skill and every skill downstream. L0 means *do it and stop talking*; L3 means *explain everything and ask*.
 4. **Three options, requirements first.** For any significant decision: gather the driving requirements, present exactly 3 options with honest trade-offs, recommend one, log it.
-5. **Recommend, never install.** A skill cannot run `/plugin install`. Print the commands; the user runs them.
-6. **No speculative bundles.** Recommend a bundle only if the discovery justified it. No "you'll probably want agents too".
+5. **Recommend, never install.** A skill cannot run `npx rsc add`. Print the commands; the user runs them.
+6. **No speculative skills.** Recommend a skill only if the discovery justified it. No "you'll probably want agents too".
 7. **Persist as you learn.** Goals, context, constraints, decisions go to `02-DOCS/wiki/harness/` continuously — `user-profile.md` for state, `decisions.md` append-only for choices.
-8. **`init` writes only the profile + the link.** It writes ONLY the user-profile + decisions log under `02-DOCS/wiki/harness/` and the `CLAUDE.md` Knowledge-map link. ALL other `01-TOOLS/` + `02-DOCS/` scaffolding is `/rsc-core:harness`'s job. Hand off; do not do its job.
+8. **`init` writes only the profile + the link.** It writes ONLY the user-profile + decisions log under `02-DOCS/wiki/harness/` and the `CLAUDE.md` Knowledge-map link. ALL other `01-TOOLS/` + `02-DOCS/` scaffolding is the `harness` skill's job. Hand off; do not do its job.
 9. **Additive to `CLAUDE.md`.** Create it if absent; otherwise add/update only the `## Knowledge map` section. Never delete user content.
 10. **Domain-agnostic.** Software and non-code harnesses get the same first-class treatment. Never assume "project" means "code".
 
@@ -159,23 +158,23 @@ These thoughts mean the skill is about to break its own rules. Recognize and abo
 | --- | --- |
 | "They sound technical, I'll skip the level question" | No. The level question is the first thing, always. Ask it. |
 | "I'll just pick Vercel, it's obviously best" | No. Gather requirements, present 3, recommend with reasons, log it. |
-| "I'll recommend every bundle to be safe" | No. Recommend only what discovery justified. |
-| "I'll scaffold 01-TOOLS now while I'm here" | No. That's `/rsc-core:harness`. `init` profiles and hands off. |
+| "I'll recommend every skill to be safe" | No. Recommend only what discovery justified. |
+| "I'll scaffold 01-TOOLS now while I'm here" | No. That's the `harness` skill. `init` profiles and hands off. |
 | "The profile can wait until after discovery" | No. Profile first — every later question's framing depends on it. |
 | "This is a company, not code, so the harness doesn't apply" | No. Domain-agnostic. A non-code harness uses the same structure. |
-| "I'll install the plugins for them" | No. A skill can't install. Print the commands. |
+| "I'll install the skills for them" | No. A skill can't install. Print the `npx rsc add` commands. |
 | "They said 'ok', that's enough to pick the database" | No. A significant decision needs the 3-option pattern and a log entry. |
 
 ## Project grounding (02-DOCS + CLAUDE.md)
 
-This skill's `02-DOCS` record is the **user profile** at `02-DOCS/wiki/harness/user-profile.md` plus the append-only **decisions log** at `02-DOCS/wiki/harness/decisions.md`. Both are written in Phase 1 and updated throughout, and both are linked from a `## Knowledge map` section in the root `CLAUDE.md` (created if absent, additive only). Every rsc skill reads the profile first and adapts its verbosity and question count to `accompaniment_level` and `technical_level`. Those two files plus the Knowledge-map link are everything `init` writes; ALL other `01-TOOLS/` + `02-DOCS/` scaffolding is `/rsc-core:harness`'s job, and it reads this same profile.
+This skill's `02-DOCS` record is the **user profile** at `02-DOCS/wiki/harness/user-profile.md` plus the append-only **decisions log** at `02-DOCS/wiki/harness/decisions.md`. Both are written in Phase 1 and updated throughout, and both are linked from a `## Knowledge map` section in the root `CLAUDE.md` (created if absent, additive only). Every rsc skill reads the profile first and adapts its verbosity and question count to `accompaniment_level` and `technical_level`. Those two files plus the Knowledge-map link are everything `init` writes; ALL other `01-TOOLS/` + `02-DOCS/` scaffolding is the `harness` skill's job, and it reads this same profile.
 
 Verify the profile and the Knowledge-map link exist with `scripts/verify.sh` (read-only; warns, never fails).
 
 ## See Also
 
-- `/rsc-core:harness` — the scaffolder this skill hands off to; builds `01-TOOLS/` + `02-DOCS/` from the profile (the `harness` SCAN→AUDIT→CONSENT→APPLY→VERIFY engine).
-- `/rsc-ops:deployment` — invoked at runtime when the deploy decision (the "siempre 3 opciones" canonical example) is made; Hetzner+Coolify, Vercel, Fly.io and friends.
-- `/rsc-ops:secure-coding` — input validation, authn/z, secret handling; recommended whenever software is being shipped.
-- Domain bundles (`rsc-backend`, `rsc-frontend`, `rsc-content`, `rsc-agents`) are **recommended at runtime** by Phase 3 based on discovery — not hardwired here.
-- References: `references/accompaniment-and-profile.md`, `references/discovery.md`, `references/recommend-bundles.md`.
+- `harness` — the scaffolder this skill hands off to; builds `01-TOOLS/` + `02-DOCS/` from the profile (the SCAN→AUDIT→CONSENT→APPLY→VERIFY engine).
+- `deployment` — invoked at runtime when the deploy decision (the "siempre 3 opciones" canonical example) is made; Hetzner+Coolify, Vercel, Fly.io and friends.
+- `secure-coding` — input validation, authn/z, secret handling; recommended whenever software is being shipped.
+- Stack skills (`fastapi`, `go`, `nextjs`, `flutter`, `building-agents`, …) are **recommended at runtime** by Phase 3 based on discovery — not hardwired here.
+- References: `references/accompaniment-and-profile.md`, `references/discovery.md`, `references/recommend-skills.md`.

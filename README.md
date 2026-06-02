@@ -1,350 +1,292 @@
 # skills
 
-Eric Risco's personal collection of agent skills for [skills.sh](https://skills.sh).
+Eric Risco's collection of agent skills, distributed as **`rsc-universal`** — a
+single CLI (`npx rsc`) that installs skills **one at a time**, recommends what
+your project needs, and keeps your assistant equipped as you work.
 
-[![skills.sh](https://skills.sh/b/ericrisco/skills)](https://skills.sh/ericrisco/skills)
+`skills/<name>/` is the single source of truth. There are no bundles to choose
+and nothing to over-install: you start with a tiny floor and the system proposes
+the next skill when your project actually needs it.
 
-There are two ways to install: as **Claude Code plugins** (the `rsc-skills`
-marketplace, namespaced as `/<plugin>:<skill>`) or with **`npx skills`** (the
-flat catalog). Both read the same `skills/<name>/` directories — nothing is
-duplicated.
+## Quick start (the easy way)
 
-## Install as a plugin
-
-This repo is a Claude Code **plugin marketplace** named `rsc-skills`. Add it
-once, then install only the bundles you want.
+Run the assistant and describe what you want — in plain language, no jargon:
 
 ```bash
-# 1. add the marketplace (from inside Claude Code)
-/plugin marketplace add ericrisco/skills
-
-# 2. install the bundles you need
-/plugin install rsc-core@rsc-skills       # init + harness
-/plugin install rsc-backend@rsc-skills    # fastapi + go + postgresdb
-/plugin install rsc-frontend@rsc-skills   # nextjs + flutter + design
-/plugin install rsc-content@rsc-skills    # marketing + presentations + course-storytelling
-/plugin install rsc-agents@rsc-skills     # building-agents
-/plugin install rsc-ops@rsc-skills        # secure-coding + deployment
-/plugin install rsc-sdd@rsc-skills        # sdd + constitution/specify/clarify/plan/tasks/analyze/implement/verify/review/ship + debug/worktrees/parallel
-/plugin install rsc-review@rsc-skills     # /code-review + /security-scan + the reviewer fleet
+npx rsc
 ```
 
-Once a bundle is installed, its skills are **namespaced under the plugin name**
-and invoke as `/<plugin>:<skill>`:
+```
+Hola 👋 ¿Qué quieres hacer?
+> una tienda web con base de datos y publicarla
 
-```text
-/rsc-core:init                  /rsc-backend:fastapi      /rsc-frontend:nextjs
-/rsc-core:harness               /rsc-backend:go           /rsc-frontend:flutter
-/rsc-core:author-skill          /rsc-backend:postgresdb   /rsc-frontend:design
+He preparado esto para ti:
+   • Tu web (rápida y lista para Google)
+   • Guardar tus datos de forma fiable
+   • Publicarlo online
+   • Que se vea bien y convierta
+¿Lo monto? (sí / no) > sí
 
-/rsc-content:marketing          /rsc-agents:building-agents
-/rsc-content:presentations      /rsc-ops:secure-coding
-/rsc-content:course-storytelling /rsc-ops:deployment
-
-/rsc-sdd:sdd        /rsc-sdd:constitution /rsc-sdd:specify  /rsc-sdd:clarify
-/rsc-sdd:plan       /rsc-sdd:tasks        /rsc-sdd:analyze  /rsc-sdd:implement
-/rsc-sdd:verify     /rsc-sdd:review       /rsc-sdd:ship     /rsc-sdd:debug
-/rsc-sdd:worktrees  /rsc-sdd:parallel
+✅ Listo. Abre tu editor y empieza a pedir cosas en tu idioma.
 ```
 
-The `rsc-review` bundle ships **commands and agents** rather than skills, so it
-invokes as commands: `/code-review [pr]` and `/security-scan`, backed by a fleet
-of reviewer agents (`code-reviewer`, `web-reviewer`, `python-reviewer`,
-`go-reviewer`, `sql-reviewer`, `flutter-reviewer`, `security-reviewer`).
+It reads your repository (what stack is already there), listens to what you say,
+and installs only the matching skills. The first run also installs the **floor**:
+`rsc-suggest` (the always-on detector) so that — from then on — your assistant
+itself proposes installing a skill the moment a task needs one.
 
-New here? Install `rsc-core` and run `/rsc-core:init` — it gauges your level,
-figures out what you're building, recommends which other bundles to install,
-and hands off to `/rsc-core:harness` to scaffold the workspace.
-
-The eight bundles map to one marketplace under `.claude-plugin/marketplace.json`;
-each bundle lives at `plugins/<bundle>/`. A skill is authored once under
-`skills/<name>/` (the canonical source) and copied into each bundle for
-distribution — see [Repo layout & contributing](#repo-layout--contributing).
-
-## Install with `npx skills`
-
-Install everything to your active agent (Claude Code, Codex, Cursor, etc.):
+## The CLI
 
 ```bash
-npx skills add ericrisco/skills --all
+npx rsc                                 # plain-language wizard (recommended)
+npx rsc add fastapi postgresdb          # install specific skills, by name
+npx rsc install --profile minimal       # the floor: suggest + harness + init
+npx rsc install --profile core          # floor + the SDD workflow
+npx rsc install --profile full          # everything
+npx rsc install --profile full --without go   # everything except one skill
+npx rsc consult "security review"       # recommend only, no install
+npx rsc list                            # what rsc has installed
+npx rsc doctor                          # health check (state, hook, counts)
+npx rsc uninstall postgresdb --dry-run  # preview a removal
 ```
 
-Install a single skill (the flat skill name, e.g. `harness`, `fastapi`):
+The unit of installation is the **individual skill** — install `fastapi` without
+ever pulling `go`. Nothing you don't use ends up in your context.
 
-```bash
-npx skills add ericrisco/skills --skill harness
-```
+## How recommendation works
 
-List what's in this catalog without installing:
+Two faces, one catalog (`manifest.json`):
 
-```bash
-npx skills add ericrisco/skills --list
-```
+- **In the terminal** — `npx rsc` / `npx rsc consult` rank the catalog against
+  your words (a small FTS index over each skill's description + tags) merged with
+  what it detects in your repo, then expand via each skill's `recommends`.
+- **In the chat** — `rsc-suggest` is a tiny always-on skill. When a task would
+  benefit from a skill you don't have, it names it and (with a one-word confirm)
+  runs `npx rsc add <id>` for you. Installed by default; the floor of the system.
 
-## Bundles & skills
+Repo detection maps real signals to skills: `package.json` + `next` → `nextjs`;
+`go.mod` → `go`; `pyproject.toml` → `fastapi`; `*.sql`/`prisma/` → `postgresdb`;
+`Dockerfile`/`.github/` → `deployment`; and so on. An empty repo just asks.
 
-The catalog ships as eight plugin bundles. The flat `npx skills` names are the
-skill names (e.g. `harness`, `fastapi`); the plugin invocations are namespaced
-as `/<bundle>:<skill>`. `rsc-review` is the exception — it ships commands and
-agents, invoked directly (`/code-review`, `/security-scan`).
+## Multi-target
 
-| Bundle | Skills / commands |
-| --- | --- |
-| **rsc-core** | `init`, `harness`, `author-skill` |
-| **rsc-backend** | `fastapi`, `go`, `postgresdb` |
-| **rsc-frontend** | `nextjs`, `flutter`, `design` |
-| **rsc-content** | `marketing`, `presentations`, `course-storytelling` |
-| **rsc-agents** | `building-agents` |
-| **rsc-ops** | `secure-coding`, `deployment` |
-| **rsc-sdd** | `sdd`, `constitution`, `specify`, `clarify`, `plan`, `tasks`, `analyze`, `implement`, `verify`, `review`, `ship`, `debug`, `worktrees`, `parallel` |
-| **rsc-review** | `/code-review [pr]`, `/security-scan`; reviewer fleet (`code-reviewer`, `web-reviewer`, `python-reviewer`, `go-reviewer`, `sql-reviewer`, `flutter-reviewer`, `security-reviewer`) |
+`skills/<name>/` is the source; the installer writes the right format for your
+IDE (auto-detected, or `--target`):
 
-### rsc-core
+| Target | Destination | Always-on detector |
+| --- | --- | --- |
+| `claude` | `~/.claude/skills/rsc/<id>/` | SessionStart hook in `settings.json` |
+| `cursor` | `.cursor/rules/<id>.mdc` | always-apply rule |
+| `codex` | `.codex/rsc/<id>/` + `AGENTS.md` | block in `AGENTS.md` |
+| `gemini` | `.gemini/rsc/<id>/` + `GEMINI.md` | block in `GEMINI.md` |
 
-The front door and the control plane.
+## The catalog
 
-#### [init](skills/init/) — `/rsc-core:init`
+Skills are grouped here by theme for reading only — there are no install bundles.
+Once installed, invoke a skill by its name in your assistant. Each skill is
+**hybrid**: a focused `SKILL.md`, deep-dive `references/`, and (for stack skills)
+an executable `scripts/verify.sh` quality gate.
 
-The bootstrapper. Gauges the user's technical level first (non-technical by
-default), discovers what they want to build or govern, detects greenfield vs
-brownfield, recommends which `rsc-*` bundles to install (printing the exact
-install commands), and hands off to `/rsc-core:harness`.
+### Core — the front door & control plane
 
-#### [harness](skills/harness/) — `/rsc-core:harness`
+#### [init](skills/init/)
 
-The workspace **control plane** (`/rsc-core:harness`). Governs a workspace —
-software OR a non-code base (a company, an ops desk, a knowledge vault) —
-through three parts: the `01-TOOLS/` operational tooling layer, the `02-DOCS/`
-Karpathy chaos→knowledge engine, and the root Knowledge map. `/rsc-core:init`
-is the bootstrap front door; this skill is the ongoing control. It starts
-non-technical-first and reads/persists the user profile (technical +
-accompaniment level) under `02-DOCS/wiki/harness/`. As a brownfield auditor it
-scans any project, detects
-external provider integrations from 100+ catalog entries (Stripe, OpenAI,
-Anthropic, Supabase, Sentry, Twilio, …), and — only with explicit
-consent — scaffolds a canonical `01-TOOLS/` layer (one folder per
-provider, each with a working `test_connection` smoke-test) plus a
-`02-DOCS/` **chaos→knowledge engine** (Karpathy-style, fully embedded —
-no external skill dependency).
+The bootstrapper. Gauges your technical level first (non-technical by default),
+discovers what you want to build or govern, detects greenfield vs brownfield,
+recommends which skills to install (printing the exact `npx rsc add` commands),
+and hands off to `harness`.
 
-The `02-DOCS/` layer is the second-brain pattern, domain-agnostic and
-multiformat: drop **any raw file** (PDF, image, CSV, JSON, notes, html)
-into `inbox/` and an **Inbox Sweep** — the agent "going for a walk" —
-extracts it, classifies it by content into topics (`finanzas/`, `legal/`,
-`crm/`…), cross-links it, and compiles it into a living wiki that
-**self-improves** with every file (Maintenance Pass → Micro-Improve →
-Deep Improve, schedulable via cron). The app on top consumes the
-knowledge model, not the loose documents.
+#### [harness](skills/harness/)
 
-Also generates the root `CLAUDE.md` and `AGENTS.md`, and migrates legacy
-`XX-*` numbered folders into the canonical structure.
+The workspace control plane. Governs a workspace — software OR a non-code base (a
+company, an ops desk, a knowledge vault) — through the `01-TOOLS/` operational
+tooling layer, the `02-DOCS/` Karpathy chaos→knowledge engine, and the root
+Knowledge map. As a brownfield auditor it scans any project, detects external
+provider integrations (Stripe, OpenAI, Anthropic, Supabase, Sentry, Twilio, …),
+and — only with explicit consent — scaffolds a canonical `01-TOOLS/` layer (one
+folder per provider, each with a working `test_connection`) plus a `02-DOCS/`
+second-brain that self-improves with every file dropped into `inbox/`. Also
+generates the root `CLAUDE.md` and `AGENTS.md`.
 
-Triggers: `"audit my project"`, `"bootstrap workspace"`, `"set up
-01-TOOLS and 02-DOCS"`, `"risco harness"`, `"project harness"`,
-`"procesa el inbox"`, `"sal a pasear"`.
+#### [author-skill](skills/author-skill/)
 
-#### [author-skill](skills/author-skill/) — `/rsc-core:author-skill`
+The meta-skill for authoring and editing the skills in this catalog —
+frontmatter discipline (`name`, `description`, `tags`, `recommends`), trigger
+design, the eval minimums enforced by `scripts/eval-lint.sh`, and the
+`manifest.json` distribution model. Use it when creating a new skill or
+tightening an existing one.
 
-The meta-skill for authoring and editing the skills in this catalog itself —
-frontmatter discipline, trigger design (`should_trigger` / `should_not_trigger`),
-the eval minimums enforced by `scripts/eval-lint.sh`, the canonical-source +
-`sync-bundles.sh` distribution model, and sibling-link hygiene (every
-`../x/SKILL.md` must resolve). Use it when creating a new skill, tightening an
-existing one's triggers, or verifying a skill before it ships.
+#### [suggest](skills/suggest/)
 
-The remaining bundles are the stack and craft skills — a tight set of
-best-in-class skills for the Risco stack plus cross-cutting design, content,
-agents, security and deployment. Each is **hybrid**: a focused `SKILL.md`,
-deep-dive `references/`, and an executable `scripts/verify.sh` quality gate you
-run inside your own project. Testing, security and production guidance are
-embedded in each skill rather than scattered.
+The always-on detector. Installed with every profile. During any conversation,
+if a task would benefit from a skill you don't have, it proposes installing it
+via `npx rsc add <id>`. Tiny by design — it's the one thing always in context.
 
-### rsc-backend
+### Backend
 
-#### [fastapi](skills/fastapi/) — `/rsc-backend:fastapi`
+#### [fastapi](skills/fastapi/)
 
-Build, review, test, secure and ship FastAPI / async Python services —
-Python 3.12+, Pydantic v2, async SQLAlchemy 2.0, DI, JWT/OAuth2, pytest, and
-production settings. `references/`: testing, database, security, production.
+Build, review, test, secure and ship FastAPI / async Python services — Python
+3.12+, Pydantic v2, async SQLAlchemy 2.0, DI, JWT/OAuth2, pytest, production
+settings. `references/`: testing, database, security, production.
 
-#### [go](skills/go/) — `/rsc-backend:go`
+#### [go](skills/go/)
 
-Idiomatic Go HTTP services — errors, concurrency (context, errgroup, no
-leaks), net/http 1.22 routing, slog, table-driven `-race` tests, govulncheck.
+Idiomatic Go HTTP services — errors, concurrency (context, errgroup, no leaks),
+net/http 1.22 routing, slog, table-driven `-race` tests, govulncheck.
 `references/`: concurrency, http-services, testing.
 
-#### [postgresdb](skills/postgresdb/) — `/rsc-backend:postgresdb`
+#### [postgresdb](skills/postgresdb/)
 
-Engine-level PostgreSQL 16 — schema & type correctness, the right index,
-reading `EXPLAIN (ANALYZE, BUFFERS)`, keyset pagination, zero-downtime
-migrations, RLS, pooling, partitioning, backups. `references/`:
-schema-and-indexing, query-optimization, migrations, operations-and-security.
+Engine-level PostgreSQL 16 — schema & type correctness, the right index, reading
+`EXPLAIN (ANALYZE, BUFFERS)`, keyset pagination, zero-downtime migrations, RLS,
+pooling, partitioning, backups. `references/`: schema-and-indexing,
+query-optimization, migrations, operations-and-security.
 
-### rsc-frontend
+### Frontend
 
-#### [nextjs](skills/nextjs/) — `/rsc-frontend:nextjs`
+#### [nextjs](skills/nextjs/)
 
-Next.js 15 App Router done right — Server vs Client Components, server
-actions, route handlers, caching/revalidation, React 19, end-to-end TS,
-vitest + Playwright, security and Core Web Vitals. `references/`: react,
-data-and-caching, testing, performance, security.
+Next.js 15 App Router done right — Server vs Client Components, server actions,
+route handlers, caching/revalidation, React 19, end-to-end TS, vitest +
+Playwright, security and Core Web Vitals. `references/`: react, data-and-caching,
+testing, performance, security.
 
-#### [flutter](skills/flutter/) — `/rsc-frontend:flutter`
+#### [flutter](skills/flutter/)
 
 Flutter / Dart 3 apps — feature-first clean architecture, Riverpod (and Bloc),
-Material 3 tokens, go_router, widget/golden/integration tests, rebuild &
-jank performance. `references/`: architecture-and-state, ui-and-navigation,
-testing, performance.
+Material 3 tokens, go_router, widget/golden/integration tests, rebuild & jank
+performance. `references/`: architecture-and-state, ui-and-navigation, testing,
+performance.
 
-#### [design](skills/design/) — `/rsc-frontend:design`
+#### [design](skills/design/)
 
-Research-first product design and high-converting landing pages — grounds in
-the project's brand study (links root `CLAUDE.md` → `02-DOCS/wiki/brand/`, and
-asks until complete if missing), researches current **2026 UX/UI trends**, then
-ships a premium, accessible (WCAG 2.2 AA), fast (LCP/INP/CLS) visual system with
-Tailwind + Next.js. `references/`: research-method, visual-system,
+Research-first product design and high-converting landing pages — grounds in the
+project's brand study, researches current 2026 UX/UI trends, then ships a
+premium, accessible (WCAG 2.2 AA), fast (LCP/INP/CLS) visual system with Tailwind
++ Next.js. `references/`: research-method, visual-system,
 landing-anatomy-and-cro, copywriting-frameworks, motion-and-interaction,
 trends-2026, brand-grounding.
 
-### rsc-content
+### Content
 
-#### [marketing](skills/marketing/) — `/rsc-content:marketing`
+#### [marketing](skills/marketing/)
 
-The words, not the pixels — conversion copywriting for landings and web pages.
-Grounds in the brand study first (links root `CLAUDE.md` → `02-DOCS/wiki/brand/`,
-asking for voice samples and positioning until complete), then writes specific,
-benefit-led, on-brand copy: value props, hero/section copy, CTAs, email and
-launch sequences, channel-adapted messaging. Pairs with `design` (pixels) and
-`nextjs` (build). `references/`: brand-grounding, copy-frameworks, landing-copy,
+Conversion copywriting for landings and web pages. Grounds in the brand study
+first, then writes specific, benefit-led, on-brand copy: value props,
+hero/section copy, CTAs, email and launch sequences. Pairs with `design` and
+`nextjs`. `references/`: brand-grounding, copy-frameworks, landing-copy,
 campaigns-and-channels.
 
-#### [presentations](skills/presentations/) — `/rsc-content:presentations`
+#### [presentations](skills/presentations/)
 
 Stunning PPTX and PDF decks, grounded in the brand study. Two pipelines —
-design-led Markdown (Marp/Slidev themed from the `design` tokens, exported to
-PDF + PPTX) and native editable `python-pptx` — plus deck storytelling/arcs,
-slide copy (from `marketing`) and projection-grade visual design. `references/`:
+design-led Markdown (Marp/Slidev) and native editable `python-pptx` — plus deck
+storytelling, slide copy and projection-grade visual design. `references/`:
 storytelling-and-decks, markdown-decks, pptx-python, slide-design,
 brand-grounding.
 
-#### [course-storytelling](skills/course-storytelling/) — `/rsc-content:course-storytelling`
+#### [course-storytelling](skills/course-storytelling/)
 
-Turn course/lesson content into teaching that lands — profiles the learner and
-audience first, then runs every concept through Russell Brunson's *Expert
-Secrets* machine (Epiphany Bridge, the three false beliefs, Big Domino, named
-mental models, grounded analogies) into a hook → story → model → analogy →
-proof → application → so-what recipe. `references/`: brunson-frameworks,
-learner-grounding, mental-models, course-analysis, concept-landing-recipe.
+Turn course/lesson content into teaching that lands — profiles the learner, then
+runs every concept through Russell Brunson's *Expert Secrets* machine into a hook
+→ story → model → analogy → proof → application recipe. `references/`:
+brunson-frameworks, learner-grounding, mental-models, course-analysis,
+concept-landing-recipe.
 
-### rsc-agents
+### Agents
 
-#### [building-agents](skills/building-agents/) — `/rsc-agents:building-agents`
+#### [building-agents](skills/building-agents/)
 
-Build production LLM agents that are **model-agnostic by construction** — a
-thin provider adapter (OpenAI ↔ Anthropic ↔ Gemini ↔ OSS as a config
-change), a disciplined agent loop, schema-validated tools, provider-neutral
-RAG, eval gates, OTel GenAI tracing, and an MCP server when warranted.
-`references/`: provider-abstraction, agent-loops-and-harness, tools-and-rag,
+Build production LLM agents that are model-agnostic by construction — a thin
+provider adapter (OpenAI ↔ Anthropic ↔ Gemini ↔ OSS as a config change), a
+disciplined agent loop, schema-validated tools, provider-neutral RAG, eval gates,
+OTel GenAI tracing, and an MCP server when warranted. `references/`:
+provider-abstraction, agent-loops-and-harness, tools-and-rag,
 evals-and-observability, mcp-servers.
 
-### rsc-ops
+### Ops
 
-#### [secure-coding](skills/secure-coding/) — `/rsc-ops:secure-coding`
+#### [secure-coding](skills/secure-coding/)
 
-Transversal security — lightweight STRIDE threat modeling and the OWASP Top
-10 mapped to concrete vulnerable→fixed examples in FastAPI, Go and Next.js,
-plus authn/authz, secrets and supply-chain gates. `references/`:
-threat-modeling, owasp-by-stack, authn-authz, secrets-and-supply-chain.
+Transversal security — lightweight STRIDE threat modeling and the OWASP Top 10
+mapped to concrete vulnerable→fixed examples in FastAPI, Go and Next.js, plus
+authn/authz, secrets and supply-chain gates. `references/`: threat-modeling,
+owasp-by-stack, authn-authz, secrets-and-supply-chain.
 
-#### [deployment](skills/deployment/) — `/rsc-ops:deployment`
+#### [deployment](skills/deployment/)
 
 Source → hardened container → green CI/CD → live: multi-stage Dockerfiles per
 stack, GitHub Actions (matrix, caching, OIDC, security gates), and Coolify
-self-hosted deploys (zero-downtime, secrets flow, rollbacks). `references/`:
-dockerfiles-by-stack, github-actions, coolify.
+self-hosted deploys. `references/`: dockerfiles-by-stack, github-actions,
+coolify.
 
-## SDD skills
+### SDD — the Spec-Driven Development workflow
 
-The `rsc-sdd` bundle is the **Spec-Driven Development workflow** — the method
-that takes a fuzzy intent and walks it, phase by phase, to a shipped, verified
-change. It is process, not stack: each phase defers concrete tooling (test
-runners, lint/type/build, framework idioms) to the stack skills above, and
-writes its artifacts into the `02-DOCS/wiki/sdd/` layer the `harness` governs.
+The SDD skills take a fuzzy intent and walk it, phase by phase, to a shipped,
+verified change. It is process, not stack: each phase defers concrete tooling to
+the stack skills above, and writes artifacts into the `02-DOCS/wiki/sdd/` layer
+the `harness` governs. Install the whole workflow with `npx rsc install
+--profile core`.
 
-Install it alongside the others:
+The [sdd](skills/sdd/) dispatcher routes each request to its phase; the happy
+path is **constitution → specify → clarify → plan → tasks → analyze → implement
+→ verify → review → ship**, with `debug`, `worktrees`, and `parallel` callable on
+demand:
 
-```bash
-/plugin install rsc-sdd@rsc-skills
-```
-
-The `sdd` dispatcher routes each request to its phase; you can also invoke any
-phase directly as `/rsc-sdd:<phase>`:
-
-```text
-/rsc-sdd:sdd            # the dispatcher: the method, the phase map, the invoke rule
-/rsc-sdd:constitution   # project non-negotiables: stack canon, quality bars, conventions
-/rsc-sdd:specify        # turn a fuzzy intent into a spec — what & why, no how
-/rsc-sdd:clarify        # surface ambiguities / edge cases, ask, bake answers back in
-/rsc-sdd:plan           # technical plan: architecture, interfaces, data flow, tests, risks
-/rsc-sdd:tasks          # break the plan into ordered, independently-verifiable tasks
-/rsc-sdd:analyze        # consistency gate: constitution <-> spec <-> plan <-> tasks
-/rsc-sdd:implement      # execute tasks with checkpoints; TDD discipline embedded
-/rsc-sdd:verify         # post-build gate: run the stack's checks + done-checks + acceptance
-/rsc-sdd:review         # adversarial code review — give and receive with rigor
-/rsc-sdd:ship           # close the branch: PR / merge / cleanup
-/rsc-sdd:debug          # root-cause diagnosis: reproduce -> isolate -> fix -> verify
-/rsc-sdd:worktrees      # isolate feature work in a branch/worktree before executing a plan
-/rsc-sdd:parallel       # fan out independent tasks across subagents, gather results
-```
-
-The happy path is **constitution → specify → clarify → plan → tasks → analyze →
-implement → verify → review → ship**, with `debug`, `worktrees`, and `parallel`
-callable on demand at any point. The SDD artifacts live under
-`02-DOCS/wiki/sdd/` (`constitution.md`, `specs/`, `plans/`, `decisions.md`).
-
-The `rsc-core` bundle also gains **`author-skill`** — the meta-skill for
-authoring and editing skills in this catalog itself (frontmatter discipline,
-trigger design, the eval minimums, sibling-link hygiene). Invoke it as
-`/rsc-core:author-skill`.
+- [constitution](skills/constitution/) — project non-negotiables: stack canon, quality bars, conventions
+- [specify](skills/specify/) — turn a fuzzy intent into a spec — what & why, no how
+- [clarify](skills/clarify/) — surface ambiguities / edge cases, ask, bake answers back in
+- [plan](skills/plan/) — technical plan: architecture, interfaces, data flow, tests, risks
+- [tasks](skills/tasks/) — break the plan into ordered, independently-verifiable tasks
+- [analyze](skills/analyze/) — consistency gate: constitution ↔ spec ↔ plan ↔ tasks
+- [implement](skills/implement/) — execute tasks with checkpoints; TDD discipline embedded
+- [verify](skills/verify/) — post-build gate: stack checks + done-checks + acceptance
+- [review](skills/review/) — adversarial code review — give and receive with rigor
+- [ship](skills/ship/) — close the branch: PR / merge / cleanup
+- [debug](skills/debug/) — root-cause diagnosis: reproduce → isolate → fix → verify
+- [worktrees](skills/worktrees/) — isolate feature work in a branch/worktree
+- [parallel](skills/parallel/) — fan out independent tasks across subagents
 
 ## Skill format
 
-Each skill is a directory under `skills/<name>/` with at minimum a
-`SKILL.md` that has YAML frontmatter:
+Each skill is a directory under `skills/<name>/` with a `SKILL.md` whose YAML
+frontmatter drives both triggering and the installer's recommendations:
 
 ```yaml
 ---
 name: my-skill
 description: Use when [specific triggering conditions]
+tags: [keyword, keyword]        # what the consult advisor searches over
+recommends: [sibling-skill]     # what the system offers to install next
+profiles: [core, full]          # optional: named-profile membership
 ---
 ```
 
-The full spec lives at [agentskills.io/specification](https://agentskills.io/specification).
+The full agent-skill spec lives at
+[agentskills.io/specification](https://agentskills.io/specification).
 
 ## Repo layout & contributing
 
-`skills/<name>/` is the **canonical source of truth** — every skill is authored
-and edited there, once. `plugins/<bundle>/skills/` directories are **generated
-copies** for distribution, not originals: they are real copies (not symlinks),
-so each bundle is fully self-contained and survives `zip`/tarball packaging and
-Windows installs.
+`skills/<name>/` is the **single source of truth** — every skill is authored and
+edited there, once. The catalog is published as the `rsc-universal` npm package;
+the CLI copies skills into the target IDE on demand.
 
 After editing any skill:
 
 ```bash
-scripts/sync-bundles.sh   # refresh the plugin copies from skills/ (idempotent)
-scripts/eval-lint.sh      # validate every skills/*/evals/cases.yaml
+npm run manifest      # regenerate manifest.json from skills/*/SKILL.md
+npm run validate      # ajv-validate frontmatter + check recommends integrity
+npm test              # unit + integration tests
+scripts/eval-lint.sh  # validate every skills/*/evals/cases.yaml
 ```
 
-`scripts/sync-bundles.sh` removes the current bundle copies and re-copies from
-`skills/`, so the plugins always match canon. `scripts/eval-lint.sh` enforces
-the eval minimums per skill (>=5 `should_trigger`, >=4 `should_not_trigger`,
->=1 `capability`) and exits non-zero on any failure. Never edit a skill under
-`plugins/` directly — those edits are overwritten on the next sync.
+`manifest.json` is generated, never hand-edited; CI runs `npm run manifest:check`
+and fails if it is stale or the skill count drifts. Adding a skill is: create
+`skills/<id>/SKILL.md` with `tags` + `recommends`, run `npm run manifest`, done.
 
-This is a personal catalog. Bug reports welcome via GitHub issues. PRs
-fixing detector patterns, provider endpoints, or English typos are
-appreciated.
+This is a personal catalog. Bug reports welcome via GitHub issues. PRs fixing
+detector patterns, provider endpoints, or English typos are appreciated.
 
 ## License
 

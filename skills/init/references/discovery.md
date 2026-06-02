@@ -34,12 +34,12 @@ Record `domain: software | non-code-harness`. Both are first-class. A non-code h
 Ask in batches. Adapt depth to the dial.
 
 1. **The idea in one sentence.** What does it do, for whom?
-2. **Surfaces.** Which of these does it need? (This drives the bundle recommendation.)
-   - A **backend / API / database** → `rsc-backend`.
-   - A **web or mobile UI** → `rsc-frontend`.
-   - **AI agents** (tools, RAG, autonomous loops) → `rsc-agents`.
-   - **Marketing / landing / decks / teaching** around it → `rsc-content`.
-   - It will be **shipped / needs security** → `rsc-ops`.
+2. **Surfaces.** Which of these does it need? (This drives the skill recommendation.)
+   - A **backend / API / database** → `fastapi` or `go`, `postgresdb`.
+   - A **web or mobile UI** → `nextjs` or `flutter`, `design`.
+   - **AI agents** (tools, RAG, autonomous loops) → `building-agents`.
+   - **Marketing / landing / decks / teaching** around it → `marketing`, `presentations`, `course-storytelling`.
+   - It will be **shipped / needs security** → `secure-coding`, `deployment`.
 3. **Audience & scale.** Who uses it? Roughly how many users, how many at once?
 4. **Constraints.** Budget, timeline, data region / residency, compliance, must-use technologies.
 5. **Existing tools/providers** already chosen or in play (auth, payments, email, hosting, analytics).
@@ -87,4 +87,4 @@ The "brownfield" of a non-code harness is an existing pile of tools and document
 
 ## What to record
 
-After discovery, `user-profile.md` should have, for both domains: a one-line description, the domain and its surfaces, goals, audience/scale, context (greenfield/brownfield + detected state + tools in play), and constraints (budget, timeline, region/residency, compliance, ops comfort). These are exactly the inputs Phase 3 needs to recommend bundles and run the "siempre 3 opciones" pattern, and that `/rsc-core:harness` reads to scaffold. Anything still unknown goes under "Open questions" to revisit — do not invent answers.
+After discovery, `user-profile.md` should have, for both domains: a one-line description, the domain and its surfaces, goals, audience/scale, context (greenfield/brownfield + detected state + tools in play), and constraints (budget, timeline, region/residency, compliance, ops comfort). These are exactly the inputs Phase 3 needs to recommend skills and run the "siempre 3 opciones" pattern, and that the `harness` skill reads to scaffold. Anything still unknown goes under "Open questions" to revisit — do not invent answers.

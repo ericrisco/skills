@@ -17,8 +17,5 @@ __pycache__/
 # docs/ is local scratch (specs, notes) — not part of the distributable catalog
 docs/
 
-
-# NOTE: do NOT ignore .claude-plugin/ — marketplace.json + plugin.json are the
-# distributable manifest and must stay tracked.
 node_modules/
 coverage/
