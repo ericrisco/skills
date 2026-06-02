@@ -1,0 +1,45 @@
+skill: ai-media
+
+should_trigger:
+  - prompt: "Turn this 60-second script into a narrated video with AI voice, some B-roll clips, and background music."
+    why: Full cross-modal pipeline — TTS + image-to-video + music + ffmpeg assembly, the core job.
+  - prompt: "Generate an AI voiceover for my explainer and mix it over the footage, ducking the music when the voice plays."
+    why: Non-obvious — the assembly core (sidechaincompress ducking + mux) is what makes this ai-media, not a single-model call.
+  - prompt: "I have a product photo — make it into a 9:16 video clip with subtle motion and add a music bed."
+    why: Image-to-video + music where the still is an input (consumed), not generated here.
+  - prompt: "Genérame una voz en off en español y un vídeo a partir de este guion, con música de fondo."
+    why: Spanish phrasing for the full narrated-video pipeline.
+  - prompt: "I generated 5 scene clips with Kling — stitch them into one MP4, normalize the loudness, and lay my voiceover on top."
+    why: Non-obvious — assembly-only (conform + concat + loudnorm + mux), zero generation, still squarely this skill.
+  - prompt: "Posa música de fons al meu vídeo i abaixa-la quan parla la veu, després deixa-ho tot a -14 LUFS."
+    why: Catalan — ducking + loudnorm mastering, the assembly discipline.
+
+should_not_trigger:
+  - prompt: "Generate a photorealistic product hero image and inpaint out the background."
+    route_to: replicate-images
+    why: Still-image creation/editing — the named boundary; ai-media consumes stills, does not prompt them.
+  - prompt: "How do I verify the fal webhook signature and poll the queue for my video job?"
+    route_to: fal
+    why: Provider call mechanics (queue/webhook), not cross-modal media strategy.
+  - prompt: "Build a data-driven animated explainer in React where text and charts render from JSON."
+    route_to: remotion-video
+    why: Code-rendered, frame-exact compositing — not model-generated + ffmpeg-glued.
+  - prompt: "Write me a punchy 30-second TikTok script with a 3-second hook and on-screen text."
+    route_to: video-shorts
+    why: Script/cut creative craft — ai-media renders/voices a script, it does not write the beat sheet.
+  - prompt: "Set up the full podcast episode: run-of-show, multitrack recording, RSS item and show notes."
+    route_to: podcast
+    why: Audio-episode lifecycle — ai-media makes a VO/score, it does not run a podcast.
+
+capability:
+  - scenario: "Given a 4-scene narrated-ad script, produce the end-to-end pipeline and assemble the final 1080p 16:9 MP4."
+    must_include:
+      - Plans the whole pipeline (scene list, aspect, target LUFS, models) before generating any asset
+      - Delegates the still images to replicate-images rather than prompting them here
+      - Picks a TTS model with rationale (Flash for drafts/scale vs multilingual_v2 as the safe hero default; treats eleven_v3 as verify-availability-first, not a blind hardcode)
+      - Generates one clip per scene (~5-15 s, model cap), not one long take, because models cap clip duration
+      - Applies per-track loudnorm before mixing the audio
+      - Ducks the music under the VO (sidechaincompress, or static volume fallback)
+      - Conforms clips to one resolution/fps/SAR before concat (no -c copy on mismatched clips)
+      - Final mux yields one MP4 carrying both a video and an audio stream
+      - Confirms the music's commercial rights before shipping

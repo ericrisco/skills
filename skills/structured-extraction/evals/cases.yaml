@@ -1,0 +1,70 @@
+skill: structured-extraction
+
+# Prompts that MUST load `structured-extraction`. The skill owns turning text
+# into a typed, schema-conformant object: defining the schema, choosing the
+# native decoding mechanism, and building the value-validation + bounded-reask
+# loop. The deliverable is a typed object that conforms to a schema you defined
+# — both its SHAPE (decoding) and its VALUES (validation).
+should_trigger:
+  - prompt: "Extract name, email, and total amount from these invoices into a fixed JSON schema."
+    why: "Canonical text-in/typed-object-out: a defined schema plus extraction is exactly this skill."
+
+  - prompt: "My LLM keeps returning a markdown fence and a chatty intro, JSON.parse blows up — make extraction reliable."
+    why: "Non-obvious: the symptom reads like a parsing bug, but the real fix is native structured outputs, not regex fence-stripping."
+
+  - prompt: "When the document has no phone number the model invents one — I want null instead."
+    why: "The value-correctness half: null-vs-absent is solved with a nullable schema field plus a 'use null if not stated' instruction, not by re-prompting harder."
+
+  - prompt: "Build the Pydantic model and a validate-and-retry loop to pull line items from 5k receipts."
+    why: "Schema design + bounded reask loop for value validation — the rung-2/rung-3 core of this skill."
+
+  - prompt: "Convertir estos contratos en datos estructurados con un esquema fijo y validar los campos."
+    why: "Spanish/Catalan: turn contracts into structured data with a fixed schema and validate the fields — squarely this skill."
+
+  - prompt: "Classify each support ticket into one of these 6 enums and pull the order id as structured output."
+    why: "Closed-set enum classification plus field extraction, emitted as a schema-conformant object."
+
+# NEAR-MISS prompts that must NOT load `structured-extraction`. The recurring
+# trap: the real deliverable is raw document bytes/text, a generic prompt, a
+# multi-node pipeline, an offline accuracy scorecard, or a retrieval index.
+should_not_trigger:
+  - prompt: "Get the text and tables out of this scanned PDF."
+    route_to: "document-processing"
+    why: "Produces the unstructured text this skill consumes; bytes-out, not schema-out."
+
+  - prompt: "Help me write a better system prompt with few-shot examples for my chatbot."
+    route_to: "prompt-engineering"
+    why: "General prompt craft not bound to a target schema; schema design and constrained decoding live here, 'make this prompt better' lives there."
+
+  - prompt: "Orchestrate a 4-step chain that summarizes then routes then drafts, and batch 50k docs cheaply."
+    route_to: "llm-pipeline"
+    why: "Multi-node orchestration, batching, and cost/latency — not a single extraction node."
+
+  - prompt: "Score my extractor's precision and recall against a labeled golden set and gate regressions in CI."
+    route_to: "agent-eval"
+    why: "Offline measurement harness; this skill builds the extractor, agent-eval scores it."
+
+  - prompt: "Answer questions over my document corpus by retrieving the relevant chunks."
+    route_to: "rag"
+    why: "Retrieval over a corpus, not parsing one document into a fixed schema."
+
+  - prompt: "Dedupe and normalize the categories across this 200k-row CSV of customers."
+    route_to: "data-cleaning"
+    why: "Tabular cleanup across a whole dataset, not extracting typed fields out of free text."
+
+# Capability: graded against the must_include rubric.
+capability:
+  - scenario: >
+      Given a paragraph of free text describing a customer order — sometimes
+      missing the email or the discount percent, sometimes writing the amount
+      as "$1,200.00" — produce a reliable typed extraction (vendor, amount,
+      email, discount_pct, order_date). Outline the schema and the code you
+      would write.
+    must_include:
+      - "Uses a native structured-outputs mode (OpenAI strict:true json_schema OR Anthropic output_config.format), NOT prompt-and-json.loads."
+      - "Schema sets additionalProperties:false and lists every property in required."
+      - "Maybe-absent fields (email, discount_pct) are modeled as a nullable union with an instruction to use null when absent, so the model does not fabricate them."
+      - "Adds a post-decode value-validation step (Pydantic @field_validator / Zod .refine) for ranges, currency normalization ('$1,200' -> int), and date->ISO that the schema cannot enforce."
+      - "Any reask/retry on validation failure is BOUNDED (e.g. max_retries=2) and logged, never an unbounded loop."
+      - "Explicitly distinguishes 'valid JSON' (decoding) from 'correct values' (validation) and assigns each failure mode to the rung that catches it."
+      - "Uses current APIs, not the deprecated Anthropic output_format / structured-outputs-2025-11-13 header."

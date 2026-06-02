@@ -1,0 +1,45 @@
+skill: cost-tracking
+
+should_trigger:
+  - prompt: "Wrap our OpenAI calls so we record token cost per request."
+    why: Core capture — per-request token + cost capture around an SDK call is the skill's first step.
+  - prompt: "Set a $500/month cap on the Claude API that hard-stops when we hit it."
+    why: Budget plus a hard cap that refuses — the guard layer this skill owns.
+  - prompt: "Our bill is 3x what we estimated — reconcile the billed usage against what we computed."
+    why: Non-obvious — reconciliation of provider-billed vs ledgered usage is a direct tell for this skill, not generic debugging.
+  - prompt: "Attribute our LLM spend per tenant so we know which customer is expensive."
+    why: Ledger attribution — per-tenant cost rollup is exactly the attribution-key design here.
+  - prompt: "Pon un tope de gasto a la API y avísame al 80%."
+    why: Spanish — budget plus a soft alert threshold (80%), the alert/cap branch of the skill.
+  - prompt: "Is prompt caching actually cheaper for our agent, and where's the break-even?"
+    why: The levers section — caching break-even math is owned here, not asserted.
+  - prompt: "A runaway agent loop burned through our token budget overnight with no guardrail."
+    why: The surprise-bill scenario the hard cap exists to prevent; routes straight to budgets+caps.
+
+should_not_trigger:
+  - prompt: "What's our cash runway at this burn rate?"
+    route_to: finance-ops
+    why: Company-level cash, not the AI/cloud line item; cost-tracking is just one input feeding it.
+  - prompt: "Compute the gross margin per subscription."
+    route_to: unit-economics
+    why: Margin math — cost-tracking only produces the cost numerator, it does not divide by units.
+  - prompt: "Record this AWS invoice as an expense in the books."
+    route_to: bookkeeping
+    why: The accounting record, not the operational real-time meter.
+  - prompt: "Decide what to charge customers for the pro plan."
+    route_to: pricing
+    why: Willingness-to-pay / what to charge, not controlling what we spend.
+  - prompt: "Chart our monthly active users and retention curve."
+    route_to: analytics
+    why: Product/behavior telemetry, a different meter; the dollar capture is here but user-behavior charting is not.
+
+capability:
+  - scenario: "We have a Next.js app calling Claude + OpenAI with no cost visibility and a scary bill. Give us a metering + budget-cap design."
+    must_include:
+      - reads cost from the response `usage` object, not pre-send estimates (estimates only for the pre-flight cap check)
+      - versioned pricing table where each model row carries effective_date + source, loaded as data not literals
+      - loud failure on a model absent from the pricing table (never default to $0)
+      - append-only ledger with an idempotency/request key and at least one attribution key (user/tenant/feature)
+      - budget with BOTH a soft threshold (alert/degrade) and a hard threshold (refuse with a typed error)
+      - the three levers (prompt caching with ~1-hit break-even, batch API 50% stacking with caching, model downshift)
+      - notes cloud billing alerts (AWS CAD ~24h delay, GCP Pub/Sub) are a delayed backstop, not the real-time guard

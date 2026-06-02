@@ -1,0 +1,45 @@
+skill: agent-eval
+
+should_trigger:
+  - prompt: "Is the new system prompt actually better than the old one, or am I just fooling myself?"
+    why: "Before/after on a fixed dataset is the core job. Non-obvious: uses no eval vocabulary at all."
+  - prompt: "Build me a golden set and a CI check that fails the PR if our support bot's answer quality drops."
+    why: "Dataset construction plus a block-on-regression gate, stated explicitly."
+  - prompt: "Our LLM judge gives every answer a 9 out of 10 — the scores are useless."
+    why: "Judge calibration / inflation; the fix is rationale-forcing rubric and pairwise over pointwise. Non-obvious symptom phrasing, no mention of 'eval'."
+  - prompt: "Score our RAG pipeline for faithfulness and whether it actually uses the retrieved context."
+    why: "RAG metrics — faithfulness and contextual recall — are squarely this skill."
+  - prompt: "I need to know if the agent took the right tool path, not just whether the final answer looks ok."
+    why: "Trajectory and tool-correctness scoring. Non-obvious: framed as behavior, not as 'eval'."
+  - prompt: "Necesito medir si el agente mejoró con el modelo nuevo antes de hacer merge."
+    why: "Spanish — before/after measurement plus a pre-merge gate."
+  - prompt: "Should we use DeepEval or Inspect AI for our eval suite, and how do we wire the gate?"
+    why: "Framework choice plus gate wiring; the cheat-sheet and runner are the answer."
+
+should_not_trigger:
+  - prompt: "Rewrite this system prompt so the answers come out shorter and punchier."
+    route_to: prompt-engineering
+    why: "Changing the words, not measuring quality. Evals say it is worse; that skill changes it."
+  - prompt: "Build the agent loop and tool registry for our new assistant."
+    route_to: building-agents
+    why: "Building the system under test, not scoring it."
+  - prompt: "Add a dashboard showing token cost and latency of our live LLM traffic."
+    route_to: observability
+    why: "Online monitoring of production, not offline pre-merge evaluation."
+  - prompt: "Write pytest unit tests for our data-cleaning functions."
+    route_to: testing-py
+    why: "Deterministic code with assert-equals, not stochastic outputs scored by a judge."
+  - prompt: "Red-team our chatbot for jailbreaks and prompt injection."
+    route_to: agent-safety
+    why: "Adversarial safety coverage, not quality measurement on a golden set."
+
+capability:
+  - scenario: "Set up an eval plus a regression gate for a RAG support bot that is regressing silently between releases."
+    must_include:
+      - "Builds a versioned JSONL golden set of 50-200 hand-labeled cases per failure mode, decontaminated, not synthetic-only"
+      - "Picks a scorer mix: deterministic first (schema/regex/latency), faithfulness and answer-relevancy judge where meaning matters"
+      - "Calibrates the LLM-as-judge against human labels and reports agreement (raw and/or Cohen's kappa) before trusting it"
+      - "Gate policy is block-on-regression vs a committed baseline with a bootstrap CI, not an absolute threshold"
+      - "Runner emits eval-report.json and exits non-zero to block the merge"
+      - "Names at least one concrete framework (DeepEval, Inspect AI, or promptfoo) and fits it to the case"
+      - "Records the eval policy in 02-DOCS/wiki/stack/evals.md if a harness exists — recorded, not gated"

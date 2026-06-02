@@ -1,0 +1,45 @@
+skill: rag
+
+should_trigger:
+  - prompt: "Build Q&A over our internal handbook so the bot only answers from it and adds citations."
+    why: Core RAG ask — grounded answers from a private corpus with citations is exactly the pipeline rag owns.
+  - prompt: "My RAG returns the right document but the answer is still wrong."
+    why: Non-obvious — the store retrieved correctly, so this is a passage/rerank/grounding problem inside the pipeline, not a vector-db issue.
+  - prompt: "The assistant keeps inventing facts that aren't in our docs — how do I ground it so it stops?"
+    why: Grounding + refusal contract; forcing answer-only-from-context and an explicit refusal is rag's job.
+  - prompt: "How do I measure if my retrieval is any good — context recall vs context precision?"
+    why: RAG-specific evaluation metrics; rag carries faithfulness/recall/precision even though the general harness is agent-eval.
+  - prompt: "Add contextual retrieval — prepend an LLM context blurb to each chunk before embedding to cut failed retrievals."
+    why: Anthropic Contextual Retrieval technique lives in the rag pipeline (contextualize stage), not in embeddings-search.
+  - prompt: "Wire a hybrid search plus rerank flow: dense + BM25 fused, then a cross-encoder before generation."
+    why: The retrieve → rerank → generate funnel is the heart of the rag pipeline.
+  - prompt: "El bot s'inventa coses que no surten als nostres documents i vull respostes amb cites."
+    why: Catalan — grounding + citations over a private corpus is the rag pipeline.
+
+should_not_trigger:
+  - prompt: "Set up a Qdrant collection with binary quantization and tune ef_search for recall."
+    route_to: vector-db
+    why: Store operations — collection schema, quantization, HNSW knobs — are the layer under rag, not the pipeline.
+  - prompt: "Which embedding model and chunk size give the best recall for a code corpus?"
+    route_to: embeddings-search
+    why: Embedding-model choice and chunk-size science are the layer beside rag; rag uses a chunker but does not own the experiments.
+  - prompt: "Extract the tables from these scanned invoice PDFs into clean text."
+    route_to: document-processing
+    why: File-to-text / OCR is pre-RAG ingestion; rag assumes text already exists.
+  - prompt: "Build the chat UI with sessions and channel routing for our support bot."
+    route_to: chatbot
+    why: Product surface (sessions, UI, channels) — chatbot calls the rag brain, it is not the retrieval pipeline itself.
+  - prompt: "Pull the buyer name, total, and due date out of this contract into a fixed JSON schema."
+    route_to: structured-extraction
+    why: Schema-constrained field extraction, not a grounded prose Q&A answer.
+
+capability:
+  - scenario: "Design a grounded RAG pipeline over a 500-PDF policy corpus that currently hallucinates and sometimes answers despite the right document being present."
+    must_include:
+      - Names the full pipeline stages retrieve → rerank → ground → cite → refuse.
+      - Specifies hybrid retrieval (dense + BM25) fused with Reciprocal Rank Fusion (RRF).
+      - Uses a reranker (Cohere Rerank 3.5 or a local cross-encoder) with a top-N → top-K funnel (~150 → ~20).
+      - Grounding prompt forces answer-only-from-context, inline citations of chunk ids, and an explicit refusal on insufficient context.
+      - Defines an eval plan with faithfulness plus context recall/precision and a CI threshold gate.
+      - Routes file-to-text ingestion to document-processing and store operations to vector-db.
+      - Mentions contextual retrieval (prepend context before embedding) as a recall lever for the policy corpus.

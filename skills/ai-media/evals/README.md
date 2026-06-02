@@ -1,0 +1,3 @@
+# Evals — ai-media
+
+`cases.yaml` holds the trigger boundary and one capability rubric for this skill. There is no automated runner here: feed each `should_trigger` / `should_not_trigger` prompt to your skill-routing setup and confirm ai-media is selected (or that the prompt routes to the named sibling). For the `capability` case, run the scenario end to end and check the produced pipeline + plan against every line in `must_include` by hand — each item is a pass/fail bullet. The point is that the agent plans the cross-modal pipeline before generating, delegates stills to `replicate-images`, generates per-scene (not one long take), and masters with per-track `loudnorm` + ducking before a final mux. Pair this with `scripts/verify.sh` to lint an emitted assembly script.
