@@ -1,0 +1,46 @@
+skill: data-scraper
+
+should_trigger:
+  - prompt: "I need to pull all product prices off this competitor's catalog site — they have no API."
+    why: Core case — structured data off a site with no API, the canonical scrape.
+  - prompt: "Build me a crawler that grabs new public tender listings every morning."
+    why: Recurring resilient crawler — routes to the resilience + tool-picker sections.
+  - prompt: "My scraper keeps getting 429s and then the IP gets banned after about 200 pages."
+    why: Non-obvious — the symptom is a politeness/anti-block failure, not a parsing one.
+  - prompt: "The CSS selectors in my scraper break every time the site redesigns."
+    why: Non-obvious — points at the robust-selectors section (data-attr / semantic / fallback chains).
+  - prompt: "Is it legal for me to scrape this site, and how do I do it without getting sued?"
+    why: Legal-gate first — ToS, robots.txt, personal-data, circumvention before any request.
+  - prompt: "Vull extreure les dades de contacte d'un directori d'empreses públic."
+    why: Catalan trigger — public directory scrape that also nudges the GDPR personal-data gate.
+  - prompt: "Necesito scrapear una página de anuncios sin que me bloqueen."
+    why: Spanish trigger — extraction plus the anti-block concern.
+
+should_not_trigger:
+  - prompt: "Parse these 500 saved HTML invoices into a fields table."
+    route_to: structured-extraction
+    why: Bytes are already in hand; the task is field extraction from documents, not fetching.
+  - prompt: "The site publishes a documented REST API with a key — pull the orders into our DB."
+    route_to: api-connector-builder
+    why: A real API exists; never scrape what an API serves.
+  - prompt: "Dedup and normalize this messy scraped CSV — fix the types and nulls."
+    route_to: data-cleaning
+    why: Downstream of having the rows; normalization, not extraction.
+  - prompt: "Automate clicking through our checkout flow to test it end to end."
+    route_to: e2e-testing
+    why: Browser UI automation for testing a flow, not data extraction.
+  - prompt: "What's my GDPR lawful basis for processing this customer list we already hold?"
+    route_to: gdpr-privacy
+    why: Pure legal-basis question with no scrape — the privacy artifact layer.
+
+capability:
+  - scenario: "Stand up a resilient daily crawler for a public, JS-rendered listings site that has no API. It contains business names and contact emails. Tell me how to build it so it stays legal and doesn't get blocked."
+    must_include:
+      - Runs the legal gate before any request — reads ToS, checks robots.txt/ai.txt, and flags the contact emails as personal data needing a lawful basis + minimization (defers basis detail to gdpr-privacy)
+      - Walks the extraction path — checks for a callable XHR/JSON endpoint, sitemap.xml, and JSON-LD before committing to a headless browser
+      - Picks a tool with a reason — Playwright (1.60) or Crawlee for the JS-rendered SPA, not plain httpx
+      - Builds selectors on stable attributes (data-* / semantic / text) with a fallback chain, and fails loud on a missing required field rather than writing null
+      - Sets a per-host rate limit (≈1 req / 1-3s, concurrency cap 2-5), exponential backoff with jitter, and honors 429 / Retry-After
+      - Uses a resumable disk-persisted queue (Crawlee RequestQueue) and idempotent upserts keyed on a stable id so a crash resumes instead of restarting
+      - Refuses to bypass any CAPTCHA or hard block, treating it as a stop and re-running the gate
+      - Adds monitoring/alerts on missing-field spikes (schema drift) and 403/429 spikes (blocking)

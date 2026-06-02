@@ -1,0 +1,46 @@
+skill: webhooks
+
+should_trigger:
+  - prompt: "We need to receive webhooks from a provider and process them without dropping events or double-processing. Where do I start?"
+    why: "Core inbound flow: receive + dedupe + safe processing is the skill's whole mandate (verify → timestamp → dedupe → fast-ack)."
+  - prompt: "My webhook signature verification keeps failing even though the signing secret is definitely correct. What am I missing?"
+    why: "Non-obvious. The classic raw-body trap — verifying over re-serialized JSON instead of the raw bytes. The skill names this exact symptom."
+  - prompt: "The provider keeps retrying and our handler ends up running the same event twice. How do we make it idempotent?"
+    why: "At-least-once delivery + idempotency on the stable event id is a flagship section; phrased as a symptom, not jargon."
+  - prompt: "How do I do a constant-time signature compare and a timestamp/replay check on an incoming webhook?"
+    why: "Verify mechanics: timingSafeEqual / compare_digest plus the ~5-min tolerance window are core content."
+  - prompt: "Verificar la firma del webhook entrante y evitar procesar el mismo evento dos veces — ¿cómo lo monto en Express?"
+    why: "Spanish trigger covering signature verification + idempotency, the two central invariants."
+  - prompt: "Our webhook endpoint times out under load and the sender hammers it with retries. How do we ack fast and move the work off the request?"
+    why: "Non-obvious framing of the fast-ack-then-queue pattern; the timeout→retry-storm chain is the reason the pattern exists."
+  - prompt: "What status code should I return from a webhook handler when the signature is bad versus when my downstream save fails?"
+    why: "Status-code semantics (2xx = I own it, 4xx = forged/no-retry, 5xx = genuine retry) is a dedicated decision table."
+
+should_not_trigger:
+  - prompt: "Verify a Stripe webhook with the Stripe-Signature header and handle checkout.session.completed in my SaaS."
+    route_to: stripe
+    why: "Stripe's specific t=,v1= scheme, event model and stripe listen CLI belong to the specialized skill; webhooks covers only the generic case."
+  - prompt: "Handle Resend and SendGrid bounce and complaint webhooks so our suppression list stays clean."
+    route_to: email-connector
+    why: "The point is deliverability suppression state, not generic receive-and-verify mechanics."
+  - prompt: "Build a client that calls the GitHub REST API with auth, pagination and retries on the requests we initiate."
+    route_to: api-connector-builder
+    why: "That is the outbound client (we call them), the opposite direction from an inbound receiver."
+  - prompt: "After an order webhook lands, branch across Slack, the database and an email in a multi-step flow with conditions."
+    route_to: automation-flows
+    why: "Post-landing orchestration; webhooks ends at 'enqueued' and the flow engine takes over from there."
+  - prompt: "Tune our BullMQ worker concurrency and set up a dead-letter queue in Redis."
+    route_to: redis
+    why: "Broker/queue operations, not the front-door receiver; webhooks enqueues but does not own broker tuning."
+
+capability:
+  - scenario: "Implement an inbound webhook endpoint for a generic Standard-Webhooks provider in Node/Express that receives an event, proves it is authentic, refuses to process it twice, and acks fast — then describe where the real work runs."
+    must_include:
+      - "HMAC is computed over the RAW request body (raw buffer/text), not over JSON.parse(req.body) or a re-serialized object"
+      - "constant-time comparison via crypto.timingSafeEqual (not === / ==), with an equal-length guard"
+      - "timestamp tolerance check (~5 minutes) rejecting stale/replayed deliveries"
+      - "dedupe on the provider's stable event id (webhook-id) via a UNIQUE constraint or Redis SETNX, marked before processing"
+      - "dedupe TTL must outlive the provider's retry window (hours to days)"
+      - "returns 2xx only after the event is persisted/enqueued, then does the work in a background worker"
+      - "signing secret read from an environment variable, never a hard-coded literal"
+      - "bad/forged signature returns 400 or 401, not 200"

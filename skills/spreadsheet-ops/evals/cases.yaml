@@ -1,0 +1,42 @@
+skill: spreadsheet-ops
+
+should_trigger:
+  - prompt: "Write a Python script that exports this DataFrame to an .xlsx with a column chart and conditional formatting on overdue rows."
+    why: "Core Python→Excel artifact generation with charts + conditional formats — the xlsxwriter/pandas path."
+  - prompt: "My SUMIFS keeps returning #VALUE! and I can't see why. Here's the formula."
+    why: "Symptom-led formula repair; the user names the error, not the skill. Mismatched range shapes is the classic cause."
+  - prompt: "Every night my job needs to append a few rows to a Google Sheet. What's the right way to do it from Python?"
+    why: "Cloud read→write pipeline via gspread/Sheets API, including append + quota awareness."
+  - prompt: "I set a formula with openpyxl and saved, but when I read the cell back it's blank. What's wrong?"
+    why: "Non-obvious no-compute trap: openpyxl stores the formula; data_only returns None until Excel opens the file."
+  - prompt: "Haz una macro de Google Sheets que coloree las filas según el estado de cada pedido."
+    why: "Spanish + in-sheet automation → Apps Script V8, batched setBackgrounds. Tests language + intent."
+  - prompt: "My service account gets PermissionError / SpreadsheetNotFound when it tries to open the sheet, but the key is valid."
+    why: "Non-obvious share trap — a service account has no access until the sheet is shared with its client_email."
+
+should_not_trigger:
+  - prompt: "These columns have mixed date formats and duplicate rows — clean and normalize them, no spreadsheet output needed."
+    route_to: data-cleaning
+    why: "Pure data hygiene with no spreadsheet artifact is data-cleaning's job."
+  - prompt: "Scrape this HTML pricing table from a webpage into structured rows."
+    route_to: data-scraper
+    why: "Extracting structured data from a web table is data-scraper, not spreadsheet authoring."
+  - prompt: "When a Typeform is submitted, post to Slack and add a row to a Sheet — wire the whole flow."
+    route_to: automation-flows
+    why: "Multi-app event chaining (Zapier/Make/n8n style) is automation-flows; spreadsheet-ops only owns the sheet step."
+  - prompt: "Set up OAuth and Drive access for my Google account so my app can authenticate."
+    route_to: google-workspace
+    why: "Credential/OAuth/Drive setup is google-workspace; this skill consumes the credential, it doesn't create it."
+  - prompt: "Build the recurring weekly stakeholder report deliverable for the leadership team."
+    route_to: reporting
+    why: "A finished recurring report deliverable is reporting; spreadsheet-ops stops at the programmable sheet."
+
+capability:
+  - scenario: "Given a CSV of orders (order_id, customer, amount, status, due_date), produce a runnable Python script that writes an orders.xlsx with a header row, a SUMIFS total of amounts where status is OPEN, conditional formatting highlighting OVERDUE rows, and an idempotent keyed upsert by order_id so rerunning does not duplicate rows."
+    must_include:
+      - "Formula arguments are comma-separated, never semicolons (=SUMIFS(...,...,...) with commas)"
+      - "Any formula string written into a cell starts with a leading '=' "
+      - "States/handles that openpyxl stores the formula and does NOT compute it (value None / data_only caveat), or writes computed values"
+      - "Chart and/or conditional formatting via the correct engine (xlsxwriter for a new rich file, or openpyxl rules), not hand-waved"
+      - "Idempotent upsert keyed by order_id — reads existing keys, updates matches, appends the rest; no duplicate rows on rerun"
+      - "Script is runnable: passes python -m py_compile (valid syntax, real imports)"

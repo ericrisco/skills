@@ -1,0 +1,65 @@
+skill: document-processing
+
+# Prompts that MUST load `document-processing`. The skill owns the byte-level
+# work of turning documents into content and data into documents: extract
+# text/tables from PDFs, fill AcroForm fields, generate PDF/DOCX from
+# templates, and OCR image-only files into Markdown/JSON. The deliverable is
+# bytes of a document or the literal content of one.
+should_trigger:
+  - prompt: "Extract all the tables from this scanned invoice PDF into CSV."
+    why: "Table extraction is core; 'scanned' means it must first detect no text layer and OCR, then emit CSV cells — file-in/content-out."
+
+  - prompt: "Fill this PDF application form with these values and flatten it so it can't be edited."
+    why: "AcroForm fill via pypdf update_page_form_field_values + flatten — the canonical form-filling job this skill owns."
+
+  - prompt: "Generate a Word contract from this .docx template and a dict of client fields."
+    why: "docxtpl: author-in-Word template rendered with a context dict — data-in/file-out generation."
+
+  - prompt: "These PDFs copy out as garbled symbols — get me clean text."
+    why: "Non-obvious: the symptom describes a broken/embedded font or image-only PDF, not a feature request; the skill diagnoses the text-layer problem and OCRs or re-extracts."
+
+  - prompt: "Rellena este formulario PDF y luego fusiona los tres documentos en uno solo."
+    why: "Spanish: fill a PDF form then merge three documents into one — form fill + pypdf merge, both owned here."
+
+  - prompt: "Convert 200 scanned pages to Markdown keeping the table structure, locally, with no API."
+    why: "Local batch OCR with table structure preserved -> Docling/Marker; the 'no API / local' constraint forces the local pipeline, not a hosted one."
+
+  - prompt: "Merge these five PDFs, rotate page 2, and rasterize the cover to a PNG."
+    why: "Pure page-level byte ops (merge/rotate/raster) are squarely this skill's pypdf/PyMuPDF territory."
+
+# NEAR-MISS prompts that must NOT load `document-processing`. The recurring
+# trap: anything where the real deliverable is a typed object, a signature
+# workflow, a spreadsheet grid, a retrieval index, or the acquisition of files.
+should_not_trigger:
+  - prompt: "Parse this contract text into a typed JSON schema of parties, dates, and amounts."
+    route_to: "structured-extraction"
+    why: "Deliverable is a schema-typed object, not raw content; this skill produces the Markdown that structured-extraction then types."
+
+  - prompt: "Send this signed PDF to the client for signature with an audit trail."
+    route_to: "e-signature"
+    why: "Signer workflow, routing, and audit trail are e-signature; document-processing only produces or edits the bytes."
+
+  - prompt: "Read the values from B2:D40 of this spreadsheet and sum them."
+    route_to: "spreadsheet-ops"
+    why: "Cells, ranges, and formulas are a spreadsheet grid — spreadsheet-ops, not document bytes."
+
+  - prompt: "Index these PDFs so I can ask questions across all of them."
+    route_to: "rag"
+    why: "Retrieval/embeddings index for Q&A is rag; this skill produces the text rag ingests but does not index it."
+
+  - prompt: "Crawl this site and download every PDF it links to."
+    route_to: "data-scraper"
+    why: "Acquiring documents off the web is data-scraper; processing them once they are on disk is this skill."
+
+# Capability: graded against the must_include rubric.
+capability:
+  - scenario: >
+      The user has a folder of scanned, image-only invoice PDFs (a few pages
+      are handwritten) and wants the line items as CSV. Hard constraint: fully
+      local, no cloud API may be used. Outline the pipeline you would run.
+    must_include:
+      - "Detects or states the PDFs are image-only (no text layer), e.g. via pdfplumber extract_text() returning empty, so OCR is required."
+      - "Picks a LOCAL pipeline (Docling or Marker + Tesseract/RapidOCR), explicitly NOT a hosted API like Mistral OCR, honoring the 'no cloud' constraint."
+      - "Produces Markdown/tables from the OCR, then notes the handoff to structured-extraction for typed line-item fields rather than regexing them here."
+      - "Adds a verification step: spot-check OCR'd totals/numbers against the page image (0/O, 1/l, shifted decimals)."
+      - "Uses current libraries (pypdf / pdfplumber / docling), never PyPDF2."

@@ -1,0 +1,39 @@
+skill: email-connector
+
+should_trigger:
+  - prompt: "Send a password-reset email from my Next.js app with Resend when a user requests one."
+    why: "Core wiring: hook a transactional send into app code through a provider — squarely the seam this skill owns."
+  - prompt: "Our emails double-send when the background queue retries the job. How do we stop the duplicates?"
+    why: "Non-obvious phrasing — the user names a symptom, not 'idempotency'. The fix is a deterministic idempotency key on the send, exactly this skill's Step 4."
+  - prompt: "We want to switch off SendGrid onto Postmark without rewriting every call site in the app."
+    why: "Provider swap behind a sendEmail() seam — the skill's central abstraction; the answer is the seam, not a one-off rewrite."
+  - prompt: "Send a digest to 4,000 users in one run and handle the ones that fail without re-sending the rest."
+    why: "Batch/bulk with partial-failure handling: 100-cap chunking and inspecting per-row errors, the skill's Step 5."
+  - prompt: "Montar el webhook de bounces para que actualice la lista de supresión cuando un correo rebota."
+    why: "Spanish phrasing for the inbound delivery/bounce webhook feeding a suppression list — the skill's Step 7, including verifying the signature on the raw body."
+
+should_not_trigger:
+  - prompt: "Write the subject line and the welcome-email sequence for our newsletter, optimized for opens."
+    route_to: newsletter
+    why: "Copy and the open/click growth system — words and strategy, not the send wiring this skill produces."
+  - prompt: "Our receipts keep landing in spam. Fix our SPF, DKIM, and DMARC records."
+    route_to: email-deliverability
+    why: "Inbox auth/reputation at the DNS layer — under the wire, not the wire. This skill sends on the right subdomain but does not own the DNS."
+  - prompt: "Send this email straight from my own Gmail account through the API, not a transactional provider."
+    route_to: google-workspace
+    why: "Sending from a user's own mailbox via OAuth — a different transport entirely from an HTTP email provider."
+  - prompt: "Build a generic typed client wrapper for the Acme REST API with retries and pagination."
+    route_to: api-connector-builder
+    why: "Generic HTTP-client scaffolding for any third-party API, with no email-specific surface."
+
+capability:
+  - scenario: "Wire transactional email for a SaaS on Next.js 16: pick a provider, expose a provider-agnostic sendEmail() seam, render a React Email template, make the send idempotent, send a bulk digest with partial-failure handling, split transactional from broadcast, and add a bounce webhook that updates a suppression list."
+    must_include:
+      - "A single provider-agnostic sendEmail() seam; the provider SDK is imported in one place, not at scattered call sites"
+      - "API key read from process.env, never a hard-coded re_/SG./server-token literal"
+      - "A deterministic idempotency key on each transactional send (Resend native 2nd arg; self-dedupe table for SendGrid/Postmark)"
+      - "Templates rendered as React Email components (react:) or SendGrid d- dynamic templates with dynamicTemplateData — not string-concatenated HTML"
+      - "Batch send chunked to the 100-cap with per-row errors inspected and only failed rows re-queued"
+      - "Transactional and broadcast traffic separated by From + subdomain + stream"
+      - "Webhook signature verified against the raw body before parsing"
+      - "Suppression list updated on bounce/complaint and checked before every send"

@@ -1,0 +1,5 @@
+# Evals — automation-flows
+
+`cases.yaml` holds three groups. `should_trigger` lists prompts where this skill must activate (canonical multi-app flows, error-handling fixes, platform-selection-by-billing, the double-fire/dedup symptom, and an importable-JSON request, with Spanish and Catalan phrasings). `should_not_trigger` lists adjacent prompts that belong to a named sibling (code clients → api-connector-builder, webhook receivers → webhooks, sheet scripting → spreadsheet-ops, single-vendor SDK calls → whatsapp-telegram, scraping → data-scraper). `capability` is one end-to-end scenario with a `must_include` rubric the produced flow has to satisfy.
+
+There is no automated runner here. Score by judgement: feed each `should_trigger` / `should_not_trigger` prompt to the routing layer and confirm it activates (or routes to the listed sibling). For `capability`, have the skill produce the n8n flow, then check every `must_include` item by hand and run `scripts/verify.sh <dir-with-the-json>` to confirm the emitted workflow JSON parses, has non-empty `nodes`, a `connections` object, and a trigger node. `verify.sh` is read-only and exits 0 on an empty target.
