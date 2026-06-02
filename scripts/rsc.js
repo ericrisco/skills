@@ -7,6 +7,7 @@ import { expandRecommends, toOutcomes, hasOutcome } from './lib/recommend.js';
 import { applyInstall, listInstalled, uninstall } from './install-apply.js';
 import { doctor } from './doctor.js';
 import { ask, say, yes } from './lib/ui.js';
+import { refreshRegistry, registryStatus } from './lib/registry.js';
 
 const argv = process.argv.slice(2);
 const cmd = argv[0];
@@ -20,7 +21,7 @@ async function recommendIds(query, { labeledOnly = false } = {}) {
   const m = loadManifest();
   const repo = detectRepo();
   const ranked = query ? (await rank(m, query)).map((r) => r.id) : [];
-  let base = [...new Set([...repo, ...ranked])].filter((id) => id !== 'suggest');
+  let base = [...new Set(query ? [...ranked, ...repo] : repo)].filter((id) => id !== 'suggest');
   if (labeledOnly) base = base.filter(hasOutcome);
   base = base.slice(0, 4);
   let out = expandRecommends(m, base).filter((id) => id !== 'suggest');
@@ -75,6 +76,20 @@ async function main() {
       return void say(listInstalled({ target }).join('\n') || '(nada instalado)');
     case 'doctor':
       return void say(JSON.stringify(doctor({ target }), null, 2));
+    case 'registry': {
+      const sub = argv[1];
+      if (sub === 'refresh') {
+        const registry = refreshRegistry({ target });
+        say(`✅ Registry actualizado: .rsc/skill-registry.md (${registry.counts.skills} skills)`);
+        return;
+      }
+      if (sub === 'status') {
+        say(JSON.stringify(registryStatus(), null, 2));
+        return;
+      }
+      say('Usa: npx rsc registry refresh | registry status');
+      return;
+    }
     case 'uninstall': {
       const dry = argv.includes('--dry-run');
       const ids = argv.slice(1).filter((a) => !a.startsWith('--'));
@@ -83,7 +98,7 @@ async function main() {
     }
     default:
       say(`rsc: comando desconocido '${cmd}'.`);
-      say('Usa: npx rsc | add <id...> | install --profile <p> | consult "<texto>" | list | doctor | uninstall <id>');
+      say('Usa: npx rsc | add <id...> | install --profile <p> | consult "<texto>" | list | registry refresh | doctor | uninstall <id>');
   }
 }
 

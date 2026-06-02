@@ -117,6 +117,7 @@ echo
 # Iterate skills deterministically; bash 3.2-safe (no mapfile).
 for skill_path in "$SKILLS_DIR"/*; do
   [ -d "$skill_path" ] || continue
+  [ -f "$skill_path/SKILL.md" ] || continue
   skill=$(basename "$skill_path")
   skill_count=$((skill_count + 1))
 
