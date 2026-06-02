@@ -1,0 +1,44 @@
+skill: docker
+
+should_trigger:
+  - prompt: "Dockerize this FastAPI service so it's ready for prod."
+    why: Core authoring of a Dockerfile for a Python web app — the skill's primary job.
+  - prompt: "Our node image is 1.2GB, shrink it."
+    why: Size symptom with no mention of "Dockerfile" — non-obvious entry that maps to multi-stage + base choice.
+  - prompt: "Set up docker compose with live reload for local dev."
+    why: Compose dev loop via develop.watch, the skill's Compose half.
+  - prompt: "This Dockerfile runs as root and trivy flags it — harden it."
+    why: Image/container hardening (non-root, scan) which is in-scope, not app-level security.
+  - prompt: "El build de docker tarda siglos y la imagen pesa demasiado."
+    why: Catalan/Spanish, non-obvious — slow build + heavy image map to cache mounts, layer order, multi-stage.
+
+should_not_trigger:
+  - prompt: "Write the GitHub Actions workflow to build and push to ghcr."
+    route_to: deployment
+    why: CI pipeline + registry push is downstream of the image; deployment owns it.
+  - prompt: "Add k8s HPA autoscaling for this service."
+    route_to: scaling
+    why: Orchestration/autoscaling above a single image is scaling's domain.
+  - prompt: "Fix the SQL injection in this endpoint."
+    route_to: secure-coding
+    why: App-level vulnerability, not image/container hardening.
+  - prompt: "Install and configure Coolify on my Hetzner box."
+    route_to: coolify
+    why: Self-hosted PaaS host operation, not authoring the image.
+
+capability:
+  - scenario: >
+      Given a naive single-stage Dockerfile that uses FROM node:latest, runs npm install after
+      COPY . ., runs as root, has no .dockerignore and no healthcheck, produce a hardened
+      replacement plus the supporting files.
+    must_include:
+      - Multi-stage build (separate build and runtime FROM stages)
+      - BuildKit cache mount on the dependency install (e.g. --mount=type=cache,target=/root/.npm)
+      - Non-root USER in the final image
+      - Pinned, non-latest base image (tag or digest, not :latest)
+      - A .dockerignore that excludes .git, node_modules, .env
+      - EXEC-form CMD/ENTRYPOINT (JSON array, not shell form)
+      - A HEALTHCHECK instruction
+      - A compose.yaml using develop.watch for the dev loop
+      - No secrets in ARG/ENV (build secrets via --mount=type=secret)
+      - Mentions verifying with hadolint and trivy

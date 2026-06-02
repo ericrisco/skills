@@ -1,0 +1,45 @@
+skill: github-actions
+
+should_trigger:
+  - prompt: "Set up CI to lint and test my Node app on every pull request."
+    why: "Core CI authoring — trigger, permissions, checkout/setup, lint/test job."
+  - prompt: "Our GitHub Actions builds take 9 minutes, mostly npm install — make them faster."
+    why: "Symptom-led, never names 'caching'; the fix is built-in setup-node cache / actions/cache."
+  - prompt: "Run the test suite against node 18, 20 and 22."
+    why: "Matrix build across language versions — strategy.matrix with fail-fast tuning."
+  - prompt: "Deploy to AWS from CI but I don't want to store AWS access keys in GitHub."
+    why: "Non-obvious: the answer is OIDC id-token:write + role-to-assume, not a secret."
+  - prompt: "Every push spawns a new run and the old ones keep finishing — stop the duplicates."
+    why: "Non-obvious symptom phrasing; the feature is concurrency with cancel-in-progress."
+  - prompt: "After the tj-actions thing I want to pin all our actions properly — how?"
+    why: "Supply-chain hardening — SHA-pinning third-party actions; oblique reference to the 2025 compromise."
+  - prompt: "Munta el desplegament continu amb GitHub Actions cap a producció amb aprovació."
+    why: "Catalan; continuous deploy to production with an environment approval gate."
+
+should_not_trigger:
+  - prompt: "Write a multi-stage Dockerfile for this service."
+    route_to: "docker"
+    why: "Image authoring and build strategy; the workflow may call docker build but does not design the image."
+  - prompt: "What branching strategy should we use, trunk-based or git-flow?"
+    route_to: "git-workflow"
+    why: "Branching/merge model is git-workflow, not the CI config layer."
+  - prompt: "Is this ready to release? Draft the changelog and decide the version bump."
+    route_to: "ship"
+    why: "Release readiness and changelog are the shipping decision, not workflow authoring."
+  - prompt: "Design a blue-green rollback strategy for our deploys."
+    route_to: "deployment"
+    why: "Deploy strategy theory (blue/green, canary, rollback) belongs to deployment; Actions only triggers it."
+  - prompt: "Configure the Vercel project's build command and environment variables."
+    route_to: "vercel"
+    why: "Host-side project configuration; the host owns the deploy target, Actions only triggers it."
+
+capability:
+  - scenario: "I have a Node 20 service in a GitHub repo. Give me a hardened CI + deploy pipeline that tests on a matrix of node versions and deploys to AWS on tag pushes without static credentials."
+    must_include:
+      - "First-party actions on current majors (checkout@v6, setup-node@v6); third-party actions pinned to a full 40-char commit SHA."
+      - "Top-level permissions set to contents: read, widened per job only where needed."
+      - "Built-in npm cache via setup-node (cache: npm) keyed on the lockfile."
+      - "A test job using strategy.matrix across multiple node versions."
+      - "A separate deploy job with needs: build and environment: production for the approval gate."
+      - "OIDC auth in the deploy job: permissions id-token: write plus role-to-assume, and no static AWS access keys in secrets."
+      - "concurrency groups: cancel-in-progress true for CI, false for the deploy/release job."
