@@ -70,14 +70,15 @@ A criterion that needs a human to "decide if it's good enough" is not done yet �
 ## The pass, end to end
 
 ```text
-1. READ profile + constitution + existing specs    → set verbosity, inherit principles, avoid dupes
-2. RESTATE the intent in one sentence              → confirm you understood before drafting
-3. INFER every section you can                     → from constitution, wiki, the intent itself
-4. ASK the gaps that change scope, one at a time   → record each answer, then ask the next
-5. DRAFT 02-DOCS/wiki/sdd/specs/<slug>.md           → WHAT/WHY only, template sections filled
-6. LIST Points to clarify                          → open questions + assumptions, the clarify handoff
-7. INDEX it in root CLAUDE.md Knowledge map         → under the sdd/specs topic
-8. HAND OFF to clarify                              → name the next phase explicitly
+1. READ profile + sdd config + constitution + existing specs → set verbosity, inherit principles, avoid dupes
+2. IF risky/architectural, DRAFT proposal first              → alternatives, tradeoffs, risks, rollback
+3. RESTATE the intent in one sentence                        → confirm you understood before drafting
+4. INFER every section you can                               → from constitution, wiki, the intent itself
+5. ASK the gaps that change scope, one at a time             → record each answer, then ask the next
+6. DRAFT 02-DOCS/wiki/sdd/specs/<slug>.md                     → WHAT/WHY only, template sections filled
+7. LIST Points to clarify                                    → open questions + assumptions, the clarify handoff
+8. INDEX it in root CLAUDE.md Knowledge map                   → under the sdd/specs topic
+9. END with result envelope and HAND OFF to clarify           → name the next phase explicitly
 ```
 
 `<slug>` is a short kebab-case name derived from the feature (e.g. `bulk-csv-import`, `magic-link-login`). If a spec with that slug exists, read it and update rather than overwrite.
@@ -120,6 +121,33 @@ A returning user on a new device who does not remember a password.
 
 Note what is *absent*: no token format, no table, no email provider, no framework. Those are `plan`'s job.
 
+## Optional proposal / pre-execution briefing
+
+For a tiny feature, skip this. For ambiguous, architectural, high-risk, high-review-cost or research-heavy work, write a proposal before the spec:
+
+```text
+02-DOCS/wiki/sdd/proposals/<slug>.md
+```
+
+Proposal grammar:
+
+```markdown
+# Proposal — <slug>
+
+## Problem
+## Intent
+## Scope / Non-scope
+## Research input
+## Alternatives considered
+## Tradeoffs
+## Risks
+## Rollback
+## Success criteria
+## Recommendation
+```
+
+The proposal is allowed to mention options and tradeoffs; the spec that follows still stays WHAT/WHY. If research came from a transcript, doc, spike, or external briefing, cite it in `Research input` so the decision trail survives the chat.
+
 ## Anti-patterns → STOP
 
 | If you're about to… | Reality / Fix |
@@ -135,11 +163,33 @@ Note what is *absent*: no token format, no table, no email provider, no framewor
 
 ## Project grounding (02-DOCS + CLAUDE.md)
 
+- Read `02-DOCS/wiki/sdd/config.yaml` if present. If it is missing and the change is non-trivial, recommend `sdd-init` before proceeding; if the user asks to continue, record the missing config as a risk.
 - Read `02-DOCS/wiki/sdd/constitution.md` first — its principles are inherited constraints, not things to re-decide. If it's missing, note that the project has no constitution yet and suggest the `constitution` phase before continuing (you can still draft a spec, but flag the absence).
 - **No constitution yet?** Still write the spec, but inherit nothing — lean harder on the wiki and the user's answers, and record every constraint you would have inherited as a *point to clarify* instead of assuming it.
 - Write the spec to `02-DOCS/wiki/sdd/specs/<slug>.md`. Create the directory if absent.
 - Add a row under the `## Knowledge map` section of the root `CLAUDE.md` linking the new spec under the `sdd/specs` topic (additive only — never delete existing rows). Create `CLAUDE.md` if absent.
 - Log the spec's creation and any significant scoping decision to `02-DOCS/wiki/sdd/decisions.md` (append-only), so the chain keeps a trace of why scope landed where it did. This is the canonical SDD decisions log shared with `constitution` and `plan` — not the harness's own `02-DOCS/wiki/harness/decisions.md`.
+
+## Result envelope
+
+End with:
+
+```json result-envelope
+{
+  "status": "complete",
+  "executive_summary": "Spec written with open points ready for clarify.",
+  "artifact": "02-DOCS/wiki/sdd/specs/<slug>.md",
+  "next_recommended": "clarify",
+  "risk": "low|medium|high",
+  "skill_resolution": {
+    "used": ["specify"],
+    "missing": [],
+    "fallback": [],
+    "compact_rules": ["Keep specs WHAT/WHY only.", "Acceptance criteria must be observable."]
+  },
+  "evidence": ["spec path exists", "proposal path if used", "open points listed"]
+}
+```
 
 ## Next in the chain
 
@@ -157,3 +207,8 @@ If `clarify` surfaces answers, they get baked back into this same spec file. Onl
 - `../harness/SKILL.md` — the 02-DOCS wiki + accompaniment dial + decisions log this skill honors.
 - `references/spec-template.md` — the exact section template written to `02-DOCS/wiki/sdd/specs/<slug>.md`.
 - `references/eliciting-requirements.md` — inference checklist + the one-question-at-a-time elicitation patterns.
+
+## Orientación (siempre)
+
+Cierra cada turno con el **bloque-brújula** (📍 dónde estás · ✅ qué hiciste · 🧭 por qué · ➡️ siguiente, terminando en pregunta), calibrado al dial de `02-DOCS/wiki/harness/user-profile.md`. **Nunca termines en seco.** Protocolo completo: skill `orient` → `skills/orient/references/orientation-contract.md`. (Defiere a `suggest` el "¿instalo la skill que falta?".)
+

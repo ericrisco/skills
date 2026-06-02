@@ -50,6 +50,10 @@ You break down a **plan**, not an intent. Before slicing, confirm all three exis
    requirement. A task with no spec line behind it is scope you are inventing.
 3. **The constitution** — `02-DOCS/wiki/sdd/constitution.md`, the non-negotiable
    bars (stack canon, quality gates) every task must respect.
+4. **The SDD config** — `02-DOCS/wiki/sdd/config.yaml`, if present. Use its
+   `review_budget`, `delivery_strategy` and `testing.commands` when writing
+   done-checks and review forecasts. If it is missing on non-trivial work,
+   recommend `sdd-init`.
 
 If the plan is missing, **stop and route to `plan`**. If the plan exists but is
 vague on interfaces or testing, route back to `plan` to tighten it — do not
@@ -126,7 +130,8 @@ will execute.
    or send the gap to `clarify`/`specify`.
 6. ADD the cross-cutting closers: a final "all done-checks pass" task
    and a "verify.sh green" task that hands off to `verify`.
-7. APPEND the table to the plan artifact (see below). Do not start a
+7. ADD a review workload + delivery forecast before implementation.
+8. APPEND the table to the plan artifact (see below). Do not start a
    new file; the list lives with the plan it came from.
 ```
 
@@ -165,6 +170,29 @@ delete a user's map entry).
 | T0NN |  | All done-checks pass + `verify.sh` green | every row above checked; `scripts/verify.sh` exits 0 | all | spec §Acceptance |
 ```
 
+## Review workload + delivery strategy forecast
+
+After the task table, append a short forecast. This protects the human reviewer
+before a giant diff exists.
+
+```markdown
+## Review Workload Forecast
+
+| Dimension | Forecast | Why |
+| --- | --- | --- |
+| Estimated changed lines | <number or range> | based on task count + touched areas |
+| Files / areas | <count and names> | modules, migrations, UI, tests, docs |
+| Review risk | low / medium / high | complexity, cross-stack scope, security/data changes |
+| Suggested delivery | single-pr / ask-on-risk / autochain / exception | matched to config.review_budget |
+```
+
+Rules:
+
+- If estimated changed lines exceed `config.sdd.review_budget.line_budget` (default 400), recommend splitting or `ask-on-risk`.
+- If many areas or cross-stack contracts are touched, recommend `autochain` or a feature-track branch.
+- If the change is tiny, recommend `single-pr`.
+- If a deadline or emergency justifies a large review, mark `exception` and require explicit user approval later.
+
 ## Anti-patterns → STOP
 
 | Tempting move | Why it's wrong / Fix |
@@ -189,6 +217,28 @@ Before handing off, confirm:
 - [ ] `[P]` markers only on file/state-disjoint tasks.
 - [ ] The list is appended under `## Tasks` in the plan artifact, indexed in the Knowledge map.
 - [ ] A final closer task gates on all done-checks + `verify.sh`.
+- [ ] Review workload forecast and suggested delivery strategy appended.
+
+## Result envelope
+
+End with:
+
+```json result-envelope
+{
+  "status": "complete",
+  "executive_summary": "Task list and review workload forecast appended to the plan.",
+  "artifact": "02-DOCS/wiki/sdd/plans/<slug>.md",
+  "next_recommended": "analyze",
+  "risk": "low|medium|high",
+  "skill_resolution": {
+    "used": ["tasks"],
+    "missing": [],
+    "fallback": [],
+    "compact_rules": ["Every task needs a runnable done-check.", "Forecast review load before implementation."]
+  },
+  "evidence": ["task table appended", "review workload forecast appended"]
+}
+```
 
 ## Next in the SDD chain
 
@@ -203,3 +253,8 @@ The task list is now the contract for the rest of the build. Hand off:
 
 Do not jump straight to `implement`. The whole point of writing a checkable list
 was to let `analyze` audit it cheaply *before* code exists.
+
+## Orientación (siempre)
+
+Cierra cada turno con el **bloque-brújula** (📍 dónde estás · ✅ qué hiciste · 🧭 por qué · ➡️ siguiente, terminando en pregunta), calibrado al dial de `02-DOCS/wiki/harness/user-profile.md`. **Nunca termines en seco.** Protocolo completo: skill `orient` → `skills/orient/references/orientation-contract.md`. (Defiere a `suggest` el "¿instalo la skill que falta?".)
+

@@ -152,3 +152,8 @@ When the gate is passed and the spec is de-risked, hand off to **plan** — turn
 
 - `../harness/SKILL.md` — the accompaniment dial and the `02-DOCS/wiki/` convention this skill reads and writes into.
 - The SDD chain (sibling phases): `specify` (creates the spec clarify interrogates), `plan` (consumes the de-risked spec), `analyze` (cross-checks constitution ↔ spec ↔ plan ↔ tasks), `debug` (root-cause diagnosis, callable any time), `constitution` (the principles clarify reads as guardrails).
+
+## Orientación (siempre)
+
+Cierra cada turno con el **bloque-brújula** (📍 dónde estás · ✅ qué hiciste · 🧭 por qué · ➡️ siguiente, terminando en pregunta), calibrado al dial de `02-DOCS/wiki/harness/user-profile.md`. **Nunca termines en seco.** Protocolo completo: skill `orient` → `skills/orient/references/orientation-contract.md`. (Defiere a `suggest` el "¿instalo la skill que falta?".)
+

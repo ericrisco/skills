@@ -93,6 +93,17 @@ This mirrors the harness "siempre 3 opciones" pattern. Gather the one fact that 
 
 Recommend based on repo signals: protected `main` or an existing PR culture (look for `.github/`, prior PRs via `gh pr list`) → recommend **option 2**. A solo project with no protection and a passed review → **option 1** is honest and faster. Never default to a PR ceremony the repo doesn't use, and never force-merge a repo that gates `main`.
 
+### Delivery strategy from SDD config
+
+Read `02-DOCS/wiki/sdd/config.yaml` and the `Review Workload Forecast` in the plan if present.
+
+- `single-pr` keeps option 2 as one PR.
+- `ask-on-risk` pauses when the forecast exceeds the review budget and asks before landing a large diff.
+- `autochain` uses stacked PRs when tasks are reviewable in dependency order.
+- `exception` permits a larger single PR only when the user explicitly accepts the review risk.
+
+Stacked PR / feature-track support still fits inside the three landing options: it is a shape of **option 2**, not a fourth option. Use a feature-track branch when several stacked PRs should integrate together before trunk.
+
 ## Executing each option
 
 ### Option 1 — direct merge
@@ -142,6 +153,15 @@ Implements `02-DOCS/wiki/sdd/specs/<slug>.md`. <the user-facing reason>
 ```
 
 Then either let the gate run (team/CI) or self-merge once green: `gh pr merge --squash --delete-branch` (or `--merge` to preserve the history). Squash when the branch history is noisy; preserve when each commit is meaningful.
+
+For stacked PRs, create each PR against the previous branch or against a feature-track branch, with bodies that name their dependency:
+
+```markdown
+Depends on: <previous PR or feature-track branch>
+Part of: <spec-slug>
+```
+
+Never stack to hide review risk. Stack because each slice is independently reviewable and follows the task dependency order.
 
 ### Option 3 — park or discard
 
@@ -195,6 +215,35 @@ Ship is mostly git actions, but the outcome is recorded so the knowledge model s
 
 - **The landing decision** (which of the three options, and why) → append to `02-DOCS/wiki/sdd/decisions.md`, the same append-only log `implement`, `verify`, and `review` write to. Parks and discards are logged with their reason so dead-ends aren't re-walked.
 - A **shipped feature** flips its spec under `02-DOCS/wiki/sdd/specs/<slug>.md` to a shipped state (note the merge commit / PR). The harness owns the wiki; ship just keeps the `sdd/` rows in the root `CLAUDE.md` `## Knowledge map` honest.
+- An **archive bundle** closes the loop under `02-DOCS/wiki/sdd/archive/<slug>/`:
+  - `final-report.md` — what shipped, why, landing decision, links.
+  - `apply-progress.md` — copy or link to `progress/<slug>.md`.
+  - `verification.md` — copy or link to the verification record.
+  - `review.md` — review verdict and nits.
+  - `state.yaml` — `shipped`, `parked` or `discarded`, PR/merge refs, date.
+
+Archive after option 1/2 lands, and also after option 3 parks/discards so paused or abandoned work is remembered.
+
+## Result envelope
+
+End with:
+
+```json result-envelope
+{
+  "status": "complete",
+  "executive_summary": "Branch landed/parked/discarded and SDD archive updated.",
+  "artifact": "02-DOCS/wiki/sdd/archive/<slug>/final-report.md",
+  "next_recommended": "none",
+  "risk": "low|medium|high",
+  "skill_resolution": {
+    "used": ["ship"],
+    "missing": [],
+    "fallback": [],
+    "compact_rules": ["Keep exactly three landing options.", "Archive the final state."]
+  },
+  "evidence": ["review verdict", "verification record", "PR/merge/park/discard reference"]
+}
+```
 
 ## Next in the chain
 
@@ -202,3 +251,8 @@ Ship is the end of the SDD loop for a feature. Two onward paths:
 
 - The code is merged but must reach a **server / release** — provisioning, pipeline, environment promotion, rollback → hand off to **deployment** (`../deployment/SKILL.md`). Ship lands it in the repo; deployment puts it in front of users.
 - The next feature starts the loop again at **specify** (`../specify/SKILL.md`) — or at **constitution** if the project's principles changed. The `sdd` dispatcher (`../sdd/SKILL.md`) routes whichever comes next.
+
+## Orientación (siempre)
+
+Cierra cada turno con el **bloque-brújula** (📍 dónde estás · ✅ qué hiciste · 🧭 por qué · ➡️ siguiente, terminando en pregunta), calibrado al dial de `02-DOCS/wiki/harness/user-profile.md`. **Nunca termines en seco.** Protocolo completo: skill `orient` → `skills/orient/references/orientation-contract.md`. (Defiere a `suggest` el "¿instalo la skill que falta?".)
+

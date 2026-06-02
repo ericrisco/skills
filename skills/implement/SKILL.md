@@ -29,13 +29,20 @@ Run this short gate. Skipping it is the most common way an implement session goe
    (`02-DOCS/wiki/sdd/constitution.md`). If any is missing, you are not ready to implement — route
    back: no plan → `plan`; no task list inside the plan → `tasks`; unresolved `analyze` findings →
    resolve them first. Do not start coding to "discover the plan as you go".
-2. **Read the accompaniment dial.** Open `02-DOCS/wiki/harness/user-profile.md` and read the
+2. **Read the SDD runtime config.** Open `02-DOCS/wiki/sdd/config.yaml`. If it is missing on
+   non-trivial work, stop and route to `sdd-init`. Use `testing.strict_tdd`,
+   `testing.commands.apply`, `testing.commands.verify`, `sdd.review_budget` and
+   `sdd.registry_path`. Do not choose a different test command from memory while config exists.
+3. **Read the skill registry.** Open `.rsc/skill-registry.json` if present. Select only the
+   relevant stack/process skills for this task, then digest them into compact rules. If the
+   registry is missing, run or recommend `npx rsc registry refresh` and record the fallback.
+4. **Read the accompaniment dial.** Open `02-DOCS/wiki/harness/user-profile.md` and read the
    technical + accompaniment level. It sets how loud you are at each checkpoint (see the dial table
    below). No profile yet → assume non-technical, narrate more, and ask before any irreversible step.
-3. **Confirm isolation.** Implementation happens on a feature branch or worktree, never directly on
+5. **Confirm isolation.** Implementation happens on a feature branch or worktree, never directly on
    the default branch. If you are on `main`/`master`, stop and hand to `worktrees` before the first
    commit.
-4. **Scan the tasks for independence.** Mark which tasks share files/state and which are disjoint.
+6. **Scan the tasks for independence.** Mark which tasks share files/state and which are disjoint.
    Disjoint clusters are candidates for `parallel`; everything else runs in order.
 
 ## The loop — one task at a time
@@ -47,8 +54,11 @@ RED      → write the smallest failing test that encodes the task's done-check.
            for the right reason (assertion, not import error). A test that was never red proves nothing.
 GREEN    → write the least code that makes that test pass. No extra features, no "while I'm here".
            Run the test. Watch it PASS.
+TRIANGULATE → add the smallest edge-case test that proves the behavior is not hard-coded
+           (only when config.testing.strict_tdd is true and the task has meaningful edge cases).
 REFACTOR → with the test green, clean up names/duplication/shape. Re-run; still green. Only now.
 CHECK    → re-read the task's done-check. Met? Constitution still honored? Decision worth logging?
+PROGRESS → append task/test/blocker/decision state to 02-DOCS/wiki/sdd/progress/<slug>.md.
 COMMIT   → commit this task as one logical unit (authorship = Eric; see ship for the rule).
 CHECKPOINT → stop and show: what changed, test output, the next task. Wait per the dial.
 ```
@@ -79,6 +89,53 @@ yours; the fixtures, runners and idioms are theirs.
 
 If the feature spans two stacks (a Next.js front-end calling a FastAPI back-end), each task names its
 stack and pulls that stack's testing reference — you do not mix idioms inside one task.
+
+## Skill digestion and resolution
+
+When a task or subagent needs skill context, use the registry path from config:
+
+```text
+.rsc/skill-registry.json
+```
+
+Select the smallest set of skills that match the task. Digest each selected skill into 4-5 compact rules that affect this task. A task brief or checkpoint includes:
+
+```text
+Selected skills: fastapi, postgresdb, implement
+Compact rules:
+- Use the configured apply command from config.yaml.
+- Red test first; verify it fails for the right reason.
+- Keep DB migrations expand-contract when touching production tables.
+Skill resolution:
+- used: [...]
+- missing: [...]
+- fallback: [...]
+```
+
+If a skill is referenced but unavailable, say so and record the fallback. Do not silently pretend it was used.
+
+## Apply progress
+
+Maintain an append-only progress file:
+
+```text
+02-DOCS/wiki/sdd/progress/<slug>.md
+```
+
+Entry shape:
+
+```markdown
+## T004 — 2026-06-02
+- status: complete
+- red: `pytest tests/auth/test_login.py::test_bad_password_returns_401` failed for expected missing route
+- green: same test passed
+- triangulation: blank title returns 422
+- files: app/auth.py, tests/auth/test_login.py
+- decision: none
+- blocker: none
+```
+
+This file is what makes resumes and archive reliable. Never rewrite old entries; append corrections as new entries.
 
 ## Running independent tasks in parallel
 
@@ -173,8 +230,31 @@ outranks the plan, and the plan outranks your in-the-moment preference.
 - [ ] REFACTOR: cleaned up on green; still green
 - [ ] Constitution honored; no banned pattern introduced
 - [ ] Non-obvious decision (if any) logged to 02-DOCS/wiki/sdd/decisions.md
+- [ ] Apply progress appended to 02-DOCS/wiki/sdd/progress/<slug>.md
+- [ ] Skill resolution recorded (used/missing/fallback/compact rules)
 - [ ] Committed as one logical unit (authorship = Eric)
 - [ ] Checkpoint shown at the dial's level; next task named
+```
+
+## Result envelope
+
+End every implementation checkpoint or completed batch with:
+
+```json result-envelope
+{
+  "status": "complete",
+  "executive_summary": "Implemented task(s) with red/green/triangulate/refactor evidence.",
+  "artifact": "02-DOCS/wiki/sdd/progress/<slug>.md",
+  "next_recommended": "implement|verify",
+  "risk": "low|medium|high",
+  "skill_resolution": {
+    "used": ["implement"],
+    "missing": [],
+    "fallback": [],
+    "compact_rules": ["Use config testing commands.", "Append progress after every task."]
+  },
+  "evidence": ["red test output", "green test output", "progress entry path"]
+}
 ```
 
 ## What this skill is NOT
@@ -196,3 +276,8 @@ isolation), `parallel` (independent tasks to fan out).
 **Next:** when every task's done-check is green and committed, go to `verify` — run the stack skill's
 `scripts/verify.sh`, confirm the spec's acceptance criteria, and let evidence (not assertion) declare
 the feature done.
+
+## Orientación (siempre)
+
+Cierra cada turno con el **bloque-brújula** (📍 dónde estás · ✅ qué hiciste · 🧭 por qué · ➡️ siguiente, terminando en pregunta), calibrado al dial de `02-DOCS/wiki/harness/user-profile.md`. **Nunca termines en seco.** Protocolo completo: skill `orient` → `skills/orient/references/orientation-contract.md`. (Defiere a `suggest` el "¿instalo la skill que falta?".)
+
