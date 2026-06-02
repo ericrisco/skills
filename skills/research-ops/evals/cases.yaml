@@ -1,0 +1,38 @@
+skill: research-ops
+
+should_trigger:
+  - prompt: "Research whether Postgres or ClickHouse is better for our analytics workload in 2026, and give me sources."
+    why: "Open-ended factual investigation needing dated, sourced evidence — the core research-ops job."
+  - prompt: "Give me a memo I can defend in Monday's meeting on the state of EU AI rules right now."
+    why: "Non-obvious phrasing; the deliverable is a defensible, cited memo, which is the research-ops output."
+  - prompt: "Settle this argument for me: is X actually true? Cite your sources."
+    why: "Non-obvious; the verify-and-cite core — find the truth and back it with checkable sources."
+  - prompt: "Investiga a fondo las opciones de almacenamiento y cítame las fuentes con fecha."
+    why: "Spanish; deep research plus dated sources — the loop and the provenance requirement."
+  - prompt: "Fes una recerca a fons sobre això amb fonts datades i nivell de confiança."
+    why: "Catalan; explicitly asks for the full method including dated sources and confidence tiers."
+
+should_not_trigger:
+  - prompt: "How big is the market for AI note-takers? Give me a TAM."
+    route_to: market-research
+    why: "Market-sizing arithmetic (TAM/SAM/SOM), not the general source-evaluated research method."
+  - prompt: "Keep watching Notion's pricing page and tell me when it changes."
+    route_to: competitor-watch
+    why: "Standing cadence watch on a named rival, not a one-shot on-demand investigation."
+  - prompt: "Scrape these 400 product pages into a CSV."
+    route_to: data-scraper
+    why: "Bulk extraction mechanics; research-ops uses fetched pages but does not own scrape infra."
+  - prompt: "Organize my scattered notes into a searchable knowledge base."
+    route_to: knowledge-ops
+    why: "Filing what is already known into a durable base, not producing new sourced findings."
+
+capability:
+  - scenario: "Research whether to adopt library X vs library Y for a 2026 build, and produce a memo."
+    must_include:
+      - "Decomposes the question and runs more than one search pass (iterative loop, not a single query)."
+      - "At least one load-bearing claim triangulated across two or more independent sources."
+      - "Every non-obvious claim carries a source plus a date (publication or accessed) plus a confidence tier."
+      - "Surfaces at least one source-level disagreement, or explicitly states none was found across the sources read."
+      - "Has a separate 'Open questions / could not verify' section."
+      - "Answer-first synthesis with the bottom line up front, not a link dump."
+      - "Stays out of market-sizing (market-research) and standing-watch (competitor-watch) territory."

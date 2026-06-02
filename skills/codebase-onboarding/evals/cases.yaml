@@ -1,0 +1,69 @@
+skill: codebase-onboarding
+
+# Prompts that MUST load `codebase-onboarding`. This is the breadth-first
+# reconnaissance skill: it maps an unfamiliar/inherited codebase (entry points,
+# request/data flow, module ownership, hidden side effects, hotspots) into a
+# committed CODEBASE-MAP.md. Several prompts deliberately avoid "onboarding" to
+# test that the intent — orientation in code you didn't write — is the trigger.
+should_trigger:
+  - prompt: "I just cloned this repo and have no idea where anything is — help me get oriented."
+    why: "Canonical cold-start: fresh clone, no mental model, needs breadth-first orientation — the core job."
+
+  - prompt: "I inherited this project from a dev who left. Map it out before I change anything."
+    why: "Inherited/legacy framing with the explicit 'map before touching' instinct this skill enforces."
+
+  - prompt: "Where does the business logic actually live in this codebase, versus the transport layer?"
+    why: "Module-ownership question (recon step d) phrased without naming the skill."
+
+  - prompt: "What happens behind the scenes when a request hits /checkout — any cron jobs or webhooks involved?"
+    why: "Non-obvious hidden-side-effects framing (step e) plus a request trace (step c); side effects are invisible in a top-down read."
+
+  - prompt: "acabo de heredar este repo y no sé por dónde empezar, mápamelo."
+    why: "Spanish, inherited codebase, explicit 'map it' — same cold-start intent in another language."
+
+  - prompt: "Which files are the dangerous ones here — the stuff that changes constantly and nobody understands?"
+    why: "Hotspot/churn×complexity framing (step f); 'changes constantly' is the churn signal, 'nobody understands' is complexity."
+
+  - prompt: "Give me a high-level architecture map of this monorepo so I can find the load-bearing packages."
+    why: "Large-monorepo recon that escalates to a structural-importance graph — the decision-table large-repo row."
+
+# NEAR-MISS prompts that must NOT load `codebase-onboarding`. Each routes to the
+# genuinely correct sibling. The recurring trap: anything that audits depth,
+# scaffolds tooling, records a decision, or chases a specific failure rather than
+# building breadth-first orientation.
+should_not_trigger:
+  - prompt: "Review this PR diff for correctness bugs before we merge."
+    route_to: "analyze"
+    why: "Depth audit of a specific change, not breadth orientation of an unfamiliar repo."
+
+  - prompt: "Set up 01-TOOLS and 02-DOCS and generate the root CLAUDE.md for this workspace."
+    route_to: "harness"
+    why: "Operational tooling/wiki scaffolding, not understanding — onboarding produces a map, not a tooling layer."
+
+  - prompt: "Write an ADR for why we picked Postgres over Mongo."
+    route_to: "decision-records"
+    why: "Capturing the 'why' of a decision; the map captures 'what is', not the rationale."
+
+  - prompt: "The login flow throws a 500 intermittently — find the bug."
+    route_to: "debug"
+    why: "Chasing a specific failure through the system; onboarding builds the map you debug with, it does not root-cause."
+
+  - prompt: "Create the initial CLAUDE.md memory file for this repo."
+    route_to: "init"
+    why: "Narrow single-file agent memory; onboarding is the broader recon that feeds init, not the file write itself."
+
+capability:
+  - scenario: >
+      Given an unfamiliar Node/Express + Postgres repo (no prior context), produce
+      the onboarding map without reading every file line-by-line.
+    must_include:
+      - "Identifies stack + framework version from package.json and the lockfile, not the README first"
+      - "Sizes the repo with scc (per-file LOC/complexity)"
+      - "Locates the entry point and route registration (app.get/post/use or router mounts)"
+      - "Traces one real request end-to-end: transport handler -> business logic -> persistence"
+      - "Labels module ownership (transport / business logic / persistence / UI)"
+      - "Surfaces at least one hidden behavior (cron / webhook / queue worker / listener) via ripgrep"
+      - "Ranks hotspots using the git churn one-liner (and notes churn×complexity as the richer move)"
+      - "States the exact commands to run it locally and hit one path"
+      - "Writes results into CODEBASE-MAP.md with the required sections (Stack, Entry points, Request flow, Module ownership, Hidden behavior, Hotspots, How to run)"
+      - "Does NOT attempt a line-by-line full read; works breadth-first"

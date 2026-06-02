@@ -1,0 +1,43 @@
+skill: decision-records
+
+should_trigger:
+  - prompt: "We just picked Postgres over DynamoDB — write it up so we don't argue about it again."
+    why: Classic ADR: a consequential, hard-to-reverse store choice that needs its rationale and alternatives frozen.
+  - prompt: "Freeze the rationale for choosing Remix instead of Next before everyone forgets why we did it."
+    why: Non-obvious phrasing ("freeze the rationale", "before everyone forgets") for the durable why-capture this skill owns.
+  - prompt: "We're dropping REST for tRPC; record the change but keep the old decision in history."
+    why: Supersession path — new ADR plus immutable old one, the core lifecycle this skill enforces.
+  - prompt: "Documenta por qué elegimos Hetzner y qué alternativas descartamos, con sus pros y contras."
+    why: Spanish phrasing asking for decision + rejected options with pros/cons — exactly the ADR structure.
+  - prompt: "Every new hire re-asks why we use a monorepo; capture the decision once with the trade-offs."
+    why: Onboarding re-litigation of a settled choice; the cure is a single durable record, not a wiki page.
+  - prompt: "Registra la decisió d'usar Clerk en comptes de muntar auth nosaltres, amb les opcions que vam valorar."
+    why: Catalan build-vs-buy auth decision with weighed options — a bounded, costly-to-reverse choice.
+
+should_not_trigger:
+  - prompt: "Summarize today's architecture call and list the action items with owners and due dates."
+    route_to: meeting-notes
+    why: A point-in-time session recap with tasks/owners, not a durable single-decision artifact.
+  - prompt: "Write a step-by-step procedure for how we cut a release."
+    route_to: sop-builder
+    why: A repeatable how-to-every-time process, not a one-time why-we-chose-X record.
+  - prompt: "Define our project-wide coding standards and the canonical stack everyone must use."
+    route_to: constitution
+    why: Standing non-negotiable principles run once and amended, not one bounded decision.
+  - prompt: "Write the implementation plan for the new billing feature."
+    route_to: plan
+    why: Describes how to build the thing, not the decision behind a fork.
+  - prompt: "Draft the feature spec for the new export tool with user stories."
+    route_to: specify
+    why: Defines what to build, not the rationale for a settled architectural choice.
+
+capability:
+  - scenario: "Choosing between Stripe and Lemon Squeezy for billing. Team of 2, EU customers, need invoicing and EU VAT handling. Produce the decision record and wire it into the log."
+    must_include:
+      - A numbered, dated ADR file (e.g. docs/adr/0003-choose-billing-provider.md) with a recognized status (proposed/accepted/...).
+      - Context stated as problem + constraints (team of 2, EU customers, invoicing, VAT), not the answer.
+      - At least 2 real options (Stripe, Lemon Squeezy) scored against the same drivers with pros/cons.
+      - An explicit Decision Outcome naming the chosen option and the dominant driver.
+      - Consequences in both directions — gains plus costs/risks/follow-ups, not only upside.
+      - An index/log row added for the new ADR (id, title, status, date).
+      - If a prior billing decision is being replaced, correct supersession (new ADR + old status flipped to "superseded by", back-linked) rather than an in-place edit.

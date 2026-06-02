@@ -1,0 +1,40 @@
+skill: context-budget
+
+should_trigger:
+  - prompt: "We're 80% through context, compact before it breaks."
+    why: Explicit utilisation trigger — the core ask is when/how to reduce a filling window.
+  - prompt: "This refactor will span days — make it survive across fresh sessions."
+    why: Harness/handoff trigger; the task is bigger than one window and needs resumable state.
+  - prompt: "The agent keeps re-reading the same files and forgetting decisions it made earlier."
+    why: Non-obvious symptom phrasing — context rot described with zero token vocabulary.
+  - prompt: "Se está llenando el contexto, ¿qué guardo y qué tiro?"
+    why: Spanish, what-to-keep-vs-drop framing — the keep/offload/drop decision is exactly this skill.
+  - prompt: "Should I spawn a subagent for this huge log read or just inline it?"
+    why: Isolation decision — whether to keep a read-heavy subtask out of the live window.
+
+should_not_trigger:
+  - prompt: "Cap our Claude API spend at $200/month and alert me at 80%."
+    route_to: cost-tracking
+    why: This is money — pricing and budget caps in dollars, not working-memory quality.
+  - prompt: "Pull the right design-doc sections into context with embeddings."
+    route_to: rag
+    why: Retrieval is how you find context to inject, not how much you let live or when to evict.
+  - prompt: "Split these 4 independent modules across agents and reconcile the results."
+    route_to: parallel
+    why: Fan-out/partition-then-gather discipline, not single-window budgeting.
+  - prompt: "Rewrite this prompt so the model returns cleaner JSON."
+    route_to: prompt-engineering
+    why: Prompt text and output format, not the context budget.
+
+capability:
+  - scenario: >
+      Mid-task in a long refactor. The window is ~85% full, someone pasted a 3,000-line build
+      log into the conversation, and the plan has visibly drifted (you've restated it twice and
+      contradicted an earlier decision). The next step is to read 8 more files to find where
+      retries are configured. Decide what to do.
+    must_include:
+      - Names the right moves explicitly — offload the build log to a file/summary and compact early.
+      - Writes a resumable handoff note covering goal, decisions, current state, next step, and key paths.
+      - Isolates the next read-heavy step (the 8-file scan) to a subagent instead of inlining it into the live window.
+      - Does NOT advise "the window is big, just keep going."
+      - References the ~60% compact-early discipline rather than waiting for 95%.

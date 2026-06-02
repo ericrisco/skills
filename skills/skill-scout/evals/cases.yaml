@@ -1,0 +1,56 @@
+skill: skill-scout
+
+# skill-scout is the catalog gap detector: it finds the skill you DON'T have and
+# emits an install command, or routes to author-skill when none exists. These
+# cases pin the boundary against suggest (routing among present skills) and
+# author-skill (writing the skill that's missing).
+
+should_trigger:
+  - prompt: "I'm about to hand-write a Stripe webhook signature verifier — is there already a skill for this?"
+    why: "Clear catalog match (webhooks / stripe) not loaded; the task names a catalog domain and the user is asking whether to procure before reinventing it."
+
+  - prompt: "qué skill me falta para hacer este endpoint de FastAPI"
+    why: "Spanish gap framing on a task that names a catalog domain (fastapi). Tests the non-English trigger and the situation+symptom match."
+
+  - prompt: "This feels like I'm reinventing something we already have a skill for."
+    why: "Non-obvious trigger — no skill is named and no keyword domain appears; the symptom (reinventing a known workflow) alone should fire the scan."
+
+  - prompt: "Audit our .claude/skills against what this repo actually does and tell me the coverage holes."
+    why: "Coverage-audit framing — the core auditing use, distinct from any single in-flight task. Should produce verdicts (MISSING / INSTALLED-elsewhere / NONEXISTENT) per hole."
+
+  - prompt: "I keep running this lead-gen outreach sequence by hand every week — should I be loading something for this?"
+    why: "Repeated manual pattern that maps to a catalog domain (lead-gen / cold-outreach). The recurring-steps symptom is a skill-shaped hole, not a one-off."
+
+  - prompt: "This Postgres migration task feels way harder than it should — am I missing a skill?"
+    why: "Friction-as-signal — a task straining under generic reasoning where a specialist (db-migrations / postgresdb) would carry it. Non-obvious phrasing of the gap."
+
+should_not_trigger:
+  - prompt: "Which of my loaded skills should I use for this PR review?"
+    route_to: suggest
+    why: "Routing among skills already present — suggest's job. skill-scout is about what is absent, not picking from what's loaded."
+
+  - prompt: "No catalog skill fits our internal billing-export format — write one."
+    route_to: author-skill
+    why: "The skill genuinely does not exist and the user wants it created. skill-scout stops at the NONEXISTENT verdict; creation is author-skill."
+
+  - prompt: "My context window is full mid-task — what should I unload?"
+    route_to: context-budget
+    why: "Token budgeting of what IS loaded — orthogonal to finding what's missing. context-budget owns the loaded-set optimization."
+
+  - prompt: "Save this debugging lesson so we remember the fix next time."
+    route_to: continuous-learning
+    why: "Capturing a recurring learning into the knowledge base, not detecting a missing skill. continuous-learning owns capture."
+
+  - prompt: "Consolidate our scattered runbooks into one searchable knowledge base."
+    route_to: knowledge-ops
+    why: "Organizing existing knowledge artifacts, not procuring an absent skill. knowledge-ops owns the wiki/runbook consolidation."
+
+capability:
+  - scenario: "Mid-task, the user is about to manually wire OAuth login plus a Postgres user table from scratch, with no domain skill loaded. Show how skill-scout behaves before any code is written."
+    must_include:
+      - "Identifies the gap as real (a specialist would carry this), not generic friction to push through"
+      - "Names candidate skills only from the known catalog set (e.g. an OAuth/auth-capable skill and postgresdb / db-migrations) — never a fabricated id"
+      - "Gives a copy-paste install command and an explicit scope choice (user vs project) with a one-line reason"
+      - "One concise why-line per recommendation, not a paragraph"
+      - "If no catalog skill fits a part of the task, returns NONEXISTENT and routes to author-skill rather than inventing an id"
+      - "Does NOT implement the OAuth or Postgres wiring itself — it procures, it does not do the work"

@@ -1,0 +1,39 @@
+skill: translation-l10n
+
+should_trigger:
+  - prompt: "We need to ship the app in French and Arabic."
+    why: Core add-a-language request spanning i18n plumbing and RTL — the central use case.
+  - prompt: "Our plural messages are wrong in Russian and Polish — it always shows the singular form."
+    why: ICU/CLDR plural categories; non-obvious symptom that points straight at the count===1 anti-pattern.
+  - prompt: "The German text overflows our buttons and dates still show American format for Spanish users."
+    why: Text-expansion overflow plus Intl date formatting — two localization symptoms phrased as bugs, not as 'i18n'.
+  - prompt: "Set up locale routing with next-intl and generateStaticParams for our App Router."
+    why: Phase 3 locale routing/rendering plumbing — the framework on-ramp this skill owns.
+  - prompt: "Traducir la app al árabe y montar el glosario para los traductores."
+    why: Spanish trigger covering the translation workflow, glossary/termbase, and an RTL language.
+
+should_not_trigger:
+  - prompt: "Define our brand's tone of voice and word bank for our copy."
+    route_to: brand-voice
+    why: Inventing voice in one language; this skill moves an existing voice across languages, it does not author it.
+  - prompt: "How do I fetch data in a Next.js App Router server component?"
+    route_to: nextjs
+    why: General framework wiring unrelated to locale; this skill only touches routing where locale-specific.
+  - prompt: "Plan our hreflang and per-country keyword strategy to rank in Germany."
+    route_to: seo-geo
+    why: Multilingual ranking/geo strategy, not translation or i18n plumbing.
+  - prompt: "Write the English landing page copy for our launch."
+    route_to: content-engine
+    why: Authoring net-new source copy; localization translates existing content, it does not write it.
+
+capability:
+  - scenario: "Add Arabic to our existing React product so it ships correctly."
+    must_include:
+      - i18n-before-l10n sequencing (make the code locale-ready before producing translations)
+      - externalize strings to a catalog with stable namespaced keys; no concatenation of fragments
+      - ICU plural with correct CLDR categories including the mandatory `other` clause (Arabic uses all six)
+      - dates/numbers/currency via `Intl.*`, never baked into strings
+      - RTL via `dir` on `<html>` and CSS logical properties (not CSS `direction`, not `margin-left`)
+      - translation workflow with glossary + translation memory + MT/LLM post-edit + human review
+      - pseudolocalization and missing-key testing before hiring translators
+      - configured fallback locale
