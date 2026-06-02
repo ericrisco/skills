@@ -20,5 +20,11 @@ Rules:
 
 - Installing changes the user's environment — always confirm first.
 - To know what exists, run `npx rsc consult "<the task>"` instead of guessing.
+- For a project-level view, prefer `.rsc/skill-registry.json` when present; if it is missing or stale, suggest `npx rsc registry refresh`. This is a cheap index, not a reason to load every skill.
 - Never recommend something already installed (`npx rsc list`).
 - One suggestion at a time. Don't interrupt the flow for nice-to-haves.
+
+## Orientación (siempre)
+
+Cierra cada turno con el **bloque-brújula** (📍 dónde estás · ✅ qué hiciste · 🧭 por qué · ➡️ siguiente, terminando en pregunta), calibrado al dial de `02-DOCS/wiki/harness/user-profile.md`. **Nunca termines en seco.** Protocolo completo: skill `orient` → `skills/orient/references/orientation-contract.md`. (Defiere a `suggest` el "¿instalo la skill que falta?".)
+

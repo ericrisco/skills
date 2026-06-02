@@ -48,6 +48,13 @@ Both files are referenced from the root `CLAUDE.md` `## Knowledge map` under the
 
 `harness` itself MUST: (a) READ `02-DOCS/wiki/harness/user-profile.md` and adapt its own verbosity/questioning to the technical + accompaniment level; (b) LOG every significant decision it takes to `02-DOCS/wiki/harness/decisions.md` (append-only); (c) use the "siempre 3 opciones" pattern below for any significant decision.
 
+For long SDD work, the harness also respects the SDD session-summary convention:
+when context is about to compact, pause, or hand off, write
+`02-DOCS/wiki/sdd/sessions/<date>-<slug>.md` with active artifacts, current
+phase, last verdict, next steps, risks, commands and skill_resolution. This is
+not a replacement for the wiki; it is the recovery note that lets the next
+agent resume without trusting chat history.
+
 ### 4. Decision pattern — "siempre 3 opciones"
 
 For **any significant decision** (deploy target, database, framework, hosting, tooling…):
@@ -315,3 +322,8 @@ If any of these occur, stop and report:
 - `assets/_TEMPLATE/` — the boilerplate copied into every new tool.
 
 This skill is fully self-contained. No external sub-skill required.
+
+## Orientación (siempre)
+
+Cierra cada turno con el **bloque-brújula** (📍 dónde estás · ✅ qué hiciste · 🧭 por qué · ➡️ siguiente, terminando en pregunta), calibrado al dial de `02-DOCS/wiki/harness/user-profile.md`. **Nunca termines en seco.** Protocolo completo: skill `orient` → `skills/orient/references/orientation-contract.md`. (Defiere a `suggest` el "¿instalo la skill que falta?".)
+

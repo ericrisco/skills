@@ -56,8 +56,14 @@ Never collapse a step. Never write the verdict before RUN and WALK have produced
 
 ### 1 — LOCATE
 
+- Read `02-DOCS/wiki/sdd/config.yaml` if present. Prefer `testing.commands.verify`
+  from config for repo-level gates. If config is missing and the change is
+  non-trivial, mark that as a verification risk and recommend `sdd-init`.
 - Read the spec at `02-DOCS/wiki/sdd/specs/<slug>.md` for its **acceptance criteria**.
 - Read the plan/task list at `02-DOCS/wiki/sdd/plans/<slug>.md` for each task's **done-check**.
+- Read `02-DOCS/wiki/sdd/progress/<slug>.md` if present for apply evidence and
+  completed tasks. Missing progress does not automatically fail, but it is a
+  traceability gap to record.
 - Determine which subprojects/stacks the change touched (from `git status`/`git diff --name-only` and the manifests). That tells you *which* stack `verify.sh` to run — possibly more than one in a monorepo.
 - If the constitution exists (`02-DOCS/wiki/sdd/constitution.md`), note its quality bars (coverage floor, lint level) — they are part of the gate.
 
@@ -71,6 +77,8 @@ For each touched stack, run that stack skill's gate and **capture the output ver
 # delegate to the stack that owns the tooling; do not reinvent it
 ./scripts/verify.sh            # from the subproject root the stack skill documents
 ```
+
+If `config.yaml` provides `testing.commands.verify`, run those commands first or explain why a stack-specific `verify.sh` supersedes them. Do not silently invent a different command when the config already says what to run.
 
 | Stack | Gate command (owned by the stack skill) | Covers |
 | --- | --- | --- |
@@ -149,6 +157,32 @@ Append-only spirit: don't overwrite a prior run's record; a new run is a new dat
 - An acceptance criterion has no test and no observable proof — it's unverified; the verdict is FAIL.
 - A failing check tempts you to fix it inline — that's scope drift into `debug`; record the failure and hand off.
 
+## Result envelope
+
+End with:
+
+```json result-envelope
+{
+  "status": "complete|failed",
+  "executive_summary": "Verification PASS/FAIL with open evidence gaps.",
+  "artifact": "02-DOCS/wiki/sdd/verifications/<slug>-YYYY-MM-DD.md",
+  "next_recommended": "review|debug|implement|clarify",
+  "risk": "low|medium|high",
+  "skill_resolution": {
+    "used": ["verify"],
+    "missing": [],
+    "fallback": [],
+    "compact_rules": ["Run configured verify commands.", "Acceptance criteria need observable proof."]
+  },
+  "evidence": ["command outputs", "done-check walk", "acceptance walk"]
+}
+```
+
 ## Next in the chain
 
 A **PASS** record is the entry ticket to the next phase: **`review`** (adversarial read of the diff for what the gate can't catch), then **`ship`** (PR/merge with Eric-only authorship). A **FAIL** routes back: failing checks to **`debug`**, missing coverage to **`implement`**, surfaced ambiguity to **`clarify`**. Either way the verification record under `02-DOCS/wiki/sdd/verifications/` travels with the work as its proof.
+
+## Orientación (siempre)
+
+Cierra cada turno con el **bloque-brújula** (📍 dónde estás · ✅ qué hiciste · 🧭 por qué · ➡️ siguiente, terminando en pregunta), calibrado al dial de `02-DOCS/wiki/harness/user-profile.md`. **Nunca termines en seco.** Protocolo completo: skill `orient` → `skills/orient/references/orientation-contract.md`. (Defiere a `suggest` el "¿instalo la skill que falta?".)
+

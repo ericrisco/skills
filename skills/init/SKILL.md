@@ -178,3 +178,7 @@ Verify the profile and the Knowledge-map link exist with `scripts/verify.sh` (re
 - `secure-coding` — input validation, authn/z, secret handling; recommended whenever software is being shipped.
 - Stack skills (`fastapi`, `go`, `nextjs`, `flutter`, `building-agents`, …) are **recommended at runtime** by Phase 3 based on discovery — not hardwired here.
 - References: `references/accompaniment-and-profile.md`, `references/discovery.md`, `references/recommend-skills.md`.
+
+## Orientación (siempre)
+
+Cierra cada turno con el **bloque-brújula** (📍 dónde estás · ✅ qué hiciste · 🧭 por qué · ➡️ siguiente, terminando en pregunta), calibrado al dial de `02-DOCS/wiki/harness/user-profile.md`. **Nunca termines en seco.** Protocolo completo: skill `orient` → `skills/orient/references/orientation-contract.md`. (Defiere a `suggest` el "¿instalo la skill que falta?".)
