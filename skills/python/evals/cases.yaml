@@ -1,0 +1,46 @@
+skill: python
+
+should_trigger:
+  - prompt: "Set up a new Python project with uv — package layout, pyproject, lint and types."
+    why: "Core packaging/layout/uv duty of this skill: src/ layout, pyproject.toml, ruff+mypy wiring."
+  - prompt: "Is this idiomatic Python? Modernize it to 3.12+ typing."
+    why: "Language-level idiom review plus PEP 695 modernization is the spine of the skill."
+  - prompt: "Add type hints to this module and make mypy --strict pass."
+    why: "Typing the boundary and satisfying a strict checker is owned here, even without naming the tool."
+  - prompt: "Convertir este asyncio.gather a algo más seguro con cancelación correcta."
+    why: "Non-obvious + Spanish: structured concurrency / TaskGroup at the language level; user describes the problem without naming TaskGroup."
+  - prompt: "Should I use a frozen slots dataclass or a NamedTuple for this value object?"
+    why: "Non-obvious data-modeling decision the skill's table resolves; no framework or tool named."
+  - prompt: "This function takes xs=[] as a default and the list keeps growing across calls — what's wrong?"
+    why: "Classic mutable-default-argument bug; a language-level anti-pattern this skill diagnoses without the user naming it."
+
+should_not_trigger:
+  - prompt: "Add a FastAPI route that returns a Pydantic response model with async SQLAlchemy."
+    route_to: "fastapi"
+    why: "Service/route/Pydantic/ORM wiring belongs to fastapi; this skill owns only the language it is written in."
+  - prompt: "Write a thorough pytest suite with shared fixtures, mocking, and a coverage gate."
+    route_to: "testing-py"
+    why: "Deep test technique is testing-py; python carries only the baseline and hands off."
+  - prompt: "Model this table as a Django ORM model with migrations and an admin view."
+    route_to: "django"
+    why: "Django ORM/models/migrations/admin is the django skill, not the language substrate."
+  - prompt: "Threat-model this login flow and review it for OWASP-class authorization issues."
+    route_to: "secure-coding"
+    why: "Language-agnostic threat modeling and authz/abuse review is secure-coding; only Python-specific controls stay here."
+  - prompt: "Write a multi-stage Containerfile and a GitHub Actions pipeline to deploy this Python app."
+    route_to: "deployment"
+    why: "Containerfile / CI / shipping mechanics are deployment; this skill ships only a uv-based CI note."
+
+capability:
+  - scenario: "Scaffold a typed src/-layout Python package with uv: one stdlib-idiomatic module
+      using a PEP 695 generic, one asyncio TaskGroup function, a pyproject.toml with ruff+mypy
+      config and a console entry point, a baseline pytest test, and scripts/verify.sh."
+    must_include:
+      - "uv commands: uv init --package, uv add / uv add --dev, and uv sync --frozen for reproducible installs"
+      - "pyproject.toml with a [project] table (PEP 621, requires-python >=3.12) and a build-system/backend"
+      - "a PEP 695 inline generic (e.g. def first[T](xs: list[T]) -> T or class Box[T]), not an explicit TypeVar object"
+      - "an asyncio.TaskGroup function (not bare asyncio.gather) with cancellation-safe structure"
+      - "mypy --strict configured (e.g. [tool.mypy] strict = true) and ruff check/format wired in"
+      - "at least one pytest test_* function (assert and/or pytest.raises)"
+      - "no mutable default argument (uses = None then x = x or [], or field(default_factory=...)) and no bare except"
+      - "an explicit note that HTTP routes/services belong to fastapi, not this skill"

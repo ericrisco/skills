@@ -1,0 +1,45 @@
+skill: bash-scripting
+
+should_trigger:
+  - prompt: "Write an install script that downloads a tarball, verifies its checksum, untars it, and cleans up the temp dir even if it fails partway."
+    why: "Core bundle of the skill: mktemp + EXIT trap cleanup + strict-mode header + quoted expansions. The 'cleanup even if it fails' clause is the trap requirement."
+  - prompt: "My bash loop processes files fine until someone has a filename with a space, then it splits into two. What's wrong?"
+    why: "The quoting/array/-print0 core. Word-splitting an unquoted expansion (SC2086) or parsing ls; the skill's highest-value section."
+  - prompt: "This deploy script works on my laptop but in CI set -e doesn't catch the error and it keeps going. Why?"
+    why: "Non-obvious — looks like a CI problem but is the errexit leak (assignment-with-substitution / condition context / functions). The skill owns the bash semantics, not the CI config."
+  - prompt: "Make this script run on both macOS and Linux — it uses declare -A and ${var,,} and dies on the Mac."
+    why: "Portability / macOS bash 3.2: associative arrays and case-folding don't exist on 3.2.57. Routes to references/portability.md workarounds."
+  - prompt: "Fix all these ShellCheck SC2086 warnings correctly, not just by adding disable comments everywhere."
+    why: "Non-obvious: the ask is to fix (quote the expansions), not silence. Tests that the skill teaches the correct directive discipline."
+  - prompt: "Tinc un script que peta en CI però funciona al meu portàtil — el pots fer robust i portable?"
+    why: "Catalan trigger. 'Peta en CI / funciona al portàtil' is the works-on-my-machine portability + strict-mode symptom the description names."
+  - prompt: "My cleanup trap seems to fire twice and rm complains about a missing directory."
+    why: "The double-fire trap + idempotent cleanup point. Specific symptom from the traps section."
+
+should_not_trigger:
+  - prompt: "My GitHub Actions matrix build isn't caching node_modules between jobs. How do I configure the cache key?"
+    route_to: "github-actions"
+    why: "Workflow structure — runners, matrix, caching, secrets. The YAML and the workflow graph, not the shell inside a run: block. Explicit description boundary."
+  - prompt: "Optimize my multi-stage Dockerfile so the RUN layers cache better and the final image is smaller."
+    route_to: "docker"
+    why: "Dockerfile semantics and layer hygiene, not the embedded script. Routes to docker."
+  - prompt: "Design a retry-with-exponential-backoff policy and a structured error taxonomy for my microservice."
+    route_to: "error-handling"
+    why: "Cross-language defensive-design question. This skill is only the bash-specific expression (set -e pitfalls, traps, $?); the general taxonomy is error-handling."
+  - prompt: "This bash data-processing script has gotten gnarly with nested awk and arrays — rewrite it in Python."
+    route_to: "python"
+    why: "A deliberate language-switch decision. Once the answer is 'do it in another language', it routes to that language's skill."
+  - prompt: "Set up the Makefile and task orchestration so contributors can run lint/test/build with one command."
+    route_to: "project-ops"
+    why: "Orchestration-layer design, not a single script body. project-ops owns the task-runner structure; bash-scripting owns the script inside a target."
+
+capability:
+  - scenario: "Harden this fragile deploy script and explain each change. It is: #!/bin/sh on line 1, then `DIR=$1; cd $DIR; for f in $(ls *.tar.gz); do tar xzf $f; done; rm -rf $DIR/build/*; declare -A envs` — it parses ls, has unquoted vars, cds without checking, no cleanup, uses a bash-5-only feature under a POSIX shebang, and there's no strict mode."
+    must_include:
+      - "Resolves the shebang/feature mismatch: declare -A is a bashism (and unavailable on macOS bash 3.2), so either switch the shebang to #!/usr/bin/env bash or drop the associative array — does not leave #!/bin/sh with bashisms inside."
+      - "Adds a strict-mode header appropriate to the chosen shell (set -euo pipefail + IFS for bash; explains pipefail/arrays are unavailable if POSIX sh is chosen)."
+      - "Quotes every expansion: \"$DIR\", \"$f\", and guards the destructive path with ${DIR:?} so an empty DIR can't become rm -rf /."
+      - "Replaces `for f in $(ls *.tar.gz)` with a glob (`for f in ./*.tar.gz; do [ -e \"$f\" ] || continue`) or find -print0, killing the ls-parse and space/newline bug."
+      - "Changes `cd $DIR` to `cd \"$DIR\" || exit 1` so a failed cd does not run the rest in the wrong directory (SC2164)."
+      - "Adds trap-based cleanup with mktemp for any temp work (tmp=$(mktemp -d); trap 'rm -rf \"$tmp\"' EXIT), idempotent."
+      - "States the result must pass `shellcheck` clean (and `shellcheck -s sh` if the POSIX path is chosen)."

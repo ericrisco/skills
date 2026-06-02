@@ -1,0 +1,43 @@
+skill: java
+
+should_trigger:
+  - prompt: "Write a service that fetches 500 URLs concurrently and aggregates the response bodies."
+    why: "Virtual-thread fan-out for blocking I/O is the core concurrency use case; the user never names Java or Loom but the shape (concurrent blocking fetches) is exactly what one-vthread-per-task owns here."
+  - prompt: "Refactor this instanceof + cast ladder over a Shape type into something cleaner and exhaustive."
+    why: "Replacing instanceof+cast ladders with a sealed type + exhaustive pattern-matching switch is explicitly owned by this skill."
+  - prompt: "Is this idiomatic modern Java? class User { private String name; private int age; with all the getters and setters and a no-arg constructor }"
+    why: "Idiom review of a JavaBean; the skill should push it to a record. 'Is this idiomatic Java' is a named trigger."
+  - prompt: "modela este dominio de pagos con tipos inmutables y casos exhaustivos (capturado, rechazado, pendiente)"
+    why: "Spanish phrasing for sealed-interface-plus-record ADT modeling with exhaustive handling — records and sealed types are owned here."
+  - prompt: "My ThreadLocal request context disappears inside the tasks I submit to the executor, and we're running on millions of virtual threads now. What should I use instead?"
+    why: "Non-obvious: the user describes the symptom (ThreadLocal not crossing submit, leaking on vthreads) without naming ScopedValue, which is exactly the fix this skill prescribes."
+  - prompt: "Set up a pom.xml that compiles against Java 25 and runs JUnit 5 tests, with warnings treated as errors."
+    why: "The Maven/Gradle build surface (compiler-plugin release, surefire + JUnit 5, -Xlint -Werror) is owned by this skill."
+
+should_not_trigger:
+  - prompt: "Add a @RestController with @GetMapping(\"/users/{id}\") and inject a @Service bean for the lookup."
+    route_to: "spring-boot"
+    why: "Spring framework wiring (controllers, beans, annotations, autoconfiguration) is delegated to spring-boot; this skill is only the plain-JDK layer underneath."
+  - prompt: "Write a Kotlin coroutine-based repository with a Flow for my Android app."
+    route_to: "kotlin-android"
+    why: "Kotlin language and Android belong to kotlin-android; Java and Kotlin interop but are different languages."
+  - prompt: "Do an OWASP-style authorization review and threat model of my multi-tenant API's permission boundaries."
+    route_to: "secure-coding"
+    why: "Language-agnostic threat modeling / authz / OWASP review is delegated to secure-coding; only Java-specific controls (JDBC params, compact-constructor validation) stay here."
+  - prompt: "Write a multi-stage Dockerfile and a GitHub Actions pipeline to build and ship my jar."
+    route_to: "deployment"
+    why: "Containerfile / CI / shipping is delegated to deployment; this skill keeps only the jlink/jpackage note and base-image choice."
+  - prompt: "Tune the indexes and rewrite this slow query for a Postgres users table with a composite lookup."
+    route_to: "postgresdb"
+    why: "SQL schema/index/query tuning is a database concern; this skill covers only JDBC parametrization from the Java side."
+
+capability:
+  - scenario: "Model a payment domain as a sealed interface with record cases (Captured, Declined, Pending), write an exhaustive switch that maps each case to an HTTP-ish result, validate a Money amount in a compact constructor, and fan out N payment validations concurrently. Provide a Maven build targeting Java 25."
+    must_include:
+      - "Payment outcome modeled as a sealed interface with record cases (sealed interface ... permits ...; record Captured/Declined/Pending implements it) — NOT a JavaBean with getters/setters or a class hierarchy"
+      - "Money (or the amount type) is a record that validates its invariant in a compact constructor (e.g. throws on negative cents / null currency) so an invalid instance cannot be constructed"
+      - "An exhaustive switch over the sealed type using record deconstruction patterns (case Captured(var id, var amt) -> ...) with NO default branch, relying on the compiler's exhaustiveness check"
+      - "No instanceof + cast ladder anywhere in the mapping logic"
+      - "Concurrency uses Executors.newVirtualThreadPerTaskExecutor() inside try-with-resources, one task per virtual thread (NOT a fixed-size pool, NOT new Thread per request, NOT pooled virtual threads)"
+      - "Returns Optional or an empty collection rather than null for absent results"
+      - "pom.xml configures maven-compiler-plugin with <release>25</release> (and ideally -Xlint:all/-Werror) and JUnit 5 via surefire"

@@ -1,0 +1,46 @@
+skill: typescript
+
+should_trigger:
+  - prompt: "Make this generic function preserve the literal type of its argument instead of widening to string."
+    why: Core type-system work — const type parameters / inference preservation, framework-agnostic.
+  - prompt: "Why won't TypeScript narrow this union inside the switch? The fields still show as the whole union."
+    why: Non-obvious narrowing symptom — discriminant/destructure-before-check, squarely this skill.
+  - prompt: "Set up a strict tsconfig for a Vite + Node monorepo with project references."
+    why: Compiler config, project references, bundler-vs-nodenext fork — owned here.
+  - prompt: "Type X is not assignable to type Y — help me fix the type, not cast it with as."
+    why: Non-obvious phrasing of a pure type-assignability problem; the explicit no-cast ask is this skill's stance.
+  - prompt: "Configura el tsconfig en modo estricto y elimina los any de este modulo."
+    why: Spanish trigger — strict config plus replacing any with precise types, language/compiler scope.
+  - prompt: "Convert these magic-string statuses into a discriminated union with an exhaustiveness check."
+    why: Discriminated unions + never guard, the canonical modeling pattern here.
+  - prompt: "Por que no estrecha el tipo despues del if? sigue siendo string | undefined."
+    why: Catalan/Spanish non-obvious narrowing question — type-system diagnosis.
+
+should_not_trigger:
+  - prompt: "Add an Express route handler that streams a file with backpressure handling."
+    route_to: nodejs
+    why: Runtime/server behavior (streams, http), not the type system.
+  - prompt: "Type my React component props and wire up the useReducer state."
+    route_to: react
+    why: Framework idioms; the type mechanics are borrowed from here but the wiring belongs to react.
+  - prompt: "Generate Drizzle schema types from my Postgres tables."
+    route_to: drizzle-orm
+    why: ORM schema-to-type generation is owned by the ORM skill.
+  - prompt: "Add type hints to this Python function and fix the mypy errors."
+    route_to: python
+    why: Different language; TS skill does not cover Python typing.
+  - prompt: "Set up Vitest with TS path aliases and coverage reporting."
+    route_to: testing-web
+    why: Test runner/coverage setup; tsconfig path-alias knowledge is borrowed but the tooling is the test skill's.
+
+capability:
+  - scenario: >
+      Given a loosely-typed module (any-heavy, string-keyed state object, no tsconfig),
+      produce strict types plus a tsconfig that compiles under `tsc --noEmit`.
+    must_include:
+      - "Replaces every `any` with `unknown`, a generic, or a precise type."
+      - "Models the state as a discriminated union with a literal discriminant (not string)."
+      - "Adds an exhaustive `never` guard so a new union member is a compile error."
+      - "Ships a strict tsconfig: strict, noUncheckedIndexedAccess, verbatimModuleSyntax, isolatedModules."
+      - "Uses `import type` for type-only imports where applicable."
+      - "Uses no `as` casts to silence errors (each remaining `as` is justified, e.g. `as const` or a validated boundary)."

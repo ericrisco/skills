@@ -1,0 +1,48 @@
+skill: csharp-dotnet
+
+should_trigger:
+  - prompt: "Build an ASP.NET Core minimal API for /products with validation and OpenAPI."
+    why: Core authoring task — minimal API + DataAnnotations validation + OpenAPI are this skill's bread and butter.
+  - prompt: "Is this idiomatic C#? Should this DTO be a record with init-only props?"
+    why: Idiom review with no tool/framework named — record-vs-class and init-only are .NET idioms this skill owns.
+  - prompt: "My API endpoint hangs and deadlocks under load — it calls .Result on an async method."
+    why: Non-obvious symptom phrasing; the user does not say "sync-over-async" but that is exactly the deadlock this skill diagnoses.
+  - prompt: "This EF Core query loads orders then hits the database once per order in a loop."
+    why: N+1 described by symptom, not by name — EF Core query shape is in scope here.
+  - prompt: "Add xUnit integration tests with WebApplicationFactory for my controllers."
+    why: .NET testing contract — WebApplicationFactory is the ASP.NET Core integration-test primitive.
+  - prompt: "revisa este código C# antes de hacer deploy"
+    why: Spanish trigger for a C# code review before shipping — language-family review is this skill.
+  - prompt: "How do I structure a .NET solution with src/ and tests/ and central package management?"
+    why: dotnet CLI + solution layout + Directory.Packages.props are covered directly in the body.
+
+should_not_trigger:
+  - prompt: "Build the same REST API but in Spring Boot with JPA."
+    route_to: spring-boot
+    why: JVM/Java backend — explicitly delegated; this skill is the .NET counterpart only.
+  - prompt: "Threat-model my multi-tenant authorization boundaries against OWASP."
+    route_to: secure-coding
+    why: Framework-neutral threat modeling; this skill keeps only the concrete .NET controls.
+  - prompt: "Tune this slow Postgres query and design the right indexes."
+    route_to: postgresdb
+    why: Raw DB schema/index/query tuning — not EF mapping or LINQ translation.
+  - prompt: "Write a Dockerfile and GitHub Actions workflow to deploy my .NET app to Hetzner."
+    route_to: deployment
+    why: Containerization and CI/deploy targets live in deployment; this skill stops at dotnet publish.
+  - prompt: "Build this backend in NestJS with TypeScript decorators."
+    route_to: nestjs
+    why: Node/TypeScript backend — the wrong language family entirely.
+
+capability:
+  - scenario: >
+      Write a production-shaped ASP.NET Core 10 minimal API for a TODO resource backed by
+      EF Core on Postgres: validation, ProblemDetails, OpenAPI, async with CancellationToken,
+      and a DTO that is separate from the EF entity.
+    must_include:
+      - "Minimal API using a route group (MapGroup) — or controllers with a stated justification."
+      - "A record DTO distinct from the EF entity, with explicit mapping between them."
+      - "async handlers that flow CancellationToken into SaveChangesAsync and queries."
+      - "DataAnnotations validation (or an endpoint filter) plus a ProblemDetails error shape."
+      - "OpenAPI wired via AddOpenApi() and MapOpenApi()."
+      - "AsNoTracking() on the read path and no N+1 (projection or Include)."
+      - "Targets net10.0 with nullable reference types enabled."

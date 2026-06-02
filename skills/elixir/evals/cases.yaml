@@ -1,0 +1,41 @@
+skill: elixir
+
+should_trigger:
+  - prompt: "Write me a GenServer that keeps a counter and supports increment and get."
+    why: Core GenServer authoring — client API + callbacks + child_spec, the central capability.
+  - prompt: "Design a supervision tree for a worker pool that restarts crashed workers."
+    why: Supervision strategy and restart values, the OTP design layer this skill owns.
+  - prompt: "How do I structure 'let it crash' instead of wrapping everything in try/rescue?"
+    why: BEAM failure philosophy; the mental shift the skill is built around.
+  - prompt: "Set up a mix release so I can deploy my Elixir app to production."
+    why: mix project, runtime.exs vs config.exs, and `mix release` packaging.
+  - prompt: "Els meus processos d'Elixir acumulen missatges al mailbox i acaben petant, com ho arreglo?"
+    why: Catalan, non-obvious symptom — unbounded mailbox growth from cast flooding / slow handlers.
+  - prompt: "Mi GenServer entra en un bucle de reinicios al arrancar, creo que el init bloquea."
+    why: Spanish, non-obvious — blocking init stalling the supervisor; route to handle_continue.
+
+should_not_trigger:
+  - prompt: "Build a LiveView page with a form and live validation."
+    route_to: phoenix
+    why: Web/LiveView is the Phoenix layer that builds its own tree on top of OTP.
+  - prompt: "Write an Ecto schema and a query with preloads for my users table."
+    route_to: phoenix
+    why: Ecto schemas/queries ship with the Phoenix sibling, not the bare language/OTP skill.
+  - prompt: "Use goroutines and channels to fan out work across CPUs."
+    route_to: go
+    why: Different runtime and concurrency model; the request names Go primitives.
+  - prompt: "Tune Postgres indexes and analyze a slow query plan."
+    route_to: postgresdb
+    why: Database tuning, unrelated to the BEAM or OTP.
+
+capability:
+  - scenario: "Build a token-bucket rate limiter as a supervised OTP service, one bucket process per API key, created on demand and addressable by key."
+    must_include:
+      - GenServer with a clear client API separated from server callbacks
+      - supervised under application.ex, with buckets started via DynamicSupervisor at runtime
+      - Registry-based naming ({:via, Registry, ...}) instead of dynamic global atoms
+      - child_spec via `use GenServer` (or an explicit override only if changing restart/shutdown)
+      - "@spec on the public functions"
+      - "let-it-crash: no blanket try/rescue around the bucket logic; supervisor restarts on crash"
+      - mix project structure (mix.exs application/0 with mod:, lib/ layout)
+      - tagged tuple returns ({:ok, _} / {:error, :rate_limited})
