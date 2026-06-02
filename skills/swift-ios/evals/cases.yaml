@@ -1,0 +1,46 @@
+skill: swift-ios
+
+should_trigger:
+  - prompt: "Build a native iOS app in SwiftUI to track workouts with local persistence."
+    why: Core greenfield SwiftUI app with SwiftData persistence — the skill's home turf.
+  - prompt: "Compiler says 'main actor-isolated property cannot be referenced from a nonisolated context' after I turned on Swift 6 mode."
+    why: Non-obvious — a verbatim strict-concurrency diagnostic that only this skill diagnoses and fixes.
+  - prompt: "Should my SwiftUI view model be an actor or a @MainActor class?"
+    why: Concurrency-architecture decision unique to Swift/SwiftUI; the answer is @MainActor, not actor.
+  - prompt: "Migrate my XCTest cases to #expect / @Test and parameterize them."
+    why: Swift Testing ownership; XCTest-to-Swift-Testing migration lives here.
+  - prompt: "Necesito una app nativa de iOS amb SwiftUI i concurrència moderna (async/await)."
+    why: Catalan/Spanish phrasing for a native SwiftUI + concurrency app.
+  - prompt: "How do I do type-safe programmatic navigation with NavigationStack and deep links?"
+    why: NavigationStack + typed path + navigationDestination is owned by this skill.
+  - prompt: "My @Observable model glitches the UI when it updates from a background fetch — what's wrong?"
+    why: Non-obvious symptom of off-main mutation of observed state, the #1 footgun.
+
+should_not_trigger:
+  - prompt: "Build the same app for both iOS and Android from one Kotlin codebase."
+    route_to: compose-multiplatform
+    why: Shared KMP/CMP across both OSes, not Apple-native single-platform.
+  - prompt: "Build this mobile app in Flutter with Dart."
+    route_to: flutter
+    why: Different language and ecosystem entirely.
+  - prompt: "Set up EAS Build and OTA updates for my React Native app."
+    route_to: expo
+    why: The React Native / Expo shipping pipeline, not Swift coding.
+  - prompt: "Write the native Android version in Jetpack Compose."
+    route_to: kotlin-android
+    why: Kotlin + Compose + Android side of the language/platform split.
+  - prompt: "Add a GitHub Actions workflow to build and sign my iOS app in CI."
+    route_to: github-actions
+    why: Generic cloud CI/signing process, not in-editor Swift app coding.
+
+capability:
+  - scenario: >
+      A SwiftUI screen has an @Observable model that fetches from the network inside a
+      Task.detached and assigns the result to a published-like property, producing intermittent
+      UI glitches and a Swift 6 data-race warning. Refactor it correctly.
+    must_include:
+      - Identifies that the model must be @MainActor (or rely on default-isolation MainActor) and that the off-main mutation is the bug.
+      - Replaces Task.detached with Task {} or .task {} so the main-actor context is inherited; awaits the async work and lets the mutation land back on main.
+      - Marks any cross-actor value types Sendable (or keeps them main-isolated) and explains the diagnostic.
+      - Uses @Observable (not ObservableObject) and owns the model via @State in the view.
+      - Notes cancellation — .task {} auto-cancels on disappear, or checks Task.isCancelled.

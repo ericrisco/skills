@@ -1,0 +1,56 @@
+skill: kotlin-android
+
+should_trigger:
+  - prompt: "Build an Android screen in Jetpack Compose backed by a ViewModel that loads a list."
+    why: "Core greenfield: Compose screen + ViewModel + UI state is exactly what this skill owns."
+
+  - prompt: "My Compose screen recomposes on every frame and loses its scroll position when I rotate the phone."
+    why: "Non-obvious symptom phrasing — recomposition churn + rotation state loss map to the state/recomposition rules (rememberSaveable, derivedStateOf, hoisting)."
+
+  - prompt: "Wire Hilt, Room and Retrofit together in a clean-architecture Android module with offline-first caching."
+    why: "Full-stack data layer + DI; skill prescribes repository over Room (source of truth) + Retrofit suspend + Hilt KSP."
+
+  - prompt: "¿Cómo expongo el estado del ViewModel a la UI con StateFlow en Compose sin que se pierda al rotar?"
+    why: "Spanish trigger naming StateFlow + ViewModel + Compose; expects StateFlow + collectAsStateWithLifecycle + stateIn(WhileSubscribed)."
+
+  - prompt: "Set up build.gradle.kts with the Compose compiler plugin and a version catalog for a new app."
+    why: "Non-obvious toolchain trigger — the Compose plugin (not composeOptions), libs.versions.toml, AGP/Kotlin/compileSdk floors live here."
+
+  - prompt: "How do I do type-safe navigation between Compose screens and pass an id argument?"
+    why: "Navigation 2.8 @Serializable route objects/classes with composable<Route> and toRoute() — explicitly covered."
+
+  - prompt: "Should I use kapt or KSP for Room and Hilt, and why is my annotation processing so slow?"
+    why: "Non-obvious build-hygiene trigger; the skill mandates KSP over kapt and explains the slowdown."
+
+should_not_trigger:
+  - prompt: "Share one Compose UI across Android and iOS from a single Kotlin module with expect/actual."
+    route_to: compose-multiplatform
+    why: "The moment commonMain/expect/actual/an iOS target appears it is Compose Multiplatform, not single-platform Android."
+
+  - prompt: "Build the same screen in SwiftUI for iOS."
+    route_to: swift-ios
+    why: "iOS native UI — a different platform and language entirely."
+
+  - prompt: "Create a Kotlin REST API with Spring Boot that the mobile app will call."
+    route_to: spring-boot
+    why: "Server-side Kotlin/JVM backend, not an Android client."
+
+  - prompt: "Build this mobile app in React Native instead."
+    route_to: react-native
+    why: "Different stack (JS/TS + RN), not native Kotlin/Compose."
+
+  - prompt: "Cross-platform mobile UI with Flutter and Dart."
+    route_to: flutter
+    why: "Dart + Flutter widget tree, not Kotlin/Android."
+
+capability:
+  - scenario: >
+      Implement a 'list of articles' feature for an Android app: offline-first, fetched from a
+      REST API, cached locally, and shown in a Compose list with loading and error states.
+    must_include:
+      - "Sealed UiState (Loading/Success/Error) exposed as a StateFlow from a @HiltViewModel."
+      - "Composable collects state with collectAsStateWithLifecycle() and is stateless (state in, events out)."
+      - "Repository observes Room (Flow, single source of truth); Retrofit refresh uses suspend and writes into Room."
+      - "Coroutines run in viewModelScope or an injected dispatcher; no GlobalScope."
+      - "Modern toolchain mentioned or in gradle: Compose BOM 2026.05.01, Kotlin 2.2.x, AGP 9.2+, compileSdk 37, minSdk 24, JDK 17."
+      - "No XML layouts, no findViewById, no LiveData in Compose; Room/Hilt wired with KSP not kapt."

@@ -1,0 +1,50 @@
+skill: wordpress
+
+should_trigger:
+  - prompt: "Build me a custom WordPress block theme with theme.json and a few templates"
+    why: Core block-theme authoring — theme.json v3, template hierarchy, patterns.
+  - prompt: "Harden this WordPress install before launch — lock down the dashboard and config"
+    why: Security baseline (DISALLOW_FILE_EDIT, permissions, login lockdown) is owned here.
+  - prompt: "Enable HPOS on our WooCommerce store and migrate the existing orders"
+    why: Non-obvious — store datastore migration via wp wc cot/hpos CLI, plugin compatibility.
+  - prompt: "Why is wp-admin crawling? someone said our autoloaded options are huge"
+    why: WP-specific performance — autoload audit, object cache — not generic CWV.
+  - prompt: "endurece mi WordPress y desactiva el editor de archivos del panel"
+    why: Spanish phrasing for hardening + DISALLOW_FILE_EDIT; same capability, must trigger.
+  - prompt: "Write a WP plugin that registers a 'book' custom post type and a related block"
+    why: Plugin authoring — plugin header, register_post_type, block.json/register_block_type.
+  - prompt: "crea un tema de bloques y haz un wp search-replace de staging a producción"
+    why: Catalan/Spanish + serialization-safe migration recipe, both core to this skill.
+
+should_not_trigger:
+  - prompt: "Refactor this PHP value object to use property hooks and pass PHPStan level max"
+    route_to: php
+    why: Pure language work, no WordPress API in sight.
+  - prompt: "Set up an Eloquent model with a Blade view and an Artisan command"
+    route_to: laravel
+    why: Laravel framework, not WordPress.
+  - prompt: "Build my Shopify storefront theme in Liquid with sections and metafields"
+    route_to: shopify
+    why: Different commerce platform entirely.
+  - prompt: "Do an OWASP threat model of my Express API and its auth flow"
+    route_to: secure-coding
+    why: Generic web security not tied to the WordPress attack surface.
+  - prompt: "Build a Next.js front end that reads the WordPress REST API and renders posts"
+    route_to: nextjs
+    why: The React/front-end side of a headless split; WordPress owns only the back end.
+
+capability:
+  - scenario: >
+      Scaffold a hardened, WooCommerce-ready WordPress plugin that registers a 'book'
+      custom post type plus a related-books block, declares HPOS compatibility, and is
+      safe to commit to a public repo.
+    must_include:
+      - "Proper plugin header (Plugin Name, Version, Requires PHP 8.4+, Requires at least 6.9)"
+      - "ABSPATH guard so the file cannot be hit directly"
+      - "register_post_type for 'book' with show_in_rest, explicit supports and labels"
+      - "block.json + register_block_type( __DIR__ . '/build/...' ) — no metadata duplicated in PHP"
+      - "current_user_can capability check AND a nonce on any write/save path"
+      - "$wpdb->prepare() for any query (or no raw SQL); output escaped with esc_html/esc_attr"
+      - "FeaturesUtil::declare_compatibility('custom_order_tables', __FILE__, true) on before_woocommerce_init"
+      - "No hardcoded secrets, DB creds, or AUTH_KEY/salt literals"
+      - "Deploy note recommending DISALLOW_FILE_EDIT and keeping plugins updated"

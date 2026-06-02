@@ -1,0 +1,42 @@
+skill: react-native
+
+should_trigger:
+  - prompt: "Scaffold an Expo Router app with auth-gated tabs and typed routes."
+    why: "Project shape + navigation gating is the core app-code surface this skill owns."
+  - prompt: "My product list re-renders every visible row on each keystroke in the search box — how do I stop it?"
+    why: "Non-obvious render-storm symptom; the fix (memoized rows, debounced query, virtualization) lives here, not in expo."
+  - prompt: "Write a native module wrapping the iOS HealthKit / Android Health Connect SDK for my Expo app."
+    why: "Native-module authoring (Expo Modules API vs Turbo Module) is explicitly this skill's territory."
+  - prompt: "La llista de productes pateix lag quan faig scroll en una FlatList de 5000 items."
+    why: "Catalan list-jank phrasing; FlashList migration + getItemType is the answer this skill gives."
+  - prompt: "Deep link opens the app but lands on the wrong screen instead of the nested tab."
+    why: "Deep-link/group-segment mismatch is app-routing, owned here; not a build/OTA concern."
+  - prompt: "My swipe gesture drops mid-drag and the recognizer seems to reset on every render."
+    why: "Gesture-object-in-useMemo issue; UI-thread/worklet reasoning is this skill's animation section."
+
+should_not_trigger:
+  - prompt: "eas build fails with a provisioning profile error."
+    route_to: expo
+    why: "Build pipeline / signing is the expo half of the verb test, not app code."
+  - prompt: "Rebuild the same app in Flutter with the same screens."
+    route_to: flutter
+    why: "Dart/Flutter toolchain, different framework entirely."
+  - prompt: "My Next.js server component won't render the product list."
+    route_to: nextjs
+    why: "Web React / SSR, DOM primitives — not React Native."
+  - prompt: "Cut a 1.4.0 release and tag the CI pipeline for it."
+    route_to: ship
+    why: "Release orchestration / CI, not in-app code."
+  - prompt: "My OTA update isn't showing up on devices after publish."
+    route_to: expo
+    why: "OTA update channels/runtime-version belong to the expo pipeline."
+
+capability:
+  - scenario: "A long product feed janks while scrolling on Android (smooth on iOS). The team is on Expo SDK 54 and wants it back to 60fps."
+    must_include:
+      - "Profile re-renders first (React DevTools Profiler / why-did-you-render) rather than guessing."
+      - "Migrate FlatList to FlashList with getItemType for structurally different rows."
+      - "Memoized row component with a stable keyExtractor (domain id, not index) and no inline closures/styles in renderItem."
+      - "Move scroll-driven animation to a Reanimated worklet on the UI thread, or disable entry animations on initial mount to stop the position flash."
+      - "Confirm the New Architecture is on and that no dependency is forcing the legacy interop path; do not set newArchEnabled:false."
+      - "Note React Compiler (SDK 54) reduces manual memo but does not remove virtualization / list discipline."

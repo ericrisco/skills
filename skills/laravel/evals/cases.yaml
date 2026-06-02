@@ -1,0 +1,45 @@
+skill: laravel
+
+should_trigger:
+  - prompt: "Add a queued job to send order confirmation emails with retries and backoff."
+    why: "Core queues — ShouldQueue + $tries/backoff is the center of this skill."
+  - prompt: "Create an Eloquent model and migration for posts with a many-to-many tags relationship."
+    why: "Core Eloquent — models, migrations, belongsToMany are the framework surface this skill owns."
+  - prompt: "Write a Pest feature test for the checkout endpoint with RefreshDatabase."
+    why: "In-framework Pest feature testing — explicitly this skill's testing section."
+  - prompt: "My job runs immediately during tests instead of going to the queue — how do I assert it was dispatched?"
+    why: "Non-obvious: the sync-driver gotcha. No 'Laravel' keyword, but it is exactly Queue::fake/assertPushed territory."
+  - prompt: "Where did app/Http/Kernel.php go? I can't find it to register my middleware."
+    why: "Non-obvious orientation trigger — the L11/12 slim skeleton moved middleware to bootstrap/app.php."
+  - prompt: "Configura una cua amb Horizon i Redis per processar pagaments."
+    why: "Catalan phrasing for Redis+Horizon queue setup — queues are this skill's core."
+  - prompt: "Crea una migración con relaciones para una tabla de pedidos."
+    why: "Spanish phrasing for an Eloquent migration with relationships — core Eloquent."
+
+should_not_trigger:
+  - prompt: "Write a strict-typed PHP value object with readonly props and set up PHPStan at max level."
+    route_to: php
+    why: "Language/toolchain work (types, readonly, PHPStan) with no framework surface — the php skill."
+  - prompt: "Design the REST contract: versioning, status codes, and pagination shape for our public API."
+    route_to: api-design
+    why: "Transport-agnostic contract design discipline, not implementing an API in Laravel."
+  - prompt: "Do an OWASP threat-model and security review of our auth flow across the whole stack."
+    route_to: secure-coding
+    why: "Cross-stack appsec discipline; Laravel keeps only framework-native guards."
+  - prompt: "Set up Playwright browser E2E tests for the signup funnel."
+    route_to: testing-web
+    why: "Browser/E2E strategy, not in-framework Pest feature tests."
+  - prompt: "Tune the indexes and slow-query plan for this MySQL database."
+    route_to: mysql
+    why: "DB engine schema/index tuning; Laravel covers Eloquent + queue config, not server tuning."
+
+capability:
+  - scenario: "Implement order processing: a ProcessOrder queued job with retries, a StoreOrderRequest Form Request doing validation and authorization, and a Pest feature test that asserts the job was dispatched (not executed). Target Laravel 11/12."
+    must_include:
+      - "a job implementing ShouldQueue with $tries and a backoff (method or property)"
+      - "a Form Request with both authorize() and rules()"
+      - "$fillable allowlist on the model (never protected $guarded = [])"
+      - "Queue::fake() with Queue::assertPushed() to assert dispatch rather than side effects"
+      - "RefreshDatabase in the Pest test"
+      - "L11/12 awareness: config in bootstrap/app.php / schedule in routes/console.php, no app/Http/Kernel.php or app/Console/Kernel.php"
+      - "no pre-11 idioms (no editing Kernel.php, no legacy $casts array where casts() is meant)"

@@ -1,0 +1,43 @@
+skill: react
+
+should_trigger:
+  - prompt: "Build a product list component in my React + Vite app"
+    why: "Core case — composing components in a client-side Vite SPA."
+  - prompt: "I'm fetching the user in a useEffect and it fires twice and races"
+    why: "The headline smell — server fetching in useEffect; route to TanStack Query."
+  - prompt: "Where should this filter state live — local, context, or a store?"
+    why: "State-location decision, the architecture spine of the skill."
+  - prompt: "My list flickers and the wrong row updates when I delete one"
+    why: "Non-obvious: an index-as-key / state bug, with no React or 'key' mentioned in the prompt."
+  - prompt: "Set up client-side routing with React Router in my Vite SPA"
+    why: "React Router v7 library mode setup, in scope."
+  - prompt: "Cómo hago data fetching en React sin useEffect"
+    why: "Spanish phrasing of the headline rule (TanStack Query, not useEffect)."
+  - prompt: "Per què es re-renderitza tot l'arbre quan canvio un sol camp del context?"
+    why: "Catalan; high-write context re-render problem → store with selectors."
+
+should_not_trigger:
+  - prompt: "Add a server action and revalidate the cache in my app/ route"
+    route_to: nextjs
+    why: "Server actions / App Router / RSC — server-rendered React, not a Vite SPA."
+  - prompt: "Build the profile screen in my Expo app"
+    route_to: react-native
+    why: "Native mobile rendering, not the DOM."
+  - prompt: "How do I make this generic discriminated-union type narrow properly"
+    route_to: typescript
+    why: "Pure type theory with no React component shape."
+  - prompt: "Design the hover, active and disabled states and spacing for our buttons"
+    route_to: design
+    why: "Visual design system / tokens, not React architecture."
+  - prompt: "Write a Vitest + RTL test suite for these components"
+    route_to: testing-web
+    why: "Test authoring is the task; this skill only notes testability."
+
+capability:
+  - scenario: "Build a paginated users list in a Vite React app: fetch from /api/users with loading and error states, plus an optimistic delete button per row."
+    must_include:
+      - "useQuery (or useSuspenseQuery) with queryKey + queryFn and a staleTime"
+      - "NO server data fetching inside useEffect"
+      - "useMutation with invalidateQueries OR optimistic onMutate/onError/onSettled"
+      - "explicit loading + error handling (isPending/isError, or Suspense + error boundary)"
+      - "typed props/data and a stable key (user id, not array index)"

@@ -1,0 +1,42 @@
+skill: rust
+
+should_trigger:
+  - prompt: "Write an axum service that exposes GET /users/{id} backed by Postgres, with graceful shutdown."
+    why: "Authoring a tokio + axum 0.8 service with sqlx and shutdown is the skill's core use case."
+  - prompt: "The compiler says `value moved here` and `borrow of moved value` on my struct — how do I fix this without cloning everywhere?"
+    why: "Non-obvious: the prompt never says 'Rust', it is pure borrow-checker symptom text; ownership debugging is the skill's center of gravity."
+  - prompt: "How should I model errors across my repository, service, and handler layers so I return the right HTTP status?"
+    why: "thiserror enum + #[from] + the IntoResponse status mapping is canonically owned here; same shape as go's 3-layer flow."
+  - prompt: "I get `future cannot be sent between threads safely` after I lock a Mutex right before an .await — how do I fix it?"
+    why: "The not-Send / MutexGuard-held-across-await async pitfall is a named trigger; the symptom text routes here without the word 'tokio'."
+  - prompt: "Review this .rs before I ship: it `.unwrap()`s the DB row and `format!`s the id straight into the SQL string."
+    why: "Review trigger combining the Rust-specific security controls (sqlx parametrization, no unwrap on untrusted input) embedded here."
+  - prompt: "El borrow checker no em deixa compilar aquesta funció async amb tokio, com ho arreglo?"
+    why: "Catalan trigger: borrow checker + async tokio is squarely this skill."
+
+should_not_trigger:
+  - prompt: "Do a threat model and OWASP-style authz review of my multi-tenant app's permission boundaries."
+    route_to: "secure-coding"
+    why: "Language-agnostic threat modeling and authz/abuse review is delegated to secure-coding; only Rust-specific controls stay here."
+  - prompt: "Write a multi-stage Dockerfile and a GitHub Actions CI pipeline to build and deploy my Rust service."
+    route_to: "deployment"
+    why: "Containerfile / CI / shipping is delegated to deployment; this skill ships only a Docker note plus release-profile flags."
+  - prompt: "Design the indexes and tune the query plan for this Postgres users table with a composite lookup."
+    route_to: "postgresdb"
+    why: "Pure SQL schema/index/plan tuning is a database concern; the Rust skill only covers parametrization from the Rust side."
+  - prompt: "Build a cross-platform desktop app with a Rust backend and a webview UI."
+    route_to: "tauri"
+    why: "Native GUI / desktop shell with a webview is out of scope here and routes to tauri."
+  - prompt: "Write the same service in Go with net/http and graceful shutdown."
+    route_to: "go"
+    why: "Go service work belongs to the go skill, the structural twin; this skill is Rust-only."
+
+capability:
+  - scenario: "Implement an axum handler GET /users/{id} over sqlx + Postgres that returns 404 when the user is missing and 500 on an unexpected DB error, with shared state via Arc and no panics on the request path."
+    must_include:
+      - "Uses the axum 0.8 routed path `/users/{id}` with a `Path<i64>` extractor and `State<Arc<AppState>>` (shared state, no static mut / globals)"
+      - "Defines a `thiserror` domain enum (e.g. NotFound + Db) with `#[from]` so `?` lifts sqlx::Error automatically"
+      - "Implements `impl IntoResponse` that pattern-matches the enum: NotFound -> 404, default/Db -> 500 (no string-matching of error messages)"
+      - "Parametrizes the SQL with a bind parameter ($1), never `format!`/string-interpolation into the query"
+      - "Propagates with `?` and has zero `.unwrap()`/`.expect()` on the request path"
+      - "Logs only the unexpected error with `tracing` (e.g. tracing::error!) and does not leak the internal error to the client body"
