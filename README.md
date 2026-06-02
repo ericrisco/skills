@@ -1,5 +1,14 @@
 <div align="center">
 
+```
+ ██████╗ ███████╗ ██████╗
+ ██╔══██╗██╔════╝██╔════╝
+ ██████╔╝███████╗██║     
+ ██╔══██╗╚════██║██║     
+ ██║  ██║███████║╚██████╗
+ ╚═╝  ╚═╝╚══════╝ ╚═════╝
+```
+
 # `rsc` — 231 agent skills, one CLI, zero bloat
 
 **A self-recommending skill catalog for Claude Code, Cursor, Codex & Gemini.**

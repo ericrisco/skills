@@ -6,7 +6,7 @@ import { rank } from './consult.js';
 import { expandRecommends, toOutcomes, hasOutcome } from './lib/recommend.js';
 import { applyInstall, listInstalled, uninstall } from './install-apply.js';
 import { doctor } from './doctor.js';
-import { ask, say, yes, select, pickFrom } from './lib/ui.js';
+import { ask, say, yes, select, pickFrom, banner } from './lib/ui.js';
 import { refreshRegistry, registryStatus } from './lib/registry.js';
 import { DOMAINS } from './lib/domains.js';
 
@@ -94,8 +94,9 @@ function printNextSteps(target, ids) {
 
 async function wizard() {
   const m = loadManifest();
-  say('👋 rsc — the skill catalog for your assistant (Claude Code · Cursor · Codex · Gemini).');
-  const choice = await select('\nWhat do you want to do?', [
+  banner();
+  say('  the skill catalog for your assistant (Claude Code · Cursor · Codex · Gemini)\n');
+  const choice = await select('What do you want to do?', [
     { key: 'base', label: 'Base install — the essentials (orient + suggest + harness + init)' },
     { key: 'sdd', label: 'Base + Spec-Driven Development — the specify → plan → implement → ship flow' },
     { key: 'manual', label: 'Pick skills by hand, by area' },
