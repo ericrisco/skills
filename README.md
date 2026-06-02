@@ -1,80 +1,223 @@
-# skills
+<div align="center">
 
-Eric Risco's collection of agent skills, distributed as **`rsc-universal`** — a
-single CLI (`npx rsc`) that installs skills **one at a time**, recommends what
-your project needs, and keeps your assistant equipped as you work.
+# `rsc` — 231 agent skills, one CLI, zero bloat
 
-`skills/<name>/` is the single source of truth. There are no bundles to choose
-and nothing to over-install: you start with a tiny floor and the system proposes
-the next skill when your project actually needs it.
+**A self-recommending skill catalog for Claude Code, Cursor, Codex & Gemini.**
+Describe what you want in plain language. It reads your repo, installs *only* the
+skills that fit — one at a time — and keeps your assistant equipped as you work.
 
-## Quick start (the easy way)
-
-Run the assistant and describe what you want — in plain language, no jargon:
+From *"document my company"* to *"ship a FastAPI service"* to *"grow my YouTube
+channel"* — **231 skills across 21 domains**, every one researched against live
+2025-2026 sources and **adversarially scored ≥ 8.5/10** before it shipped.
 
 ```bash
-npx rsc
+npx rsc            # plain-language wizard — no jargon, installs what your project needs
 ```
 
+</div>
+
+---
+
+## Why this exists
+
+Most skill packs dump hundreds of files into your context and call it a day. This
+one is the opposite bet:
+
+- **Granular by default.** The unit of installation is *one skill*. Install
+  `fastapi` without ever pulling `go`. Nothing you don't use touches your context.
+- **Self-recommending.** Both the terminal (`rsc consult`) and the chat
+  (`rsc-suggest`, an always-on detector) watch what you're doing and propose the
+  *next* skill the moment a task needs it — a one-word confirm installs it.
+- **Not code-only.** First-class support for running a *company*: bookkeeping,
+  invoicing, hiring, GDPR, pitch decks, SEO, a YouTube/TikTok/LinkedIn presence —
+  each wired to a `02-DOCS/` knowledge loop that learns from your own results.
+- **Honestly good.** Every skill was built by a research → spec → implement →
+  *adversarial review* pipeline and had to clear an objective rubric (see
+  [The quality bar](#the-quality-bar)). The bar was real: skills that scored 8.0
+  were sent back and fixed, not waved through.
+
+`skills/<name>/` is the single source of truth. There are no bundles to argue
+over: you start with a tiny floor and grow one piece at a time.
+
+---
+
+## Install
+
+The catalog ships as the `rsc-universal` CLI. Until it's on npm, install from
+source (one minute, once):
+
+```bash
+git clone https://github.com/ericrisco/skills.git ~/rsc-skills
+cd ~/rsc-skills && npm install && npm link   # puts `rsc` on your PATH
 ```
+
+Then, inside any project of yours:
+
+```bash
+cd ~/my-project
+rsc                # the wizard: describe what you want, it installs what fits
+```
+
+> Once published: `npx rsc` with no install step. Prefer no global link? Call it
+> directly: `node ~/rsc-skills/scripts/rsc.js <args>`.
+
+The first run installs the **floor** — `rsc-suggest` (always-on detector) +
+`harness` + `init` — and, in Claude Code, wires a `SessionStart` hook so your
+assistant proposes new skills on its own from then on.
+
+---
+
+## 30-second tour
+
+```
+$ rsc
 Hola 👋 ¿Qué quieres hacer?
-> una tienda web con base de datos y publicarla
+> una tienda web con base de datos, y llevar la contabilidad
 
 He preparado esto para ti:
-   • Tu web (rápida y lista para Google)
-   • Guardar tus datos de forma fiable
-   • Publicarlo online
-   • Que se vea bien y convierta
+   • Tu tienda (rápida y lista para Google)        → nextjs, design, seo-geo
+   • Guardar tus datos de forma fiable             → postgresdb
+   • Cobrar y facturar                             → stripe, invoicing
+   • Llevar las cuentas                            → bookkeeping, finance-ops
+   • Publicarlo online                             → vercel
 ¿Lo monto? (sí / no) > sí
 
 ✅ Listo. Abre tu editor y empieza a pedir cosas en tu idioma.
+   💡 Cuando una tarea necesite algo más, te lo propongo yo.
 ```
 
-It reads your repository (what stack is already there), listens to what you say,
-and installs only the matching skills. The first run also installs the **floor**:
-`rsc-suggest` (the always-on detector) so that — from then on — your assistant
-itself proposes installing a skill the moment a task needs one.
+It detects your stack from the repo, maps your words to outcomes, installs the
+matching skills, then suggests what usually comes next.
+
+---
 
 ## The CLI
 
 ```bash
-npx rsc                                 # plain-language wizard (recommended)
-npx rsc add fastapi postgresdb          # install specific skills, by name
-npx rsc install --profile minimal       # the floor: suggest + harness + init
-npx rsc install --profile core          # floor + the SDD workflow
-npx rsc install --profile full          # everything
-npx rsc install --profile full --without go   # everything except one skill
-npx rsc consult "security review"       # recommend only, no install
-npx rsc registry refresh                # write .rsc/skill-registry.{json,md}
-npx rsc registry status                 # inspect the project registry
-npx rsc list                            # what rsc has installed
-npx rsc doctor                          # health check (state, hook, counts)
-npx rsc uninstall postgresdb --dry-run  # preview a removal
+rsc                                  # plain-language wizard (recommended)
+rsc add fastapi postgresdb           # install specific skills, by name
+rsc add youtube-api remotion-video   # …grow a channel, edit with Remotion
+rsc install --profile minimal        # the floor: suggest + harness + init
+rsc install --profile core           # floor + the full SDD workflow
+rsc install --profile full           # everything (all 231)
+rsc install --profile full --without go
+rsc consult "quiero lanzar un saas"  # recommend only, no install
+rsc registry refresh                 # write .rsc/skill-registry.{json,md}
+rsc list                             # what rsc has installed
+rsc doctor                           # health check (state, hook, counts)
+rsc uninstall postgresdb --dry-run   # preview a removal
 ```
 
-The unit of installation is the **individual skill** — install `fastapi` without
-ever pulling `go`. Nothing you don't use ends up in your context.
+---
 
 ## How recommendation works
 
 Two faces, one catalog (`manifest.json`):
 
-- **In the terminal** — `npx rsc` / `npx rsc consult` rank the catalog against
-  your words (a small FTS index over each skill's description + tags) merged with
-  what it detects in your repo, then expand via each skill's `recommends`.
+- **In the terminal** — `rsc` / `rsc consult` rank the catalog against your words
+  (an FTS index over each skill's description + tags), merge that with what they
+  detect in your repo, and expand via each skill's `recommends`.
 - **In the chat** — `rsc-suggest` is a tiny always-on skill. When a task would
-  benefit from a skill you don't have, it names it and (with a one-word confirm)
-  runs `npx rsc add <id>` for you. Installed by default; the floor of the system.
-
-For SDD/runtime work, `npx rsc registry refresh` writes a cheap project index to
-`.rsc/skill-registry.json` and `.rsc/skill-registry.md`: skill id, trigger,
-tags, path, installed/available state and hash. Agents use that index to select
-the few relevant skills and digest compact rules instead of loading the whole
-catalog into context.
+  benefit from a skill you don't have, it names it and (one-word confirm) runs
+  `rsc add <id>` for you. It's the floor — installed with every profile.
 
 Repo detection maps real signals to skills: `package.json` + `next` → `nextjs`;
 `go.mod` → `go`; `pyproject.toml` → `fastapi`; `*.sql`/`prisma/` → `postgresdb`;
-`Dockerfile`/`.github/` → `deployment`; and so on. An empty repo just asks.
+`Dockerfile`/`.github/` → `docker`/`github-actions`; and so on. An empty repo
+just asks in plain language.
+
+---
+
+## The quality bar
+
+This catalog was built to a test that was **written before any skill existed**
+(`scripts/skill-rubric.md`). Each finished skill was scored 0-10 by an
+independent adversarial reviewer across seven weighted dimensions — with
+**freshness & grounding the heaviest (0.25)**: every load-bearing claim had to be
+*current* (2025-2026 versions/APIs) and cited to a dated source. The ship gate
+was **≥ 8.5**; anything below was sent back through a fix loop, not rounded up.
+
+| | |
+|---|---|
+| **Skills** | 231 (30 core + 201 added) |
+| **Domains** | 21 |
+| **Median family score** | **~9.1 / 10** |
+| **Below the 8.5 gate** | 0 (three were flagged, then remediated to 9.0-9.3) |
+| **Deterministic gates** | eval-lint ✓ · frontmatter+`recommends` validate ✓ · 50/50 unit tests ✓ · every description ≤ 1024 chars ✓ |
+
+Each skill is **hybrid**: a focused `SKILL.md` (120-400 lines), deep-dive
+`references/`, an `evals/cases.yaml` (≥5 trigger / ≥4 near-miss / ≥1 capability
+scenario), and — for anything with a checkable artifact — an executable
+`scripts/verify.sh`.
+
+---
+
+## The catalog
+
+231 skills, grouped by what you're trying to do. Invoke any installed skill by
+name in your assistant; it fires on its own when a task matches.
+
+### 🧭 Core & control plane
+The front door and the workspace brain.
+`init` · `harness` · `author-skill` · `suggest` · `sdd-init`
+
+> **harness** is the Karpathy *chaos→knowledge* engine — a `01-TOOLS/` layer (one
+> folder per provider, each with a working `test_connection`) and a `02-DOCS/`
+> self-improving wiki. It governs software *or* a whole company.
+
+### 📐 Spec-Driven Development
+Take a fuzzy intent to a shipped, verified change — phase by phase. `rsc install --profile core`.
+`sdd` · `constitution` · `specify` · `clarify` · `plan` · `tasks` · `analyze` · `implement` · `verify` · `review` · `ship` · `debug` · `worktrees` · `parallel`
+
+### 💼 Run a business
+`finance-ops` · `invoicing` · `bookkeeping` · `pricing` · `sales-pipeline` · `lead-gen` · `cold-outreach` · `proposals` · `contracts` · `customer-support` · `client-onboarding` · `retention` · `hiring` · `people-ops` · `inventory` · `logistics-ops` · `procurement` · `meeting-notes` · `sop-builder` · `project-ops`
+
+### 💸 Raise & model money
+`pitch-deck` · `investor-materials` · `financial-model` · `fundraising` · `unit-economics` · `grants`
+
+### ⚖️ Legal, privacy & compliance
+`gdpr-privacy` · `terms-conditions` · `compliance` · `data-policy` · `ip-trademark`
+
+### 📣 Market & brand
+`seo-geo` · `content-engine` · `social-publisher` · `brand-voice` · `brand-identity` · `newsletter` · `landing-copy` · `ads` · `article-writing` · `case-studies` · `video-shorts` · `podcast` · `market-research` · `competitor-watch` · `press-kit` · `community` · `webinar` · `review-management` · `marketing`
+
+### 🎬 Grow a channel (each with a `02-DOCS` feedback loop)
+- **YouTube** — `youtube-api` · `youtube-strategy` · `youtube-ideation` · `youtube-thumbnails` · `youtube-packaging` · `remotion-video` *(Remotion edits: transitions, Whisper captions, silence removal)*
+- **TikTok / Reels** — `tiktok-api` · `instagram-api` · `shortform-strategy` · `shortform-ideation` · `shortform-packaging` · `shortform-editing`
+- **LinkedIn** — `linkedin-api` · `linkedin-strategy` · `linkedin-content` · `linkedin-carousels` · `linkedin-outreach`
+- **Medium** — `medium-writing` · `medium-publishing` · `medium-strategy`
+
+### 🔌 Connect & automate
+`stripe` · `email-connector` · `google-workspace` · `notion-connector` · `whatsapp-telegram` · `automation-flows` · `api-connector-builder` · `webhooks` · `data-scraper` · `spreadsheet-ops` · `calendar-scheduling` · `document-processing` · `e-signature`
+
+### 📊 Data & analytics
+`analytics` · `dashboard` · `kpi-framework` · `reporting` · `ab-testing` · `forecasting` · `data-cleaning` · `business-intelligence`
+
+### 🤖 AI features & infra
+- **Build AI in** — `building-agents` · `rag` · `embeddings-search` · `prompt-engineering` · `llm-pipeline` · `agent-eval` · `chatbot` · `ai-media` · `replicate-images` · `structured-extraction` · `agent-safety` · `cost-tracking`
+- **Run AI on** — `replicate` · `runpod` · `modal` · `huggingface` · `ollama` · `together-fireworks` · `fal`
+
+### 🗣️ Languages
+`typescript` · `python` · `java` · `csharp-dotnet` · `php` · `ruby` · `cpp` · `elixir` · `bash-scripting` · `sql` · `go` *(+ `fastapi` for async Python services)*
+
+### 🏗️ Frameworks & app stacks
+`nextjs` · `react` · `react-native` · `vue-nuxt` · `angular` · `svelte` · `astro` · `solid-js` · `htmx` · `nodejs` · `nestjs` · `django` · `laravel` · `rails` · `spring-boot` · `phoenix` · `flutter` · `swift-ios` · `kotlin-android` · `compose-multiplatform` · `expo` · `tauri` · `electron` · `rust` · `wordpress` · `shopify` · `no-code-app` · `chrome-extension` · `api-design`
+
+### 🗄️ Databases & data layer
+`postgresdb` · `mysql` · `mongodb` · `redis` · `supabase` · `neon` · `planetscale` · `sqlite-turso` · `prisma-orm` · `drizzle-orm` · `firebase` · `dynamodb` · `vector-db` · `clickhouse-analytics` · `duckdb` · `db-migrations` · `backups`
+
+### ☁️ Ship & operate
+- **Platforms** — `vercel` · `netlify` · `cloudflare` · `railway` · `render` · `fly-io` · `coolify` · `hetzner` · `digitalocean` · `aws-essentials` · `gcp-essentials`
+- **DevOps** — `docker` · `github-actions` · `git-workflow` · `domains-dns` · `monitoring` · `email-deliverability` · `scaling` · `deployment`
+- **Quality & security** — `code-review` · `security-scan` · `secure-coding` · `testing-py` · `testing-web` · `testing-go` · `e2e-testing` · `accessibility` · `performance` · `error-handling` · `observability`
+
+### 🎨 Design & content craft
+`design` · `presentations` · `course-storytelling` · `course-builder` · `technical-writing` · `translation-l10n`
+
+### 🧠 Knowledge & meta
+`knowledge-ops` · `codebase-onboarding` · `research-ops` · `decision-records` · `continuous-learning` · `skill-scout` · `context-budget`
+
+---
 
 ## Multi-target
 
@@ -88,217 +231,48 @@ IDE (auto-detected, or `--target`):
 | `codex` | `.codex/rsc/<id>/` + `AGENTS.md` | block in `AGENTS.md` |
 | `gemini` | `.gemini/rsc/<id>/` + `GEMINI.md` | block in `GEMINI.md` |
 
-## The catalog
-
-Skills are grouped here by theme for reading only — there are no install bundles.
-Once installed, invoke a skill by its name in your assistant. Each skill is
-**hybrid**: a focused `SKILL.md`, deep-dive `references/`, and (for stack skills)
-an executable `scripts/verify.sh` quality gate.
-
-### Core — the front door & control plane
-
-#### [init](skills/init/)
-
-The bootstrapper. Gauges your technical level first (non-technical by default),
-discovers what you want to build or govern, detects greenfield vs brownfield,
-recommends which skills to install (printing the exact `npx rsc add` commands),
-and hands off to `harness`.
-
-#### [harness](skills/harness/)
-
-The workspace control plane. Governs a workspace — software OR a non-code base (a
-company, an ops desk, a knowledge vault) — through the `01-TOOLS/` operational
-tooling layer, the `02-DOCS/` Karpathy chaos→knowledge engine, and the root
-Knowledge map. As a brownfield auditor it scans any project, detects external
-provider integrations (Stripe, OpenAI, Anthropic, Supabase, Sentry, Twilio, …),
-and — only with explicit consent — scaffolds a canonical `01-TOOLS/` layer (one
-folder per provider, each with a working `test_connection`) plus a `02-DOCS/`
-second-brain that self-improves with every file dropped into `inbox/`. Also
-generates the root `CLAUDE.md` and `AGENTS.md`.
-
-#### [author-skill](skills/author-skill/)
-
-The meta-skill for authoring and editing the skills in this catalog —
-frontmatter discipline (`name`, `description`, `tags`, `recommends`), trigger
-design, the eval minimums enforced by `scripts/eval-lint.sh`, and the
-`manifest.json` distribution model. Use it when creating a new skill or
-tightening an existing one.
-
-#### [suggest](skills/suggest/)
-
-The always-on detector. Installed with every profile. During any conversation,
-if a task would benefit from a skill you don't have, it proposes installing it
-via `npx rsc add <id>`. Tiny by design — it's the one thing always in context.
-
-### Backend
-
-#### [fastapi](skills/fastapi/)
-
-Build, review, test, secure and ship FastAPI / async Python services — Python
-3.12+, Pydantic v2, async SQLAlchemy 2.0, DI, JWT/OAuth2, pytest, production
-settings. `references/`: testing, database, security, production.
-
-#### [go](skills/go/)
-
-Idiomatic Go HTTP services — errors, concurrency (context, errgroup, no leaks),
-net/http 1.22 routing, slog, table-driven `-race` tests, govulncheck.
-`references/`: concurrency, http-services, testing.
-
-#### [postgresdb](skills/postgresdb/)
-
-Engine-level PostgreSQL 16 — schema & type correctness, the right index, reading
-`EXPLAIN (ANALYZE, BUFFERS)`, keyset pagination, zero-downtime migrations, RLS,
-pooling, partitioning, backups. `references/`: schema-and-indexing,
-query-optimization, migrations, operations-and-security.
-
-### Frontend
-
-#### [nextjs](skills/nextjs/)
-
-Next.js 15 App Router done right — Server vs Client Components, server actions,
-route handlers, caching/revalidation, React 19, end-to-end TS, vitest +
-Playwright, security and Core Web Vitals. `references/`: react, data-and-caching,
-testing, performance, security.
-
-#### [flutter](skills/flutter/)
-
-Flutter / Dart 3 apps — feature-first clean architecture, Riverpod (and Bloc),
-Material 3 tokens, go_router, widget/golden/integration tests, rebuild & jank
-performance. `references/`: architecture-and-state, ui-and-navigation, testing,
-performance.
-
-#### [design](skills/design/)
-
-Research-first product design and high-converting landing pages — grounds in the
-project's brand study, researches current 2026 UX/UI trends, then ships a
-premium, accessible (WCAG 2.2 AA), fast (LCP/INP/CLS) visual system with Tailwind
-+ Next.js. `references/`: research-method, visual-system,
-landing-anatomy-and-cro, copywriting-frameworks, motion-and-interaction,
-trends-2026, brand-grounding.
-
-### Content
-
-#### [marketing](skills/marketing/)
-
-Conversion copywriting for landings and web pages. Grounds in the brand study
-first, then writes specific, benefit-led, on-brand copy: value props,
-hero/section copy, CTAs, email and launch sequences. Pairs with `design` and
-`nextjs`. `references/`: brand-grounding, copy-frameworks, landing-copy,
-campaigns-and-channels.
-
-#### [presentations](skills/presentations/)
-
-Stunning PPTX and PDF decks, grounded in the brand study. Two pipelines —
-design-led Markdown (Marp/Slidev) and native editable `python-pptx` — plus deck
-storytelling, slide copy and projection-grade visual design. `references/`:
-storytelling-and-decks, markdown-decks, pptx-python, slide-design,
-brand-grounding.
-
-#### [course-storytelling](skills/course-storytelling/)
-
-Turn course/lesson content into teaching that lands — profiles the learner, then
-runs every concept through Russell Brunson's *Expert Secrets* machine into a hook
-→ story → model → analogy → proof → application recipe. `references/`:
-brunson-frameworks, learner-grounding, mental-models, course-analysis,
-concept-landing-recipe.
-
-### Agents
-
-#### [building-agents](skills/building-agents/)
-
-Build production LLM agents that are model-agnostic by construction — a thin
-provider adapter (OpenAI ↔ Anthropic ↔ Gemini ↔ OSS as a config change), a
-disciplined agent loop, schema-validated tools, provider-neutral RAG, eval gates,
-OTel GenAI tracing, and an MCP server when warranted. `references/`:
-provider-abstraction, agent-loops-and-harness, tools-and-rag,
-evals-and-observability, mcp-servers.
-
-### Ops
-
-#### [secure-coding](skills/secure-coding/)
-
-Transversal security — lightweight STRIDE threat modeling and the OWASP Top 10
-mapped to concrete vulnerable→fixed examples in FastAPI, Go and Next.js, plus
-authn/authz, secrets and supply-chain gates. `references/`: threat-modeling,
-owasp-by-stack, authn-authz, secrets-and-supply-chain.
-
-#### [deployment](skills/deployment/)
-
-Source → hardened container → green CI/CD → live: multi-stage Dockerfiles per
-stack, GitHub Actions (matrix, caching, OIDC, security gates), and Coolify
-self-hosted deploys. `references/`: dockerfiles-by-stack, github-actions,
-coolify.
-
-### SDD — the Spec-Driven Development workflow
-
-The SDD skills take a fuzzy intent and walk it, phase by phase, to a shipped,
-verified change. It is process, not stack: each phase defers concrete tooling to
-the stack skills above, and writes artifacts into the `02-DOCS/wiki/sdd/` layer
-the `harness` governs. Install the whole workflow with `npx rsc install
---profile core`.
-
-The [sdd](skills/sdd/) dispatcher routes each request to its phase. Step zero is
-[`sdd-init`](skills/sdd-init/), which writes `02-DOCS/wiki/sdd/config.yaml`,
-detects test commands/strict TDD, and refreshes the skill registry. The happy
-path is **sdd-init → constitution → proposal? → specify → clarify → plan →
-tasks → analyze → implement → verify → review → ship → archive**, with `debug`,
-`worktrees`, and `parallel` callable on demand:
-
-- [sdd-init](skills/sdd-init/) — repo runtime calibration: stack, tests, commands, registry, budgets
-- [constitution](skills/constitution/) — project non-negotiables: stack canon, quality bars, conventions
-- proposal — optional pre-execution briefing under `02-DOCS/wiki/sdd/proposals/`
-- [specify](skills/specify/) — turn a fuzzy intent into a spec — what & why, no how
-- [clarify](skills/clarify/) — surface ambiguities / edge cases, ask, bake answers back in
-- [plan](skills/plan/) — technical plan: architecture, interfaces, data flow, tests, risks
-- [tasks](skills/tasks/) — break the plan into ordered, independently-verifiable tasks
-- [analyze](skills/analyze/) — consistency gate: constitution ↔ spec ↔ plan ↔ tasks
-- [implement](skills/implement/) — execute tasks with checkpoints; TDD discipline embedded
-- [verify](skills/verify/) — post-build gate: stack checks + done-checks + acceptance
-- [review](skills/review/) — adversarial code review — give and receive with rigor
-- [ship](skills/ship/) — close the branch: PR / merge / cleanup, then archive
-- [debug](skills/debug/) — root-cause diagnosis: reproduce → isolate → fix → verify
-- [worktrees](skills/worktrees/) — isolate feature work in a branch/worktree
-- [parallel](skills/parallel/) — fan out independent tasks across subagents
+---
 
 ## Skill format
 
-Each skill is a directory under `skills/<name>/` with a `SKILL.md` whose YAML
-frontmatter drives both triggering and the installer's recommendations:
+Each skill is a directory under `skills/<name>/` whose `SKILL.md` frontmatter
+drives both triggering and the installer's recommendations:
 
 ```yaml
 ---
 name: my-skill
-description: Use when [specific triggering conditions]
+description: Use when [specific triggers]… Triggers: 'phrase', 'frase'. NOT x (that is sibling).
 tags: [keyword, keyword]        # what the consult advisor searches over
 recommends: [sibling-skill]     # what the system offers to install next
 profiles: [core, full]          # optional: named-profile membership
+origin: risco
 ---
 ```
 
 The full agent-skill spec lives at
 [agentskills.io/specification](https://agentskills.io/specification).
 
+---
+
 ## Repo layout & contributing
 
-`skills/<name>/` is the **single source of truth** — every skill is authored and
-edited there, once. The catalog is published as the `rsc-universal` npm package;
-the CLI copies skills into the target IDE on demand.
-
-After editing any skill:
+`skills/<name>/` is the **single source of truth** — every skill is authored
+there, once. After editing any skill:
 
 ```bash
 npm run manifest      # regenerate manifest.json from skills/*/SKILL.md
 npm run validate      # ajv-validate frontmatter + check recommends integrity
 npm test              # unit + integration tests
-scripts/eval-lint.sh  # validate every skills/*/evals/cases.yaml
+bash scripts/eval-lint.sh   # validate every skills/*/evals/cases.yaml
 ```
 
 `manifest.json` is generated, never hand-edited; CI runs `npm run manifest:check`
-and fails if it is stale or the skill count drifts. Adding a skill is: create
-`skills/<id>/SKILL.md` with `tags` + `recommends`, run `npm run manifest`, done.
+and fails if it's stale or the skill count drifts. Adding a skill is: create
+`skills/<id>/SKILL.md` with `tags` + `recommends`, run `npm run manifest`, done —
+the rubric to hold it to is `scripts/skill-rubric.md`.
 
-This is a personal catalog. Bug reports welcome via GitHub issues. PRs fixing
-detector patterns, provider endpoints, or English typos are appreciated.
+This is a personal catalog. Bug reports welcome via GitHub issues; PRs fixing
+detector patterns, provider endpoints, or typos are appreciated.
 
 ## License
 
