@@ -30,15 +30,16 @@ Close the turn with these four intents (the wording adapts; the intents are fixe
 
 ## Calibrate to the dial
 
-Read `02-DOCS/wiki/harness/user-profile.md` for `technical_level` and `accompaniment_level` before you write the block.
+Read `02-DOCS/wiki/harness/user-profile.md` before you write the block. Two fields combine: `accompaniment_level` (how deep the block goes) and `technical_level` (the vocabulary).
 
-| Level | How the block behaves |
-|-------|-----------------------|
-| L0 — cavernícola | Only `✅` + `➡️`. One next option, a yes/no question. Zero jargon. |
+| accompaniment_level | How the block behaves |
+|---------------------|-----------------------|
+| L0 — cavernícola | Only `✅` + `➡️`. One next option, a yes/no question. |
 | L1 — breve | The four lines; `🧭` is one line of why. |
-| L2+ — mentor | The four lines with a real why and genuine forks to choose between. |
+| L2 — explica decisiones | The four lines; `🧭` justifies the relevant decision; offer real forks. |
+| L3 — acompañamiento total | The four lines, full why, many orienting questions, each option explained in plain language. |
 
-If the profile is missing, assume **L0** (non-technical-first) and offer to set the dial.
+`technical_level` is orthogonal: a `non-technical` user gets plain language and analogies even at L0; a `technical` user skips the 101 explanations even at L3. If the profile is missing, assume `non-technical` + **L3** (the non-technical-first default) and offer to set the dial.
 
 ## Spoken dial config
 

@@ -41,7 +41,7 @@ should_not_trigger:
     why: "Root-cause work owned by debug; orient does not take over the task itself."
 
 capability:
-  - scenario: "The user just ran `npx rsc add postgresdb` and says 'ya está, ¿y ahora qué?'. The profile shows technical_level L0. Show how orient closes the turn."
+  - scenario: "The user just ran `npx rsc add postgresdb` and says 'ya está, ¿y ahora qué?'. The profile shows accompaniment_level L0. Show how orient closes the turn."
     must_include:
       - "Situates the user on the map ('📍 dónde estás' / what is built vs missing)"
       - "States what just happened in one plain-language line ('✅ instalaste la base de datos')"
