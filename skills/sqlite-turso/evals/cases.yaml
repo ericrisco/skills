@@ -1,0 +1,45 @@
+skill: sqlite-turso
+
+should_trigger:
+  - prompt: "My app is read-heavy and single-tenant. Is SQLite actually enough or do I need a real database like Postgres?"
+    why: "The core decision this skill leads with — workload fit and the route-out to postgresdb when writers multiply."
+  - prompt: "Under load I keep getting 'database is locked' and occasional SQLITE_BUSY errors. How do I fix it?"
+    why: "Non-obvious: the user names a symptom, not the engine. Owned by the WAL + busy_timeout + single-writer guidance."
+  - prompt: "I want a local SQLite file that automatically syncs to a Turso database in the cloud so reads stay fast but data is durable."
+    why: "This is the embedded-replica flagship — file: url + syncUrl + token + sync()."
+  - prompt: "How do I wire createClient from @libsql/client to my Turso edge database with an auth token?"
+    why: "Direct connection scope: the current client, env-var token convention, URL-scheme transport selection."
+  - prompt: "I'm building a SaaS and want a separate database per customer on the edge. Is that practical?"
+    why: "Non-obvious mapping: database-per-user/per-tenant economics are a Turso strength (unlimited DBs), covered in the body and reference."
+  - prompt: "Munta una base de dades local-first amb rèplica incrustada que sincronitzi amb el núvol."
+    why: "Catalan trigger for the embedded-replica / local-first flagship — language coverage plus core feature."
+  - prompt: "Should I turn on WAL mode for my SQLite file, and what other pragmas should I always set?"
+    why: "Engine-truth scope: journal_mode=WAL, busy_timeout, foreign_keys per-connection, synchronous=NORMAL."
+
+should_not_trigger:
+  - prompt: "Define my libSQL schema with tables and relations and write type-safe queries with Drizzle."
+    route_to: drizzle-orm
+    why: "Schema modeling and the type-safe query builder layer ON TOP of the client — drizzle's job, not this engine/connection skill."
+  - prompt: "Create ordered up/down migration files for my SQLite schema and a runner to apply them."
+    route_to: db-migrations
+    why: "Versioned migration discipline is engine-agnostic and explicitly out of scope; this skill only does ad-hoc DDL."
+  - prompt: "We need thousands of users writing concurrently with complex transactions and roles."
+    route_to: postgresdb
+    why: "Many concurrent writers is exactly where SQLite's single-writer model breaks — route to a client-server RDBMS."
+  - prompt: "Give me serverless Postgres with database branching for preview environments."
+    route_to: neon
+    why: "Postgres-compatible serverless with branching is neon; Turso is serverless SQLite, a different engine."
+  - prompt: "Build a vector similarity search store for my RAG pipeline with reranking."
+    route_to: vector-db
+    why: "Even though Turso has native vector search, a dedicated vector store as the goal routes to the vector specialist."
+
+capability:
+  - scenario: "User asks to add Turso to a Next.js app so local reads are sub-millisecond but data is durably stored in the cloud, and wants the connection set up correctly."
+    must_include:
+      - "Uses an embedded replica: createClient with a local `file:` url AND a `syncUrl` to the remote primary (not a bare remote client for the local-read requirement)"
+      - "Reads the auth token from the environment (process.env.TURSO_AUTH_TOKEN), never a hardcoded literal"
+      - "Provides freshness via syncInterval and/or a manual await db.sync() call, mentioning sync() returns {frame_no, frames_synced}"
+      - "Recommends PRAGMA journal_mode=WAL plus busy_timeout and foreign_keys=ON on the file-backed connection"
+      - "States that production today uses libSQL (@libsql/client v0.17.x); Turso Database (Rust) is the future direction, not the default target"
+      - "Routes type-safe schema/queries to drizzle-orm and versioned migrations to db-migrations rather than doing them here"
+      - "Warns that db.sync() on a remote-only/HTTP client throws SYNC_NOT_SUPPORTED, and that a syncUrl requires a local file: url"

@@ -1,0 +1,46 @@
+skill: dynamodb
+
+should_trigger:
+  - prompt: "Design a DynamoDB table for an e-commerce app — users, orders, and order items."
+    why: "Core access-pattern-first NoSQL modeling for the DynamoDB engine."
+  - prompt: "I need to look up a user by id AND by email in DynamoDB. How do I support both lookups?"
+    why: "Non-obvious — the answer is an inverted/sparse GSI, but the user never says 'GSI' or 'index'."
+  - prompt: "My DynamoDB writes are getting throttled even though I'm way under my provisioned capacity. Why?"
+    why: "Non-obvious — this is the per-partition 1000 WCU hot-partition ceiling, with no modeling vocabulary in the prompt."
+  - prompt: "Should I use on-demand or provisioned capacity for a workload that spikes hard at 9am and is quiet otherwise?"
+    why: "Capacity-mode decision the skill owns (on-demand is the post-Nov-2024 default for spiky traffic)."
+  - prompt: "Is single-table design actually worth it for my app, or should I use a table per entity?"
+    why: "The single-table-vs-table-per-entity call is squarely this skill's territory."
+  - prompt: "Diseña el modelo de DynamoDB para un chat: conversaciones y mensajes, con paginación."
+    why: "Spanish + access-pattern modeling (one-to-many) + the 1 MB page / LastEvaluatedKey pagination concern."
+
+should_not_trigger:
+  - prompt: "Design a normalized Postgres schema with foreign keys for orders and customers, and add the right indexes."
+    route_to: postgresdb
+    why: "Relational engine — normalization, foreign keys, B-tree indexes are postgresdb's domain."
+  - prompt: "Model embedding-vs-referencing for my MongoDB documents and write the aggregation pipeline."
+    route_to: mongodb
+    why: "Document engine with an aggregation pipeline; not DynamoDB key/GSI modeling."
+  - prompt: "I want to store and query vector embeddings for semantic search."
+    route_to: vector-db
+    why: "Vector / semantic search, not key-value access-pattern modeling."
+  - prompt: "Set up my AWS account, IAM roles, and a VPC so I can start using AWS."
+    route_to: aws-essentials
+    why: "Account and infrastructure setup, not data modeling."
+  - prompt: "Cache these hot read results to take load off my database."
+    route_to: redis
+    why: "Caching layer is out of scope; DynamoDB owns the modeling, not the cache in front of it."
+
+capability:
+  - scenario: >
+      A multi-tenant SaaS has entities Org, User, Project, and Task. It needs to: get all users in an org;
+      get a user's tasks newest-first; look up a user by email; and list all overdue tasks across an org.
+      Design the DynamoDB model and recommend a capacity mode.
+    must_include:
+      - "Enumerates the four access patterns BEFORE designing any keys"
+      - "Designs composite PK/SK with entity co-location under a single table and shows the encoding (e.g. PK=USER#id, SK=TASK#<iso>#id)"
+      - "Serves the email lookup via an inverted/sparse GSI and notes GSIs are eventually consistent (no read-your-own-write)"
+      - "Serves 'overdue tasks' via a sparse GSI (attribute written only on overdue items), not a Scan + FilterExpression"
+      - "Recommends on-demand as the default capacity mode while naming the ~40%-utilization threshold for switching to provisioned"
+      - "Flags the 400 KB item cap and the 1 MB Query page with LastEvaluatedKey pagination"
+      - "Does NOT propose normalized separate tables joined in application code"

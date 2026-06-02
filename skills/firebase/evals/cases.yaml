@@ -1,0 +1,45 @@
+skill: firebase
+
+should_trigger:
+  - prompt: "Design the Firestore collections for a chat app with users, rooms, and messages. How should I structure it?"
+    why: "Core Firestore data modeling — collections vs subcollections, where messages live, denormalizing author info onto messages."
+  - prompt: "Can you review my firestore.rules? I'm worried the database is basically open to the internet."
+    why: "Rules audit and the headline 'open to the internet' risk — the catch-all open-rule failure mode the skill is built to catch."
+  - prompt: "My Firestore query works fine in the emulator but fails in production with a 'the query requires an index' error. What's going on?"
+    why: "Non-obvious: the emulator does NOT enforce composite indexes, so it silently runs queries that need an index declared in firestore.indexes.json."
+  - prompt: "Write a callable Cloud Function that sets a custom admin claim on a user after checking the caller is already an admin."
+    why: "Cloud Functions (2nd gen onCall) plus Auth custom claims set via the Admin SDK — squarely in scope and combines two product areas."
+  - prompt: "Necesito unes regles de seguretat perquè cada usuari només pugui llegir i editar els seus propis documents a Firestore."
+    why: "Catalan-language ownership Security Rules request — request.auth.uid == resource.data.ownerId; tests non-English trigger phrasing."
+  - prompt: "Our 'likes' counter document keeps choking under load and rejecting writes. How do I get past the 1-write-per-second limit?"
+    why: "Non-obvious scaling: the ~1 sustained write/sec/document soft limit and the sharded-counter remedy."
+  - prompt: "Should this be a subcollection under the room, or a separate top-level collection? I need to query messages across all rooms sometimes."
+    why: "Subcollection-vs-root decision driven by a collection-group access pattern — a named decision-table case."
+
+should_not_trigger:
+  - prompt: "Design a normalized Postgres schema with foreign keys for orders and line items, and pick the right indexes."
+    route_to: postgresdb
+    why: "Relational SQL schema design with FKs and SQL indexing — engine-level Postgres, not a NoSQL document store."
+  - prompt: "Set up Supabase row-level security policies and wire up the postgres-js client for my app."
+    route_to: supabase
+    why: "Postgres-backed BaaS with SQL RLS and PostgREST — the closest sibling but a different data model and rules language (the NOT-boundary)."
+  - prompt: "Model a single-table DynamoDB design with a GSI to support my access patterns and capacity planning."
+    route_to: dynamodb
+    why: "AWS NoSQL with its own single-table/GSI and capacity model — different product entirely."
+  - prompt: "Configure GCP IAM roles and a billing budget alert for our Google Cloud project."
+    route_to: gcp-essentials
+    why: "Generic GCP IAM/billing, not a Firebase product surface — Firebase sits on top of GCP but this is the layer below."
+  - prompt: "Build the React component tree and state management for the analytics dashboard."
+    route_to: react
+    why: "UI component architecture that merely happens to call Firebase — a rendering/state concern, not data modeling or rules."
+
+capability:
+  - scenario: "Here is a firestore.rules file with `match /{document=**} { allow read, write: if true; }` at the root, plus a `posts` collection where each post has an `ownerId` and users should only be able to read and edit their own posts. Fix the rules and explain how to test them locally."
+    must_include:
+      - "Removes the open `allow read, write: if true;` catch-all and relies on default-deny"
+      - "Ownership check: `request.auth.uid == resource.data.ownerId` for get/update/delete"
+      - "Uses `request.resource.data.ownerId == request.auth.uid` (or hasOnly/validation) on create"
+      - "Distinguishes the granular methods get / list / create / update rather than blanket read/write"
+      - "States that rules are NOT filters — the list query must be constrained (where ownerId == uid) or it is rejected entirely"
+      - "Provides a @firebase/rules-unit-testing snippet run via `firebase emulators:exec`"
+      - "Mentions App Check as the production trust boundary before rules evaluate"

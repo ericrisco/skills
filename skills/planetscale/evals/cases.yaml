@@ -1,0 +1,46 @@
+skill: planetscale
+
+should_trigger:
+  - prompt: "How do I make a schema change on PlanetScale without taking the table offline?"
+    why: "Core Online DDL / deploy-request workflow — branch, deploy request, shadow-copy cutover — is the heart of this skill."
+  - prompt: "My deploy request on PlanetScale has been stuck in the queue for ages and won't cut over. What's going on?"
+    why: "Non-obvious stuck-deploy symptom; the skill distinguishes 'still copying via VReplication' from 'gated waiting on apply' and routes to the deploy-requests reference."
+  - prompt: "PlanetScale won't let me add a foreign key. What's the right way to model this relationship?"
+    why: "No-FK design is a named scope; the answer is emulated relations / relationMode, not a generic schema lecture."
+  - prompt: "I'm on Vercel Edge and my MySQL connection to PlanetScale keeps timing out. How do I connect?"
+    why: "Non-obvious: raw TCP MySQL is blocked on edge runtimes; the fix is the @planetscale/database HTTP driver, which is PlanetScale-specific."
+  - prompt: "Necesito cambiar el esquema sin downtime en PlanetScale, ¿cómo lo hago?"
+    why: "Spanish phrasing of the core branch + deploy-request zero-downtime workflow."
+  - prompt: "I deployed a PlanetScale deploy request about 40 minutes ago and need to undo it — can I still revert?"
+    why: "Non-obvious: the ~30-minute revert window has likely closed, and reverts exclude dropped tables/cols and FK changes — a load-bearing nuance of this skill."
+  - prompt: "Set relationMode = prisma for my PlanetScale database and explain why."
+    why: "PlanetScale-specific ORM knob for emulating relations without DB foreign keys; the skill owns this even though Prisma is an ORM."
+
+should_not_trigger:
+  - prompt: "This MySQL query does a full table scan even with an index. How do I make it use the index?"
+    route_to: mysql
+    why: "Engine-level query tuning / index usage — identical answer on RDS MySQL — is the mysql sibling, not the PlanetScale platform workflow."
+  - prompt: "Design my PostgreSQL schema with proper constraints and pick the right column types."
+    route_to: postgresdb
+    why: "Postgres engine design and SQL semantics route to postgresdb, even when PlanetScale also sells managed Postgres."
+  - prompt: "I want Postgres branches for spinning up preview environments per pull request."
+    route_to: neon
+    why: "Postgres copy-on-write branching is Neon's model; PlanetScale branches are Vitess MySQL gated by deploy requests, a different engine and flow."
+  - prompt: "Can you explain how expand-contract migrations work in general, regardless of database?"
+    route_to: db-migrations
+    why: "Engine-agnostic migration theory belongs to db-migrations; this skill is the concrete PlanetScale deploy-request realization."
+  - prompt: "My Prisma Client updateMany returns the wrong count — what is the ORM actually doing?"
+    route_to: prisma-orm
+    why: "ORM client API ergonomics are the prisma-orm sibling; this skill owns only the PlanetScale connector knobs like relationMode."
+
+capability:
+  - scenario: "Walk me through shipping an ADD COLUMN on users plus a new orders table to a production PlanetScale MySQL database with zero downtime and a rollback plan."
+    must_include:
+      - "Creates a dev branch (pscale branch create), not editing main/production directly"
+      - "Applies the DDL on the branch (pscale shell), never against the production branch"
+      - "Opens a deploy request with pscale deploy-request create"
+      - "Runs pscale deploy-request diff and reads it before deploying"
+      - "Explains Online DDL: shadow table + VReplication copy + non-blocking cutover"
+      - "Addresses auto-apply ON by default vs --disable-auto-apply + deploy-request apply for the gated cutover"
+      - "Notes the ~30-minute revert window and that it excludes dropped tables/columns and FK-constraint changes"
+      - "Designs the new orders table without a DB-level foreign key (indexed relation column + app/ORM integrity), or justifies the unsharded FK opt-in"

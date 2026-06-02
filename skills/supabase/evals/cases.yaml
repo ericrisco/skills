@@ -1,0 +1,42 @@
+skill: supabase
+
+should_trigger:
+  - prompt: "My Supabase RLS policy returns no rows even though the data is there."
+    why: Core empty-result debugging — RLS, role scope, or data-API exposure; the central confusion this skill exists to resolve.
+  - prompt: "Set up cookie-based auth with Supabase in my Next.js app router."
+    why: SSR auth wiring with @supabase/ssr — browser/server clients plus mandatory middleware token refresh.
+  - prompt: "configura Supabase con Next.js y protege las rutas del servidor"
+    why: Spanish phrasing of the SSR auth + route-protection task; must still route to supabase.
+  - prompt: "Should I use Realtime Broadcast or Postgres Changes for a presence feature?"
+    why: Non-obvious architecture choice — the right answer (default to Broadcast, Postgres Changes doesn't fan out) is Supabase-specific knowledge.
+  - prompt: "Write an Edge Function that inserts a row using the service role key."
+    why: Edge Functions plus the key trust boundary — when bypassing RLS with service_role is and isn't appropriate.
+  - prompt: "Is it safe to put the Supabase anon key in my client bundle?"
+    why: Non-obvious trust-boundary question — yes, but only because RLS gates rows; tests the core mental model.
+  - prompt: "Should I verify the Supabase JWT locally with getClaims or hit the Auth server with getUser to protect my server routes?"
+    why: Non-obvious 2026 decision — getClaims() is the documented default (local JWK verify, asymmetric keys); getUser() is the higher-cost fallback for live ban/delete detection.
+
+should_not_trigger:
+  - prompt: "Add a composite index and tune this slow Postgres query with EXPLAIN."
+    route_to: postgresdb
+    why: Engine-level query tuning with no Supabase layer.
+  - prompt: "Define my schema in TypeScript with Drizzle and run typed queries."
+    route_to: drizzle-orm
+    why: ORM-first data access; Drizzle can sit on top of Supabase Postgres but the question is about the ORM.
+  - prompt: "Write Firestore security rules for my Firebase app."
+    route_to: firebase
+    why: Different BaaS (Google) — Firestore rules, not Postgres RLS.
+  - prompt: "Why is my Next.js page not revalidating with the App Router cache?"
+    route_to: nextjs
+    why: Framework caching mechanics, not Supabase client/auth wiring.
+
+capability:
+  - scenario: "Design the data layer for a multi-tenant SaaS on Supabase: orgs, members, per-org rows, file uploads, and a Next.js frontend."
+    must_include:
+      - anon/publishable (browser, RLS-gated) vs service_role/secret (server-only, bypasses RLS) boundary
+      - "enable row level security on tables, policies scoped to authenticated"
+      - "wrapping auth.uid() as (select auth.uid()) and indexing policy columns"
+      - membership/team_id authorization via a security-definer helper or join (not a per-row correlated subquery)
+      - "@supabase/ssr browser + server clients, middleware token refresh, getClaims() not getSession() for server-side gating (getUser() only when live ban/delete detection is needed)"
+      - storage bucket RLS on storage.objects (private bucket + signed URLs)
+      - note that a table must be exposed to the data API or PostgREST returns empty results

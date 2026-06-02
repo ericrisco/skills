@@ -1,0 +1,41 @@
+skill: mongodb
+
+should_trigger:
+  - prompt: "This find() takes forever and the logs say it's scanning the whole collection — 4 million docs. How do I make it fast?"
+    why: "A full collection scan (COLLSCAN) on a large collection is core scope; the skill owns reading explain and choosing the index, even though the user never says 'index' or 'COLLSCAN'."
+  - prompt: "Should I put the comments inside the post document or keep them in their own collection?"
+    why: "Embed vs reference is a named modeling decision with an explicit rule and the 16 MB rationale."
+  - prompt: "My aggregation with a $lookup and a $group is slow and sometimes errors out on memory. What's wrong?"
+    why: "Pipeline stage order, $lookup cost, and the 100 MB blocking-stage limit / allowDiskUse are all in scope."
+  - prompt: "My multi-document transaction keeps throwing TransientTransactionError and I don't know how to handle it."
+    why: "Non-obvious: the fix is the mandatory retry-on-the-transient-label (withTransaction), a core transactions topic the user wouldn't phrase as 'retry'."
+  - prompt: "Necesito modelar una colección de pedidos con muchísimos items que crece sin límite, cómo lo hago?"
+    why: "Spanish; unbounded array growth → reference or bucket pattern, a named modeling case."
+  - prompt: "Which Atlas tier do I actually need to run Vector Search — is the free M0 enough?"
+    why: "Non-obvious tier boundary: M0 won't run Vector Search for real workloads; Atlas tier choice + Vector Search are explicitly in scope."
+
+should_not_trigger:
+  - prompt: "Design a normalized Postgres schema with foreign keys and help me read this EXPLAIN ANALYZE output."
+    route_to: "postgresdb"
+    why: "Relational engine, SQL, and EXPLAIN ANALYZE — a different planner and concurrency model; the named boundary sibling."
+  - prompt: "My Mongoose pre-save hook isn't firing and I don't understand what updateMany returns."
+    route_to: "nodejs"
+    why: "ODM/driver API ergonomics, not engine behavior; nearest catalog skill is the JS runtime, the ODM's own docs own this."
+  - prompt: "Audit my repo for hardcoded credentials and unsafe authentication patterns."
+    route_to: "secure-coding"
+    why: "A security audit of the codebase, not MongoDB modeling/indexing; secure-coding owns app-layer security review."
+  - prompt: "Set up a Redis cache in front of my read queries to cut database load."
+    route_to: "redis"
+    why: "App-layer caching with a different store; explicitly out of scope for this engine skill."
+  - prompt: "Help me choose between Pinecone and Weaviate for our vector store."
+    route_to: "vector-db"
+    why: "Cross-engine vector-DB selection is out of scope; Atlas Vector Search inside Mongo would be in scope, but choosing between external products is not."
+
+capability:
+  - scenario: "A posts/comments app where the number of comments per post is unbounded, and a feed query filters by author and sorts by date. The user asks how to model the collections and which index to add."
+    must_include:
+      - "Chooses to reference comments in a separate collection (not an unbounded embedded array), citing the 16 MB document cap — or proposes a bucket pattern for the comment stream"
+      - "Designs a compound index ordered by ESR: author equality first, then createdAt as the sort key (e.g. { 'author._id': 1, createdAt: -1 })"
+      - "Shows explain('executionStats') and reads it: confirms IXSCAN (not COLLSCAN) and totalKeysExamined close to nReturned, with no in-memory SORT stage"
+      - "States that inserting a single comment or post is already atomic, so no multi-document transaction is needed for it"
+      - "Uses mongosh syntax (createIndex/find/explain), money as Decimal128 if money appears, not relational/SQL framing"
