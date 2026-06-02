@@ -36,26 +36,42 @@ const C = {
   green: (s) => `\x1b[32m${s}\x1b[39m`,
 };
 
-const ART = [
-  ' ██████╗ ███████╗ ██████╗',
-  ' ██╔══██╗██╔════╝██╔════╝',
-  ' ██████╔╝███████╗██║     ',
-  ' ██╔══██╗╚════██║██║     ',
-  ' ██║  ██║███████║╚██████╗',
-  ' ╚═╝  ╚═╝╚══════╝ ╚═════╝',
-];
+// Big block RSC wordmark, built from per-letter grids so rows always align.
+const _R = ['████████', '██    ██', '██    ██', '██    ██', '████████', '██  ██', '██   ██', '██    ██', '██    ██'];
+const _S = [' ███████', '██', '██', '██', ' ██████', '      ██', '      ██', '      ██', '███████'];
+const _C = [' ███████', '██    ██', '██', '██', '██', '██', '██', '██    ██', ' ███████'];
+const _padW = 9;
+const _pad = (s) => s + ' '.repeat(Math.max(0, _padW - [...s].length));
+const ART = _R.map((_, i) => `  ${_pad(_R[i])}  ${_pad(_S[i])}  ${_pad(_C[i])}`);
 
-// Vertical truecolor gradient (sky → violet), phase-shiftable for the wave.
-function gradientLine(text, row, phase) {
-  const a = [56, 189, 248]; const b = [167, 139, 250];
-  const t = ((row + phase) % ART.length) / (ART.length - 1);
-  const r = Math.round(a[0] + (b[0] - a[0]) * t);
-  const g = Math.round(a[1] + (b[1] - a[1]) * t);
-  const bl = Math.round(a[2] + (b[2] - a[2]) * t);
-  return `\x1b[38;2;${r};${g};${bl}m${text}\x1b[39m`;
+// HSL → RGB (s=1, l=0.6) for a true rainbow.
+function hsl(h, s = 1, l = 0.6) {
+  const c = (1 - Math.abs(2 * l - 1)) * s;
+  const x = c * (1 - Math.abs(((h / 60) % 2) - 1));
+  const m = l - c / 2;
+  let r = 0; let g = 0; let b = 0;
+  if (h < 60) { r = c; g = x; } else if (h < 120) { r = x; g = c; }
+  else if (h < 180) { g = c; b = x; } else if (h < 240) { g = x; b = c; }
+  else if (h < 300) { r = x; b = c; } else { r = c; b = x; }
+  return [Math.round((r + m) * 255), Math.round((g + m) * 255), Math.round((b + m) * 255)];
 }
 
-// Animated ASCII wordmark — the "wooow". Static plain text when not a TTY.
+// One frame: rainbow per character, diagonal phase, revealed up to `cols`.
+function frame(phase, cols) {
+  return ART.map((line, r) => {
+    const chars = [...line];
+    let out = '';
+    for (let c = 0; c < chars.length && c < cols; c++) {
+      const ch = chars[c];
+      if (ch === ' ') { out += ' '; continue; }
+      const [rr, gg, bb] = hsl((c * 5 + r * 14 + phase * 20) % 360);
+      out += `\x1b[1;38;2;${rr};${gg};${bb}m${ch}`;
+    }
+    return `\x1b[2K${out}\x1b[0m`;
+  }).join('\n') + '\n';
+}
+
+// Animated ASCII wordmark — the exaggerated "WOW". Static plain text when not a TTY.
 export async function banner() {
   if (!stdout.isTTY) {
     say('');
@@ -63,23 +79,36 @@ export async function banner() {
     say('  231 skills · one CLI · zero bloat');
     return;
   }
-  const W = Math.max(...ART.map((l) => l.length));
+  const rows = ART.length;
+  const W = Math.max(...ART.map((l) => [...l].length));
   stdout.write('\x1b[?25l'); // hide cursor
   say('');
-  // 1) letters slide in left → right, column by column
+  // 1) letters slide in left → right
   let first = true;
-  for (let w = 1; w <= W; w++) {
-    if (!first) stdout.write(`\x1b[${ART.length}A`);
+  for (let cols = 2; cols <= W; cols += 2) {
+    if (!first) stdout.write(`\x1b[${rows}A`);
     first = false;
-    stdout.write(ART.map((l, i) => `\x1b[2K${gradientLine(l.slice(0, w), i, 0)}`).join('\n') + '\n');
-    await sleep(20);
+    stdout.write(frame(0, cols));
+    await sleep(12);
   }
-  // 2) one flowing color wave to settle
-  for (let phase = 1; phase <= ART.length; phase++) {
-    stdout.write(`\x1b[${ART.length}A`);
-    stdout.write(ART.map((l, i) => `\x1b[2K${gradientLine(l, i, phase)}`).join('\n') + '\n');
-    await sleep(45);
+  // 2) flowing rainbow diagonal sweeps
+  for (let phase = 1; phase <= 30; phase++) {
+    stdout.write(`\x1b[${rows}A`);
+    stdout.write(frame(phase, W));
+    await sleep(26);
   }
+  // 3) double white flash — the pop
+  for (let f = 0; f < 2; f++) {
+    stdout.write(`\x1b[${rows}A`);
+    stdout.write(ART.map((l) => `\x1b[2K\x1b[1;97m${l}\x1b[0m`).join('\n') + '\n');
+    await sleep(60);
+    stdout.write(`\x1b[${rows}A`);
+    stdout.write(frame(15, W));
+    await sleep(60);
+  }
+  // settle on a final rainbow snapshot
+  stdout.write(`\x1b[${rows}A`);
+  stdout.write(frame(15, W));
   say(C.dim('  231 skills · one CLI · zero bloat'));
   stdout.write('\x1b[?25h'); // show cursor
 }
