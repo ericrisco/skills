@@ -1,0 +1,43 @@
+skill: inventory
+
+should_trigger:
+  - prompt: "What reorder point and safety stock should I set for these 12 SKUs given their lead times?"
+    why: Core ROP + safety-stock sizing, the central job of this skill.
+  - prompt: "We keep stocking out of our bestseller but we're sitting on a year of slow movers — fix our stock levels."
+    why: Non-obvious symptom phrasing for simultaneous under- and over-stock; the buffer/classification job, not an explicit 'reorder point' ask.
+  - prompt: "Run an ABC analysis and tell me which products deserve tight inventory control."
+    why: Classification step (ABC×XYZ) that drives differentiated policy.
+  - prompt: "Punt de comanda i stock de seguretat per als nostres articles?"
+    why: Catalan for reorder point and safety stock — core ask in another language.
+  - prompt: "Cuánto stock de seguridad necesito si el proveedor a veces tarda el doble de lo normal?"
+    why: Spanish, and the lead-time-variability cue should route to the combined SS formula, not demand-only.
+  - prompt: "Should we review stock continuously with min/max or just check weekly?"
+    why: Continuous-vs-periodic review-mode decision, a real branch this skill owns.
+
+should_not_trigger:
+  - prompt: "Raise a PO to our supplier and negotiate better payment terms and the volume discount."
+    route_to: procurement
+    why: Placing and negotiating the actual purchase order and supplier terms is the buy, owned by procurement; inventory only says how much and when.
+  - prompt: "Set up our warehouse picking, packing and shipping flow with a carrier."
+    route_to: logistics-ops
+    why: Physically moving goods is logistics-ops; inventory sets the on-hand target, not the fulfillment process.
+  - prompt: "Forecast next quarter's demand from the last 3 years of sales with seasonality."
+    route_to: forecasting
+    why: Statistical/ML demand projection is forecasting; inventory consumes a demand estimate but does not build the model.
+  - prompt: "Build a live dashboard showing inventory turnover and stockout rate by category."
+    route_to: dashboard
+    why: Displaying the KPIs is dashboard; inventory defines and computes them but does not build the visualization.
+
+capability:
+  - scenario: >
+      Given a SKU list with annual demand, unit cost and margin, lead times (some volatile, e.g. a
+      supplier that ranges 5–12 days), ordering cost and holding cost, produce a reorder-policy table
+      and a replenishment trigger list.
+    must_include:
+      - ABC×XYZ classification drives differentiated service levels, not one uniform Z across all SKUs
+      - safety-stock formula chosen by what actually varies — the combined/independent formula where lead time swings, not demand-only
+      - ROP = avg-demand-over-lead-time + safety_stock and order_qty derived from EOQ kept as separate columns
+      - review_mode assigned per class (continuous for A, periodic for B/C, ddmrp for erratic high-value)
+      - identifies which SKUs are at or below ROP for the trigger list, with no false triggers
+      - flags dead stock (SKUs with no movement over a defined window) rather than reordering them
+      - routes "now place the order with the supplier" to procurement

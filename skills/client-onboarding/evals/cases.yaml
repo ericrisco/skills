@@ -1,0 +1,40 @@
+skill: client-onboarding
+
+should_trigger:
+  - prompt: "We just closed a new enterprise account — build me an onboarding plan with a kickoff and a 30/60/90."
+    why: "Core high-touch motion: post-signature activation plan with kickoff + phased success plan."
+  - prompt: "How do I define our activation event — what should 'first value' mean for a new signup?"
+    why: "Core job: defining the one verifiable activation event before onboarding toward it."
+  - prompt: "The deal is signed, what happens now so they don't go cold before they're live?"
+    why: "Non-obvious — never says 'onboarding'; it's the post-signature trust-decay window this skill owns."
+  - prompt: "Plan de onboarding para un cliente nuevo con kickoff y plan de 30/60/90."
+    why: "Spanish trigger for the same high-touch onboarding plan; must still route here."
+  - prompt: "Design a day-0 to day-14 nudge sequence to get new free-trial users to their aha moment."
+    why: "Self-serve PLG motion + time-to-value; the day-0→14 activation sequence is squarely this skill."
+  - prompt: "Munta'm el handoff de vendes a CS per a un client que acaba de signar."
+    why: "Catalan, and targets the sales→delivery handoff sub-job specifically."
+
+should_not_trigger:
+  - prompt: "A current customer emailed that the app is down — handle this support ticket."
+    route_to: customer-support
+    why: "Reactive inbound triage from an existing customer, not the proactive first-30-days activation."
+  - prompt: "Build our renewal and churn-reduction program with customer health scores."
+    route_to: retention
+    why: "Ongoing lifecycle after the onboarded gate; this skill ends at that gate."
+  - prompt: "Write the proposal and SOW to send this prospect before they sign."
+    route_to: proposals
+    why: "Pre-close document; client-onboarding starts only after the deal is won."
+  - prompt: "Move this deal from discovery to negotiation and forecast the quarter."
+    route_to: sales-pipeline
+    why: "Pre-close deal stages and forecasting, not the post-close handoff."
+
+capability:
+  - scenario: "A B2B SaaS just closed a mid-market account. The operator has the signed order form and a one-line sales note ('they bought to consolidate reporting; champion is the VP Ops; hard go-live before their Q3') and asks for a full onboarding plan."
+    must_include:
+      - "Picks the high-touch motion and says why (named account, signed order form, multiple stakeholders)."
+      - "Produces a sales→delivery handoff packet: stakeholders/roles, purchase drivers, promised scope, success criteria the buyer bought, known risks, timeline."
+      - "Defines one verifiable activation event tied to core value and predictive of retention — written as a measurable sentence, not 'logged in'."
+      - "Supplies a kickoff agenda covering the six areas (intros, overview, roles/RACI, comms plan, action items, Q&A) plus a compact RACI."
+      - "Lays a 30/60/90 with an owner + date + exit milestone per phase, front-loading days 1–30."
+      - "Names onboarding metrics (TTV, activation rate, early-churn) with a realistic target band, not a vanity number."
+      - "States an explicit 'onboarded' exit gate and hands off to retention."

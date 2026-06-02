@@ -1,0 +1,48 @@
+skill: logistics-ops
+
+should_trigger:
+  - prompt: "Order #1043 is packed and going to a customer two zones away who paid for 2-day — which carrier and service do I use, and cut me the label?"
+    why: SHIP leg — rate-shop against the delivery promise and buy the label, the core outbound ask.
+  - prompt: "The tracker just flipped to 'delivery exception — address issue.' What do I do and what do I tell the customer?"
+    why: EXCEPT leg, tiered protocol. Non-obvious — no word "shipping" or "logistics" appears, but it's the exception-response core.
+  - prompt: "Customers keep opening 'where is my order' tickets — how do I get ahead of that?"
+    why: TRACK leg — proactive tracking notification / WISMO deflection, reads as a support problem but the fix is event-driven tracking here.
+  - prompt: "Gestiona la devolución de este pedido: el cliente dice que la talla no le sirve y quiere cambiarla."
+    why: Spanish trigger — REVERSE leg, changed-mind/size return defaulting to instant exchange over cash refund.
+  - prompt: "A package arrived smashed — how long do I have to file a claim with FedEx and what do I need?"
+    why: Claims — the carrier claim-window + evidence-at-detection ask.
+  - prompt: "Quin transportista surt més barat per a aquest enviament de 5 kg a Madrid en 48 h?"
+    why: Catalan trigger — SHIP leg rate-shop against a delivery promise including DIM/landed cost.
+
+should_not_trigger:
+  - prompt: "How many units of this SKU should I reorder and what's my safety stock?"
+    route_to: inventory
+    why: Stock-level / reorder-point decision, not moving an existing parcel.
+  - prompt: "I need to find a new supplier for these shipping boxes and negotiate payment terms."
+    route_to: procurement
+    why: Inbound vendor sourcing and terms, not the outbound or reverse parcel.
+  - prompt: "Write the empathetic reply to the angry customer whose order is late."
+    route_to: customer-support
+    why: The on-voice apology and reply SLA; this skill supplies the tracker facts, support writes the tone.
+  - prompt: "Record the $80 refund as a credit note in our accounts."
+    route_to: bookkeeping
+    why: Posting the AP/credit-note entry; this skill only decides refund-vs-exchange, not the books.
+  - prompt: "Build the webhook endpoint that receives EasyPost tracker events and retries on failure."
+    route_to: webhooks
+    why: Hosting/plumbing the listener and retries; this skill decides which events fire which action, not how to host them.
+
+capability:
+  - scenario: >
+      An order that shipped 2-day arrived a full day late AND the tracker shows a
+      "delivery exception — damaged." The customer is asking for a cash refund.
+      Ask the skill for the full operational response: how to classify and respond,
+      what to do about the carrier, what to tell the customer, and how to handle the
+      refund.
+    must_include:
+      - classifies the exception as damage and triggers same-business-day proactive outreach (not a 48-h or 24-h tier)
+      - names the FedEx/UPS/USPS claim window and says to file before it closes, capturing evidence (photos, declared value, weight, tracking) NOW at detection
+      - flags that two clocks run — the ~60-day damage claim and the 15-day guaranteed-service refund on the late delivery — and files the 15-day one first
+      - gives a proactive, tracker-fact-based customer message instead of waiting for a WISMO ticket, and hands the reply tone/SLA to customer-support
+      - on the refund, offers instant exchange or store credit before cash to retain revenue, and does not charge a restocking fee because the cause is damage (seller-side)
+      - routes the refund accounting to bookkeeping and any restock decision to inventory rather than doing them here
+      - does NOT invent a delivery ETA the carrier has not provided

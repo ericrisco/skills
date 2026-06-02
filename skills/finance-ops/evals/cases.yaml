@@ -1,0 +1,39 @@
+skill: finance-ops
+
+should_trigger:
+  - prompt: "Build me a 13-week cash flow forecast so I know if we're going to run out of money."
+    why: Core forecast job — the rolling direct-method runway artifact this skill owns.
+  - prompt: "Reconcile last month's bank statement against our books and flag whatever doesn't match."
+    why: Core reconciliation job — produce the matched/unmatched/needs-review report.
+  - prompt: "Tancar el mes de maig — què em falta abans de tancar els llibres?"
+    why: Catalan month-close phrasing; non-obvious that this is the close checklist, not bookkeeping.
+  - prompt: "Everything got dumped into 'Other expenses' — can you fix our categories?"
+    why: Non-obvious symptom phrasing for the categorize job (mirror the tax return, kill the junk drawer).
+  - prompt: "¿Cuánto runway nos queda al ritmo de gasto actual?"
+    why: Spanish burn/runway phrasing; runway must be computed from actual cash, a finance-ops call.
+  - prompt: "The ending balance in my cash sheet doesn't roll into the next week's starting balance — is the forecast broken?"
+    why: Non-obvious — the rolling-continuity invariant is exactly what finance-ops (and its verify.sh) enforces.
+
+should_not_trigger:
+  - prompt: "Post the May payroll and the depreciation journal entries into the ledger."
+    route_to: bookkeeping
+    why: Recording journal entries and payroll/depreciation postings is bookkeeping; finance-ops only verifies they landed.
+  - prompt: "Send invoices to these 8 clients and chase the three that are overdue."
+    route_to: invoicing
+    why: Creating/sending invoices and dunning is invoicing; finance-ops only reads the AR aging it produces.
+  - prompt: "Build a 3-year financial model with scenarios for our seed round."
+    route_to: financial-model
+    why: Multi-year fundraising projections are financial-model; the 13-week forecast is liquidity, not a raise model.
+  - prompt: "What's our CAC and LTV broken down by acquisition channel?"
+    route_to: unit-economics
+    why: CAC/LTV/contribution margin is unit-economics, not cash-side controllership.
+
+capability:
+  - scenario: "Given a starting cash balance of $42,000, an AR aging snapshot (open invoices by customer with terms and observed days-to-pay), and recurring monthly outflows (payroll, rent, AP, a quarterly tax payment, a loan payment), produce a 13-week rolling cash-flow forecast and identify the first week the company goes cash-negative, with a concrete lever to fix it."
+    must_include:
+      - Uses the direct method with weekly columns (week_start, starting_cash, inflows, outflows, net, ending_cash).
+      - Times inflows to each customer's expected-clear week from the aging, not the invoice date.
+      - Carries ending_cash[n] into starting_cash[n+1] (rolling continuity) and computes net = inflows - outflows per row.
+      - Computes burn and runway from actual cash, not net income; flags runway if under 12 months.
+      - Names the first negative-ending week and proposes a concrete lever (delay an AP payment, move the tax payment, or accelerate a collection).
+      - Routes any request to post ledger entries to bookkeeping rather than doing it.

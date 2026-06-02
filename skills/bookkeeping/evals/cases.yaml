@@ -1,0 +1,51 @@
+skill: bookkeeping
+
+should_trigger:
+  - prompt: "Set up a chart of accounts for my new consulting LLC."
+    why: Greenfield COA build — the foundation of the double-entry system, core to this skill.
+  - prompt: "I've got 300 bank transactions sitting uncategorized, help me sort them."
+    why: Bank-feed categorization to the right accounts; the Uncategorized=0 loop.
+  - prompt: "My books don't tie out to the bank statement this month."
+    why: Month-end reconciliation; non-obvious phrasing for "ledger ≠ bank balance."
+  - prompt: "Should I use cash or accrual accounting for my business?"
+    why: Accounting-method choice, with the gross-receipts ceiling and inventory trigger.
+  - prompt: "Which side is a debit when I pay rent?"
+    why: Core double-entry mechanics / normal-balance rules; non-obvious bookkeeping phrasing.
+  - prompt: "Categoriza estos movimientos del banco, mi contabilidad está hecha un desastre."
+    why: Spanish trigger — categorize the bank feed and clean up a messy ledger.
+  - prompt: "Where does a customer's upfront deposit post — is that revenue?"
+    why: Classification judgment; prepayment is a liability (unearned revenue), not revenue.
+
+should_not_trigger:
+  - prompt: "Create and send an invoice to this client and chase the payment."
+    route_to: invoicing
+    why: Issuing accounts receivable and collecting, not recording an event in the ledger.
+  - prompt: "What should I charge for this consulting service?"
+    route_to: pricing
+    why: Price/margin setting, not classifying or balancing a transaction.
+  - prompt: "Build me a 3-year revenue and runway projection."
+    route_to: financial-model
+    why: Forward-looking forecasting, not recording what already happened.
+  - prompt: "What's our runway and burn rate right now?"
+    route_to: finance-ops
+    why: Interpreting the numbers for the business, not posting or reconciling them.
+  - prompt: "Pull our Stripe payouts via the API and sync them."
+    route_to: stripe
+    why: API integration work, not categorization or double-entry posting.
+
+capability:
+  - scenario: >
+      Given six mixed transactions and no chart of accounts — (1) paid $800 office rent,
+      (2) owner took $1,500 out of the business, (3) a customer paid $2,000 upfront for work
+      not yet delivered, (4) paid $49 for a monthly software subscription, (5) made a $600
+      loan principal repayment, (6) earned and received $3,000 in service revenue —
+      produce a small chart of accounts and the correct journal entry for each, then state
+      the closing check.
+    must_include:
+      - Builds a small COA covering all five categories (asset, liability, equity, revenue, expense) with numbered ranges.
+      - Every journal entry has equal debits and credits, shown explicitly.
+      - Treats the owner draw as an equity account (Owner Draws), not an expense.
+      - Treats the loan principal repayment as a liability reduction (DR Loan Payable / CR Cash), not an expense.
+      - Treats the customer upfront payment as a liability (Unearned Revenue), not revenue.
+      - Posts rent and software as expenses (debit) against Cash (credit), and service revenue as a credit to Revenue against Cash (debit).
+      - States that the resulting ledger must be reconciled to the bank statement at period end.

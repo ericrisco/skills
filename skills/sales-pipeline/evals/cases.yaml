@@ -1,0 +1,60 @@
+skill: sales-pipeline
+
+# Prompts that MUST load `sales-pipeline`. The skill runs a lightweight CRM out
+# of a flat file: gated stages, deal hygiene, a weekly follow-up sweep, and a
+# stage-weighted roll-up forecast with a coverage ratio. It does NOT do
+# statistical/scenario modeling (forecasting), source prospects (lead-gen),
+# write outbound copy (cold-outreach), write the proposal (proposals), or run
+# post-close onboarding (client-onboarding).
+should_trigger:
+  - prompt: "Set up stages and a weighted forecast for my deal spreadsheet."
+    why: "Core job — define gated stages with exit criteria and roll a stage-weighted forecast off an existing deal list."
+
+  - prompt: "Which of my deals are stale and what should I follow up on this week?"
+    why: "Deal hygiene + the weekly sweep — the 14d/30d activity-decay rules and the prioritized follow-up list answer this directly."
+
+  - prompt: "My forecast keeps slipping every quarter — the pipeline looks full but nothing closes."
+    why: "Non-obvious: the user names a symptom, not the skill. The diagnosis is stale-deal inflation + counting unweighted/uncommitted pipeline in coverage, which is exactly this skill's hygiene + coverage work."
+
+  - prompt: "Munta'm un CRM lleuger amb etapes i previsió de vendes sense pagar Salesforce."
+    why: "Catalan phrasing for a lightweight CRM with stages and a sales forecast — same skill regardless of language."
+
+  - prompt: "What's my pipeline coverage versus a 250k quarterly quota, and is it enough?"
+    why: "Non-obvious: coverage ratio = qualified pipeline / target, read against the segment benchmark (3.5x min / 4-5x target for Commercial). The 'is it enough' verdict is owned here."
+
+  - prompt: "Build me a stage model with exit criteria for a 3-person sales team with no RevOps."
+    why: "Stage-model design — the six gated stages with verifiable buyer-action exit criteria and stage-owned probability is the skill's first artifact."
+
+should_not_trigger:
+  - prompt: "Build a 3-scenario revenue forecast model with monthly seasonality and a cohort projection."
+    route_to: forecasting
+    why: "Statistical/scenario modeling and time-series/cohort projection is the forecasting layer; sales-pipeline only does the simple stage-weighted roll-up."
+
+  - prompt: "Find me 200 prospect companies in fintech with verified emails to add to my pipeline."
+    route_to: lead-gen
+    why: "Sourcing/qualifying NEW prospects is lead-gen; sales-pipeline operates on deals that already exist in the list."
+
+  - prompt: "Write the cold email sequence to contact these prospects and book meetings."
+    route_to: cold-outreach
+    why: "Writing the outbound copy and cadence is cold-outreach; sales-pipeline schedules the next step but does not write the words."
+
+  - prompt: "Draft the proposal and quote for the deal we just qualified."
+    route_to: proposals
+    why: "The proposal/quote/SOW document is owned by proposals; a stage transition is not a document."
+
+  - prompt: "We just closed the deal — set up the client kickoff and account onboarding."
+    route_to: client-onboarding
+    why: "Post-close handoff, kickoff, and account setup is client-onboarding; a Closed-Won deal leaves this skill."
+
+capability:
+  - scenario: "Given a 6-row deal CSV with mixed staleness, some hand-set win_probs, and missing next steps, produce a cleaned pipeline (stage-owned probabilities, recomputed weighted_value), a flagged-stale list, a weekly follow-up list, a weighted forecast, and coverage versus a stated quota."
+    must_include:
+      - "Applies the required-field gate: flags every open deal missing next_step, close_date, or last_touch as a defect."
+      - "Resets win_prob to the stage default (probability owned by the stage, not hand-set per deal) and recomputes weighted_value = value x win_prob."
+      - "Flags stale deals by the activity-decay rules: halve weight at 14+ days no touch, exclude from coverage at 30+ days."
+      - "Flags deals sitting > 1.5x the average time-in-stage, and any open deal with a past close_date."
+      - "Weighted forecast = sum(value x stage win_prob) after stale decay, not list-price sum."
+      - "Coverage = qualified (non-stale) pipeline / target, with a verdict against the segment benchmark (e.g. 3.5x min / 4-5x target for Commercial)."
+      - "Uses the current ~18% win rate / real cycle length, not an optimistic last-year number."
+      - "Emits an artifact (CSV or markdown table) with the required columns that scripts/verify.sh can lint, plus a coverage summary line."
+      - "Routes statistical/scenario modeling to forecasting rather than attempting it inline."

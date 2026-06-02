@@ -1,0 +1,5 @@
+# Pricing evals — how to run
+
+These cases are routing and capability checks, not an automated test suite. `cases.yaml` lists prompts that **should** trigger this skill, prompts that should route to a named sibling instead, and one capability scenario with a `must_include` rubric. Run them by hand or against your live router: for each `should_trigger` / `should_not_trigger` prompt, confirm the router lands on the expected skill (and on the right sibling when it should not be `pricing`); for the capability scenario, run the skill end to end and check the output covers every rubric line — especially the margin-vs-markup math and the discount floor.
+
+This is separate from `scripts/verify.sh`. The evals check whether the skill *fires and reasons correctly*; `verify.sh` checks an *emitted price card* (recomputes each tier's margin, flags tiers below floor, warns on markup/margin conflation). Run `verify.sh` on any price card the skill produces; it is read-only and exits 0 on a clean or empty card.

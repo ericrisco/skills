@@ -1,0 +1,71 @@
+skill: project-ops
+
+# project-ops owns the operational layer ABOVE a plan: a flat-file set of dated
+# milestones, each with ONE named owner and a binary done-test; RAG status by
+# rules; a RAID log; slippage/early-warning; and the weekly status report. It is
+# NOT engineering-task sequencing (tasks), NOT plan authoring (plan), NOT a single
+# ADR (decision-records), NOT single-meeting capture (meeting-notes), NOT a
+# repeatable runbook (sop-builder), NOT a metrics dashboard (dashboard).
+
+should_trigger:
+  - prompt: "Set up milestones for our Q3 launch with an owner and a due date for each."
+    why: "Shaping dated milestones each with one accountable owner is the skill's core job."
+
+  - prompt: "Write me this week's project status report — what's on track and what's at risk."
+    why: "The weekly 2-minute status report (overall RAG, accomplishments, blockers) is owned here."
+
+  - prompt: "Everything on my plan is marked green but I don't trust it — what should actually be amber?"
+    why: "Non-obvious: tests the all-green-is-a-smell rule and the early-warning amber criteria, not a generic dashboard."
+
+  - prompt: "Munta'm un seguiment de projecte amb fites, owners i estat RAG."
+    why: "Catalan phrasing for the core milestone+owner+RAG tracking artifact."
+
+  - prompt: "Start a RAID log for this project and tell me what counts as a risk versus an issue."
+    why: "RAID log creation and the risk-vs-issue distinction is a named project-ops job."
+
+  - prompt: "Which of my milestones are trending late before they actually miss their date?"
+    why: "Non-obvious: slippage early-warning detection on the critical path, the defining discipline of the skill."
+
+  - prompt: "Qui és l'owner de cada fita i quines van endarrerides?"
+    why: "Catalan: one-owner-per-milestone accountability plus slippage detection — both core jobs."
+
+should_not_trigger:
+  - prompt: "Break this approved implementation plan into ordered dev tasks with done-checks."
+    route_to: tasks
+    why: "Per-task engineering sequencing inside one approved plan, not cross-cutting milestones above it."
+
+  - prompt: "Write the technical implementation plan and architecture for this feature."
+    route_to: plan
+    why: "Authoring the how/architecture of a feature is the plan phase, not milestone status tracking."
+
+  - prompt: "Record the decision we made about the database choice with the options and rationale."
+    route_to: decision-records
+    why: "Capturing a single durable ADR with context/options/rationale, not running a project."
+
+  - prompt: "Turn today's meeting into notes with action items."
+    route_to: meeting-notes
+    why: "Single-meeting capture of notes and action items, not a project-level milestone/RAID layer."
+
+  - prompt: "Document the repeatable steps for our monthly close so anyone can run it."
+    route_to: sop-builder
+    why: "A repeatable runbook/process, not a finite project with dated milestones and slippage."
+
+  - prompt: "Build me a dashboard charting our weekly signups and revenue."
+    route_to: dashboard
+    why: "Charting arbitrary metrics is dashboard/kpi-framework, not milestone status tracking."
+
+capability:
+  - scenario: >
+      Operator gives a loose goal — "launch the new pricing page by end of quarter" — plus three rough
+      milestones (copy approval, page build, go-live), where the build milestone is already a few days
+      past where it should be. They ask for a tracking setup and a status report. The agent must produce
+      a milestone table and a weekly status report that obeys the discipline.
+    must_include:
+      - "A milestone table with the exact column contract: id, milestone, owner, target, status, done_test, depends_on."
+      - "Each milestone has exactly one named owner (an @handle, not a team or two people)."
+      - "Each milestone has a binary, verifiable done_test (not 'improve' or 'work on')."
+      - "The already-late milestone is marked red, or amber WITH an explicit recovery plan — never green."
+      - "RAG statuses are justified by a rule, and at least one non-green item carries a mitigation."
+      - "A scannable status report: overall RAG, accomplishments, next steps with owner+date, blockers, RAID deltas."
+      - "At least one RAID entry that distinguishes a risk (future/conditional) from an issue (happening now)."
+      - "depends_on edges reference real milestone ids so the critical path is visible."

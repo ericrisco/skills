@@ -1,0 +1,60 @@
+skill: cold-outreach
+
+# Prompts that MUST load `cold-outreach`. The skill owns the COPY of an
+# unsolicited 1:1 touch (cold email, LinkedIn note/DM) and the CADENCE around it
+# (step count, spacing, per-inbox volume, warm-up ramp, compliant footer). It
+# does NOT source the list (lead-gen), set up DNS/auth (email-deliverability),
+# run the CRM after a reply (sales-pipeline), or write the proposal (proposals).
+should_trigger:
+  - prompt: "Write me a cold email to a VP of Engineering pitching our CI/CD tool."
+    why: "Core job — a first-touch cold message to a no-prior-relationship recipient, under the word ceiling with one binary CTA."
+
+  - prompt: "My open rate is fine but I get basically zero replies — can you fix my follow-up sequence?"
+    why: "Non-obvious: the user names a symptom (opens, no replies) not the skill. The 58/42 reply split and the 4-7 step bump table exist for exactly this rescue."
+
+  - prompt: "How many cold emails can I send per inbox per day before I get blacklisted, and how do I warm up a new domain?"
+    why: "Cadence/volume is owned here — per-inbox 20-50/day and the new-domain ramp table. The user is asking about sending rhythm, not DNS auth."
+
+  - prompt: "Escríbeme una secuencia de 4 correos en frío para captar agencias de marketing."
+    why: "Spanish phrasing for a 4-step cold email sequence — same skill regardless of language; the sequence decision table and Spanish skeleton apply."
+
+  - prompt: "Draft a LinkedIn connection note plus a DM bump for these 5 prospects."
+    why: "Channel adaptation — LinkedIn note (≤300 chars, no pitch) + DM sequence is an explicit owned variant with its own char caps and weekly limits."
+
+  - prompt: "This email reads like a template — every prospect can tell it's mail-merged. Make it feel one-to-one."
+    why: "Rescuing copy that 'reads like a template' is an explicit trigger; the one-real-signal rule and the spintax/name-only-merge anti-pattern answer it directly."
+
+should_not_trigger:
+  - prompt: "Set up SPF, DKIM and DMARC on our sending domain so we stop landing in spam."
+    route_to: email-deliverability
+    why: "DNS/auth configuration is the deliverability plumbing; cold-outreach only applies the resulting rules to cadence, it never edits DNS records."
+
+  - prompt: "Find me 200 SaaS CTOs with verified work emails I can email."
+    why: "Sourcing/qualifying the prospect list is lead-gen; cold-outreach assumes a verified recipient already exists."
+    route_to: lead-gen
+
+  - prompt: "A prospect just replied 'yes, interested' — move them to the right stage and set my next follow-up tasks."
+    route_to: sales-pipeline
+    why: "The moment a reply lands the relationship leaves this skill; stages, tasks, and CRM hygiene are sales-pipeline."
+
+  - prompt: "They asked for a proposal — write the SOW and pricing for the engagement."
+    route_to: proposals
+    why: "A cold touch earns a conversation, not a contract; the proposal/SOW/pricing document is owned by proposals."
+
+  - prompt: "Write the launch announcement email to our existing opted-in newsletter list."
+    route_to: marketing
+    why: "Broadcast copy to an opted-in list is marketing, not an unsolicited 1:1 cold touch — different legal basis and different playbook."
+
+capability:
+  - scenario: "Write a full 4-step cold email sequence for a DevOps observability tool, sent to a Head of Platform at a 200-person fintech, including sending cadence and a compliant footer."
+    must_include:
+      - "First touch is under ~80 words."
+      - "Exactly one binary (yes/no) CTA in the first touch — no double ask."
+      - "A plain subject line under ~6 words, no clickbait or spam-trigger words."
+      - "One observed, plausible signal as the hook (not 'I came across your company')."
+      - "Four steps with explicit day offsets (e.g. Day 0 / +3 / +7 / +12)."
+      - "Each step adds one new angle (proof, different pain, breakup) — no 'just following up' filler."
+      - "A breakup step that offers a graceful out."
+      - "A compliant footer: a one-click opt-out line AND a physical postal-address placeholder."
+      - "Per-inbox volume guidance noted (20-50/day) and that warm-up precedes high volume."
+      - "Points DNS/auth setup to email-deliverability rather than configuring it inline."

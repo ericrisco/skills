@@ -1,0 +1,15 @@
+{
+  "number": "2024-003",
+  "issue_date": "2024-03-01",
+  "due_date": "2024-03-31",
+  "supplier": { "name": "Risco Studio SL", "vat_id": "ESB12345678", "address": "Andorra la Vella" },
+  "customer": { "name": "Acme GmbH", "vat_id": "DE123456789", "address": "Berlin" },
+  "line_items": [
+    { "description": "12h consulting", "amount": 120000 }
+  ],
+  "vat_breakdown": [
+    { "rate": 21, "net": 120000, "vat": 25200 }
+  ],
+  "total": 145200,
+  "sequence": ["2024-001", "2024-002", "2024-003"]
+}

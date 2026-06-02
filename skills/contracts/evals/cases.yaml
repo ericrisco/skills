@@ -1,0 +1,42 @@
+skill: contracts
+
+should_trigger:
+  - prompt: "Draft a mutual NDA between us and a freelance designer."
+    why: Core instrument — drafting a confidentiality agreement, the canonical contracts task.
+  - prompt: "Review this MSA the vendor sent and tell me what to push back on."
+    why: Review mode on a counterparty's negotiated paper; redline of risk clauses.
+  - prompt: "Make this indemnification clause mutual and cap it."
+    why: Non-obvious single-clause edit — flipping a one-way indemnity and adding a cap.
+  - prompt: "Write an SOW under our existing MSA for the Q3 build."
+    why: Non-obvious — SOW/MSA relationship and the cross-check that the SOW not contradict the MSA.
+  - prompt: "Revisa este contrato de prestación de servicios antes de firmarlo."
+    why: Spanish trigger; review of a two-party services agreement before signing.
+  - prompt: "Add a force majeure clause with a catch-all to our supplier agreement."
+    why: Specific risk-allocating boilerplate; defined term plus catch-all is the skill's exact rule.
+
+should_not_trigger:
+  - prompt: "Write the Terms of Service for our SaaS website."
+    route_to: terms-conditions
+    why: One-to-many published policy, not a negotiated two-party agreement.
+  - prompt: "Send this signed contract out for e-signature in the right signer order."
+    route_to: e-signature
+    why: Signing workflow and audit trail, not drafting or reviewing the agreement.
+  - prompt: "Draft our privacy policy and how we handle user personal data."
+    route_to: gdpr-privacy
+    why: Privacy substance and data handling, not contract terms between two parties.
+  - prompt: "Write a sales proposal to win the consulting deal."
+    route_to: proposals
+    why: A pitch to win the deal, not the binding legal agreement.
+  - prompt: "Create the invoice and payment terms for this client."
+    route_to: invoicing
+    why: A billing artifact, not a negotiated contract.
+
+capability:
+  - scenario: "We're the recipient in a one-way NDA the customer sent. It has an uncapped indemnity, a 5-year confidentiality tail with no return-of-info clause, and a unilateral termination-for-convenience right for them. Redline it in our favor and explain each change."
+    must_include:
+      - Identifies the operator's side (recipient) and flips defaults to favor the recipient
+      - Flags the uncapped indemnity and proposes a cap plus narrowed scope (breach/negligence/third-party IP)
+      - Addresses the confidentiality tail by adding a return-or-destroy-on-termination obligation
+      - Flags the one-sided termination-for-convenience right and proposes mutuality or deletion
+      - Rewrites in plain language with no archaic legalese (no heretofore/witnesseth/party of the first part)
+      - Emits the licensed-attorney-review boundary before signing

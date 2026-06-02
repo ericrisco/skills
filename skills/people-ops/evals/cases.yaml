@@ -1,0 +1,43 @@
+skill: people-ops
+
+should_trigger:
+  - prompt: "Our new engineer starts Monday — build me an onboarding plan with a 30/60/90."
+    why: Core onboarding artifact; offer is signed and the ramp plan is the central output.
+  - prompt: "Draft a remote-work policy for our handbook."
+    why: Core policy authoring — a handbook section with the privilege-not-right framing.
+  - prompt: "The offer's signed, what do I actually need to have ready before day one?"
+    why: Non-obvious — no word "onboarding"; this is the preboarding window plus the Day-1 legal clock.
+  - prompt: "Plan de onboarding y un calendario de 1:1s para el nuevo fichaje."
+    why: Spanish; combines onboarding with the operating rhythm (weekly 1:1s).
+  - prompt: "Someone's leaving next week — what's our offboarding checklist?"
+    why: The exit moment — same-day access revocation, knowledge handoff, exit conversation.
+  - prompt: "This employee handbook reads like a contract — can you fix it?"
+    why: Policy audit; the at-will / not-a-contract guardrail is exactly people-ops territory.
+
+should_not_trigger:
+  - prompt: "Write a job description and screen these 40 candidates."
+    route_to: hiring
+    why: Sourcing and screening happen before acceptance; people-ops starts at offer-signed.
+  - prompt: "Document our deployment release process step by step."
+    route_to: sop-builder
+    why: A generic operational procedure, not a people policy.
+  - prompt: "Draft the actual employment contract and NDA for this hire."
+    route_to: contracts
+    why: Legally binding instruments; the handbook people-ops writes explicitly is not a contract.
+  - prompt: "Write our employee-data privacy notice and GDPR record-handling policy."
+    route_to: gdpr-privacy
+    why: A statutory data-protection regime, not an internal HR policy.
+
+capability:
+  - scenario: >
+      A 12-person startup just hired its first non-founder employee, starting Monday.
+      Produce the onboarding plan plus a remote-work policy section for the new handbook.
+    must_include:
+      - A 30/60/90 plan framed learn → contribute → own
+      - Explicit manager actions (Day-1 task, week-1 goals conversation, buddy), not only HR tasks
+      - Paperwork placed in preboarding, not on Day 1
+      - The US I-9 / E-Verify timeline WITH a jurisdiction-confirm flag (this is US; EU/UK differ; many are not at-will)
+      - Remote policy framed "privilege, not a right" with concrete conditions (secured devices, core-hours availability, dedicated workspace)
+      - An at-will + "this is not a contract" disclaimer with a signed acknowledgment
+      - A weekly 1:1 set up from week one
+      - Does NOT write the employment contract itself; defers it to contracts

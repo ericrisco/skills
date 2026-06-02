@@ -1,0 +1,42 @@
+skill: retention
+
+should_trigger:
+  - prompt: "Our churn is climbing and I want to build a customer health score."
+    why: Core trigger — designing the weighted health-score model is the skill's first artifact.
+  - prompt: "Set up NPS and turn the detractors into a save motion."
+    why: NPS branch — the skill owns the formula, bands, and the detractor follow-up motion.
+  - prompt: "Design a cancellation flow with the right save offer per reason."
+    why: Save-play branch — the exit-reason decision table is the core deliverable.
+  - prompt: "A bunch of my annual customers just switched to monthly — is that a problem?"
+    why: Non-obvious — tests the annual→monthly downgrade leading-indicator fact; not phrased as a retention question at all.
+  - prompt: "Vull recuperar clients que ens han deixat fa dos mesos."
+    why: Catalan win-back trigger ("I want to win back customers who left two months ago") — maps to the 30/60/90 ladder.
+  - prompt: "Quiero reducir las bajas y montar un programa de retención."
+    why: Spanish — "reduce cancellations and stand up a retention program"; core program-level trigger.
+
+should_not_trigger:
+  - prompt: "This customer is furious and threatening to cancel right now, draft my reply."
+    route_to: customer-support
+    why: A single live churn-risk ticket in the moment; retention designs the program, support works the ticket.
+  - prompt: "Build the first-week welcome and activation flow for new signups."
+    route_to: client-onboarding
+    why: The onboarding window for brand-new accounts, not established at-risk customers.
+  - prompt: "Model our LTV:CAC and payback across the whole funnel."
+    route_to: unit-economics
+    why: The blended unit-economics model; retention uses churn as an input but does not build it.
+  - prompt: "How deep can I discount the win-back offer before it kills margin?"
+    route_to: pricing
+    why: The margin floor on a discount; retention decides whether to offer, pricing decides how deep.
+
+capability:
+  - scenario: >
+      An operator runs a SaaS with GRR 78%, NRR 109%, rising logo churn, and a flat
+      "20% off" shown to everyone in the cancellation flow. They ask how to fix retention.
+    must_include:
+      - Flags GRR < 80% as a base-erosion alarm and names that NRR 109% is masking it.
+      - Builds a 4+ dimension health score weighting product activity heaviest (~40%).
+      - Replaces the flat discount with an exit-reason decision table.
+      - Ranks save plays downgrade > pause > temporary discount (not discount-first).
+      - Adds a 30/60/90 win-back ladder that leads with value, not the deal.
+      - Keeps the cancel path reachable in one click (CA ARL compliance floor).
+      - Does NOT simply deepen or widen the existing discount.
