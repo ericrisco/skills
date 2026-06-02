@@ -1,0 +1,49 @@
+skill: linkedin-strategy
+
+should_trigger:
+  - prompt: "What should I be known for on LinkedIn and how often should I post?"
+    why: Positioning/POV plus cadence — two account-level decisions, the skill's core.
+  - prompt: "Should our content go on the company page or the founder's profile?"
+    why: The personal-vs-company-page distribution decision; humans-as-main-event with employee advocacy.
+  - prompt: "I post regularly but get no inbound — what's wrong with my LinkedIn rhythm?"
+    why: Non-obvious, no 'strategy' word; it is the engage-vs-create split and SSI rhythm, owned here.
+  - prompt: "Quarterly LinkedIn review — which content pillar is working and what should I double down on?"
+    why: The read-wiki + double-down loop, the skill's spine.
+  - prompt: "Qué debería publicar en LinkedIn y cada cuánto para que me tomen como referente?"
+    why: Spanish for pillars + cadence + thought-leadership positioning, all account-level.
+  - prompt: "My SSI is stuck at 48 — how do I build a habit system to raise it?"
+    why: SSI as a four-dimension weekly rhythm and steering metric, owned by this skill (fact 6).
+  - prompt: "My company page is basically dead — where should the content actually live?"
+    why: Non-obvious phrasing of the distribution decision; pages get ~5% feed, profiles carry reach.
+
+should_not_trigger:
+  - prompt: "Write the post copy and hook for tomorrow's update."
+    route_to: linkedin-content
+    why: Per-post craft fills a pillar; strategy sets the pillar, it does not write the post.
+  - prompt: "Build me a 10-slide carousel deck on this topic."
+    route_to: linkedin-carousels
+    why: Single-asset format craft, not the presence system.
+  - prompt: "Draft connection requests and a DM sequence for these 20 prospects."
+    route_to: linkedin-outreach
+    why: 1:1 thread execution; strategy sets the rhythm, not the individual messages.
+  - prompt: "Pull my last 90 days of post analytics from the LinkedIn API."
+    route_to: linkedin-api
+    why: Data plumbing / OAuth; strategy consumes the numbers, it does not fetch them.
+  - prompt: "Schedule and cross-post this to Twitter and Instagram too."
+    route_to: social-publisher
+    why: Cross-platform scheduling, not LinkedIn presence architecture.
+
+capability:
+  - scenario: >
+      A B2B founder has a near-dead company page and a personal profile with sporadic posting.
+      02-DOCS/wiki/linkedin/ already holds: SSI ~48, the top-2 dwell-time posts are both carousels
+      on one topic, and a stated cadence of "3/week" that slipped to ~1. Produce a strategy
+      decision for the presence.
+    must_include:
+      - Reads 02-DOCS/wiki/linkedin/ first (prior positioning, current pillars, whether cadence held, top dwell-time performers, SSI trend, killed experiments) — or bootstraps the dir if empty.
+      - Moves distribution to the founder's personal profile with the company page as amplification plus employee advocacy, grounded in the personal-vs-page reach gap (~8x engagement, ~5% vs ~65% feed).
+      - Defines or refines 3-5 content pillars aligned to the founder's professional graph, doubling down on the carousel topic that already earns the best dwell time.
+      - Gives a cadence recommendation justified by the account's own data (e.g. a holdable 3/week weighted toward carousels/docs for dwell time) with the 8-week sustainability gate, not a generic number.
+      - Sets a social-selling rhythm — the ~80/20 engage-vs-create split and SSI as a four-dimension weekly habit with a target (e.g. 48 -> 65).
+      - Writes a dated decision record back to 02-DOCS/wiki/linkedin/ naming the single metric it bets on and a review date.
+      - Routes single-asset work out: post copy -> linkedin-content, carousels -> linkedin-carousels, DMs -> linkedin-outreach, raw metrics -> linkedin-api.
