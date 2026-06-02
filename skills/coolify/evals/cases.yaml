@@ -1,0 +1,46 @@
+skill: coolify
+
+should_trigger:
+  - prompt: "Install Coolify on my fresh Ubuntu 24.04 VPS and deploy my app from a GitHub repo."
+    why: "Core install + Git deploy path: install one-liner as root, first-admin lockdown, build-pack + source wiring."
+  - prompt: "My Vercel bill exploded this month. I want to move everything onto a box I own and pay a flat rate instead. How do I set that up?"
+    why: "Non-obvious cost/sovereignty trigger — user never says Coolify, but 'box I own + flat rate' instead of a metered PaaS is exactly the own-the-box value prop."
+  - prompt: "Set up nightly Postgres backups to Cloudflare R2 for the database I run in Coolify."
+    why: "In-product scheduled backup to S3-compatible storage (R2) with cron — a named core capability, including the restore-drill rule."
+  - prompt: "Montar mi propio PaaS en un VPS barato con Coolify y desplegar varias apps con SSL automático."
+    why: "Spanish trigger; self-hosting your own PaaS on a cheap VPS with multiple apps and automatic SSL is squarely this skill."
+  - prompt: "Vull autoallotjar les meves apps amb Coolify i una base de dades gestionada al meu servidor."
+    why: "Catalan trigger; self-hosting apps + a managed database on your own server is the provision-and-connect core."
+  - prompt: "I already have a server running. I just want a self-hosted control plane to manage my deploys, env vars and SSL certs from one dashboard."
+    why: "Non-obvious 'control plane on my own server' phrasing — the box exists, the user wants the orchestration layer, which is precisely what Coolify is."
+
+should_not_trigger:
+  - prompt: "Which Hetzner plan should I pick and how do I harden SSH and the firewall on the box itself?"
+    route_to: "hetzner"
+    why: "VPS hardware sizing + OS/SSH/firewall hardening is the box layer, not the control plane Coolify runs on."
+  - prompt: "Help me write a multi-stage Dockerfile and optimize my image layer caching."
+    route_to: "docker"
+    why: "Generic Docker image authoring — Coolify runs images but doesn't teach how to author/optimize them."
+  - prompt: "I just want a managed PaaS where I git push and they run it — I don't want to own or maintain any server."
+    route_to: "railway"
+    why: "Push-and-forget managed PaaS is the exact inverse of Coolify's own-the-box premise."
+  - prompt: "My Postgres query is doing a seq scan and is slow — which index should I add?"
+    route_to: "postgresdb"
+    why: "SQL/index/query tuning is engine-level work; Coolify only provisions and backs up the DB, it doesn't tune it."
+  - prompt: "Set up the A record and nameservers for my domain at the registrar."
+    route_to: "domains-dns"
+    why: "DNS records / registrar / propagation is the domains-dns layer; Coolify consumes the resolved hostname, it doesn't manage DNS."
+
+capability:
+  - scenario: "Stand up Coolify on a fresh Ubuntu 24.04 VPS, deploy a Next.js app from a GitHub repo with a managed Postgres, and configure nightly backups to S3-compatible storage with a custom domain + automatic SSL."
+    must_include:
+      - "Runs the install one-liner (curl -fsSL https://cdn.coollabs.io/coolify/install.sh | bash) AS ROOT, noting non-root is not fully supported"
+      - "Calls out first-admin lockdown: register at http://<ip>:8000 immediately because the first account permanently owns the instance"
+      - "Gives the port/firewall matrix: 8000 (and 6001/6002) restricted to the operator, 80/443 public"
+      - "Picks a build pack (Nixpacks default) and connects the GitHub source with a branch"
+      - "Sets app secrets as Coolify env vars / secrets injected at runtime, never baked into the image or committed"
+      - "Provisions managed Postgres and connects the app over the INTERNAL Docker hostname, with the DB port NOT publicly exposed"
+      - "Ensures the database has a named volume so data survives recreate, and the service has a healthcheck"
+      - "Adds the custom domain and gets automatic Let's Encrypt SSL via the Traefik proxy on 80/443"
+      - "Configures the S3 backup destination + cron schedule + retention AND an explicit restore-test/drill step"
+      - "Acknowledges the boundary that VPS sizing/firewall/SSH hardening is hetzner/digitalocean, not this skill"

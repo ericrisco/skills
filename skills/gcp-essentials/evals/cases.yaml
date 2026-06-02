@@ -1,0 +1,38 @@
+skill: gcp-essentials
+
+should_trigger:
+  - prompt: "Deploy this container to Cloud Run with the gcloud CLI and keep it private."
+    why: "Cloud Run deployment with gcloud is the core GCP runtime path this skill owns."
+  - prompt: "Set up a small GCP project with Cloud SQL Postgres and a storage bucket."
+    why: "Project bootstrap plus Cloud SQL and Cloud Storage are core primitives in the skill."
+  - prompt: "Why is my Cloud Run service using the default compute service account?"
+    why: "Avoiding the default compute service account is a named IAM footgun this skill handles."
+  - prompt: "Connect Cloud Run to Cloud SQL without exposing the database publicly."
+    why: "Cloud Run to Cloud SQL with private/safe connectivity is a central workflow."
+  - prompt: "Crear un bucket en GCP bloqueando acceso publico y usando IAM correctamente."
+    why: "Spanish GCP bucket setup with public access prevention and IAM maps directly to Cloud Storage guidance."
+
+should_not_trigger:
+  - prompt: "Deploy this app to AWS Lambda with S3 and RDS."
+    route_to: "aws-essentials"
+    why: "AWS services belong to the AWS cloud skill, not GCP."
+  - prompt: "Tune this Postgres query and choose indexes after EXPLAIN ANALYZE."
+    route_to: "postgresdb"
+    why: "Postgres schema/query tuning is the database skill; GCP only owns Cloud SQL operations."
+  - prompt: "Create a Dockerfile and GitHub Actions workflow to build my image."
+    route_to: "deployment"
+    why: "Container build and CI/CD mechanics are deployment work, not GCP service setup."
+  - prompt: "Review this authentication code for injection and broken authorization."
+    route_to: "secure-coding"
+    why: "Application security review belongs to secure-coding."
+
+capability:
+  - scenario: "A developer says: 'I need a private Cloud Run API connected to Cloud SQL and a bucket, with least-privilege IAM. Give me the safe gcloud shape.'"
+    must_include:
+      - "Creates or selects a GCP project and enables only required APIs."
+      - "Creates a dedicated runtime service account and explicitly avoids the default compute service account."
+      - "Deploys Cloud Run with --service-account and --no-allow-unauthenticated unless a public endpoint is intentional."
+      - "Creates Cloud Storage with uniform bucket-level access and public access prevention."
+      - "Uses Secret Manager for DB password/secrets, not plaintext env vars."
+      - "Connects Cloud Run to Cloud SQL with the proper instance attachment/socket guidance."
+      - "Keeps IAM grants narrow and uses predefined roles instead of Owner/Editor."

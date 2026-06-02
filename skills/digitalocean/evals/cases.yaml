@@ -1,0 +1,37 @@
+skill: digitalocean
+
+should_trigger:
+  - prompt: "Deploy my Node API to DigitalOcean App Platform"
+    why: Direct request to ship a service to App Platform — the skill's core compute decision and app spec flow.
+  - prompt: "Droplet or App Platform for my Rails app — which is cheaper to run?"
+    why: DO-specific compute decision (Droplet vs App Platform) with a pricing axis the decision table answers.
+  - prompt: "Write me a DigitalOcean app spec yaml that runs a web service with a managed postgres"
+    why: Asks for the checkable artifact (app spec YAML) with a ${db.*}-wired Managed Database.
+  - prompt: "Subir mi web a DigitalOcean con doctl"
+    why: Spanish trigger — deploying a site to DO via doctl is squarely this skill.
+  - prompt: "I need an S3-compatible bucket with a CDN on DigitalOcean"
+    why: Non-obvious — the user never says "Spaces", but S3-compatible object storage + CDN on DO is exactly Spaces.
+
+should_not_trigger:
+  - prompt: "Design my GitHub Actions deploy pipeline with rollback gating"
+    route_to: deployment
+    why: Host-agnostic CI/CD pipeline and rollback strategy, not where-on-DO-it-runs.
+  - prompt: "Is Hetzner cheaper than DO for a 16GB VPS?"
+    route_to: hetzner
+    why: The decision tilts to the other host's economics; Hetzner owns its own VPS sizing/pricing.
+  - prompt: "Optimize this slow Postgres query with a better index"
+    route_to: postgresdb
+    why: Database internals (query/index tuning), not provisioning a DO cluster.
+  - prompt: "Write the Dockerfile for my app"
+    route_to: docker
+    why: Containerizing the app itself; this skill consumes an image, it doesn't author one.
+
+capability:
+  - scenario: "Ship a Node web service plus a managed Postgres to App Platform from scratch."
+    must_include:
+      - "doctl auth init with an API token from cloud.digitalocean.com/account/api/tokens"
+      - "An app spec YAML with a services entry (github repo, http_port, instance_size_slug) and envs"
+      - "DB wired via ${db.DATABASE_URL} (and/or trusted source over the VPC private host)"
+      - "doctl apps spec validate, then doctl apps create --spec / doctl apps update --spec"
+      - "Logs via doctl apps logs and rollback by re-applying the prior spec"
+      - "A cost/sizing note (basic from $5/mo, $0.02/GiB transfer overage, or unassigned reserved IP charge)"

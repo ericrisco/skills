@@ -1,0 +1,45 @@
+skill: render
+
+should_trigger:
+  - prompt: "Write a render.yaml that deploys my Express API plus a background worker and a Postgres database."
+    why: "Core Blueprint authoring across multiple service types (web + worker + Postgres) — the central job this skill owns."
+  - prompt: "My Render deploy keeps failing with 'no open ports detected'. What's wrong?"
+    why: "Non-obvious symptom phrasing that maps directly to the port-binding trap (must bind 0.0.0.0:$PORT) — the #1 first-deploy failure this skill leads with."
+  - prompt: "How do I run a nightly cleanup job on Render?"
+    why: "Service-type selection: a scheduled run-and-exit job is a `type: cron` with a `schedule:`, not a worker — a decision this skill teaches without naming the type."
+  - prompt: "Wire DATABASE_URL from my Render Postgres into both my web service and my worker without hardcoding it."
+    why: "Cross-service env reference via fromDatabase — the wiring rule (never hardcode the URL) is a signature concern of this skill."
+  - prompt: "Mi web service en Render devuelve 502 después del primer deploy, ¿qué pasa?"
+    why: "Spanish trigger; first-deploy 502 is the port-binding / no-open-ports symptom this skill diagnoses."
+  - prompt: "Should this email-sending job be a Render worker or a cron job?"
+    why: "Non-obvious worker-vs-cron boundary; the answer hinges on the 12h cron kill and run-then-exit semantics, both core to this skill."
+  - prompt: "Why does my free Render service take 30 seconds to respond after no one's hit it for a while?"
+    why: "Free-tier spin-down / cold-start trap described by symptom, not by name — squarely a free-tier mechanic this skill explains."
+
+should_not_trigger:
+  - prompt: "Deploy this app to Fly.io with a Dockerfile and set up volumes."
+    route_to: "fly-io"
+    why: "A different PaaS — Fly.io has its own config surface and sibling skill; this skill is Render-specific."
+  - prompt: "Write the Dockerfile for my Node app with a small multi-stage runtime image."
+    route_to: "docker"
+    why: "Container authoring. Render only consumes a Dockerfile via runtime: docker; writing it is docker's job."
+  - prompt: "Design our blue/green release and rollback strategy across staging and production."
+    route_to: "deployment"
+    why: "Platform-agnostic release flow and promotion strategy belongs to deployment; this skill is Render config and mechanics."
+  - prompt: "Optimize this slow Postgres query and add the right indexes."
+    route_to: "postgresdb"
+    why: "Schema and query tuning is postgresdb; this skill only provisions and connects Render's managed Postgres."
+  - prompt: "Point my custom domain's DNS A and CNAME records at the host at my registrar."
+    route_to: "domains-dns"
+    why: "Registrar-side DNS records belong to domains-dns; only the Render domains: block stays here."
+
+capability:
+  - scenario: "Given a Python FastAPI repo with a Celery worker and a job that must email users every 5 minutes, produce a render.yaml and fix the start command so it deploys correctly on Render."
+    must_include:
+      - "Web service binds 0.0.0.0 and reads $PORT (e.g. gunicorn/uvicorn --bind 0.0.0.0:$PORT), not a hardcoded port"
+      - "The Celery process declared as type: worker (no port binding)"
+      - "The 5-minute email job declared as type: cron with a schedule: expression (e.g. */5 * * * *)"
+      - "DATABASE_URL wired via fromDatabase (and Redis via fromService), never a hardcoded connection string"
+      - "Secrets handled with sync: false or generateValue: true rather than literal value: strings"
+      - "Migrations placed in preDeployCommand, not startCommand"
+      - "Calls out the 12h cron kill (use a worker for longer jobs) and the free-Postgres 30-day expiry trap"

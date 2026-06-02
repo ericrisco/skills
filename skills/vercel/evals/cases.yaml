@@ -1,0 +1,45 @@
+skill: vercel
+
+should_trigger:
+  - prompt: "Deploy this project to Vercel production from the CLI."
+    why: "Core scope — the `vercel --prod` deploy path against an already-linked Vercel project."
+  - prompt: "My Vercel function keeps timing out at 10 seconds. How do I let it run longer?"
+    why: "Non-obvious: the symptom is a timeout, not 'config', but the fix is `maxDuration` plus the plan ceiling (Hobby 60s / Pro 300s) — a signature vercel.json knob."
+  - prompt: "vercel env pull isn't updating my .env.local for the preview environment."
+    why: "Non-obvious env round-trip gotcha — pull defaults to the linked env and overwrites; the fix is `--environment=preview`. Names the CLI but the failure mode is the teaching point."
+  - prompt: "Configura un cron job a Vercel que s'executi cada hora."
+    why: "Catalan phrasing for crons; tests the production-only crons rule and the path/schedule shape."
+  - prompt: "Set up a custom domain on my Vercel project and protect the preview deployments."
+    why: "Combines `vercel domains add` with deployment-protection scopes (Hobby: preview protected, prod public) — both squarely platform-ops."
+  - prompt: "Should I still be using Edge Functions on Vercel or is there a new way?"
+    why: "Runtime-deprecation fact: Edge Functions folded into Vercel Functions; don't set runtime:'edge' on new standalone functions, keep edge only for middleware."
+  - prompt: "Write me a vercel.json with an hourly cron, a 30s function timeout in fra1, and clean URLs."
+    why: "Direct vercel.json authoring across functions/crons/cleanUrls — the config front door this skill owns."
+
+should_not_trigger:
+  - prompt: "Should I host on Vercel or a Hetzner VPS? I'll need a Dockerfile and CI too."
+    route_to: "deployment"
+    why: "Host-choice plus containers and CI is the deployment skill; this skill assumes the Vercel choice is already made."
+  - prompt: "My Next.js App Router route handler returns a 500 — fix the data fetching."
+    route_to: "nextjs"
+    why: "Application runtime code (App Router, route handler logic) belongs to nextjs; vercel only touches platform knobs around it."
+  - prompt: "Add an MX record and verify SPF/DKIM for my domain."
+    route_to: "domains-dns"
+    why: "Raw DNS records and email auth are domains-dns; vercel only covers attaching a domain to a project via the CLI."
+  - prompt: "Set up GitHub Actions to run my test suite on every push."
+    route_to: "deployment"
+    why: "CI-pipeline authoring lives in the deployment skill (which owns GitHub Actions); it's not Vercel platform operation."
+  - prompt: "Deploy this to Cloudflare Pages instead of Vercel."
+    route_to: "cloudflare"
+    why: "Different platform — Cloudflare Pages/Workers is its own sibling; vercel is Vercel-specific."
+
+capability:
+  - scenario: "Author a vercel.json for a Pro project: API functions under api/ with a 30s timeout running in fra1, an hourly cron hitting /api/digest, a redirect from /old to /new, and clean URLs."
+    must_include:
+      - "`$schema` set to https://openapi.vercel.sh/vercel.json"
+      - "`functions` glob (e.g. `api/**/*.ts`) with `maxDuration: 30` and `regions: [\"fra1\"]`"
+      - "does NOT set `memory` inside `functions` (Fluid: memory is a dashboard setting)"
+      - "`crons` entry with `path` starting with `/` (`/api/digest`) and a valid `schedule` cron expression (`0 * * * *`)"
+      - "notes that crons run only on the production deployment, not on previews"
+      - "`redirects` entry from /old to /new, with `permanent` flagged (308 vs 307 noted)"
+      - "`cleanUrls: true`"

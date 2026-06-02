@@ -1,0 +1,3 @@
+# Evals for fly-io
+
+These cases are routing/trigger fixtures, not executed tests. To run them, read each `should_trigger` prompt against this skill's `description` and body and confirm it would load fly-io (the non-obvious ones — the `iad`/latency prompt with no "Fly" keyword, and the Catalan one — are the real checks). Read each `should_not_trigger` prompt and confirm it routes to the named sibling (`railway`, `vercel`, `docker`, `scaling`) instead. For the `capability` case, draft the fly.toml + commands the scenario asks for and check it against every `must_include` rubric line. There is no test runner; the rigor is whether a fresh agent reaches the same trigger, routing, and rubric decisions.

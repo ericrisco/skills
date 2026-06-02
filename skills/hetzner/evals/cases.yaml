@@ -1,0 +1,46 @@
+skill: hetzner
+
+should_trigger:
+  - prompt: "Provision a Hetzner Cloud server for my app and harden SSH on it before I deploy anything."
+    why: "Direct provision + harden request — the skill's core: cloud-init box up, key-only SSH, no root login, Cloud Firewall. Flagship trigger."
+  - prompt: "monta un servidor barato en Hetzner con cloud-init y el firewall configurado"
+    why: "Spanish phrasing for provisioning a cheap Hetzner box with cloud-init and firewall — exactly the reproducible-provision + Cloud Firewall flow this skill owns."
+  - prompt: "Which Hetzner plan should I pick — a CPX22 or the ARM CAX box — for a small API?"
+    why: "Plan-choice question across the CPX/CAX lines; the skill's decision table (chip, price band, EU-only, when-to-pick) is the answer surface."
+  - prompt: "My Hetzner box only has IPv6 and docker pull keeps failing to reach the registry. What's going on?"
+    why: "Non-obvious symptom of the IPv4-vs-IPv6 economics fact — IPv6-only breaks IPv4-only registries. User never says 'plan' or 'firewall' but it's the skill's IPv4 rule."
+  - prompt: "Set up the Hetzner Cloud Firewall so only 80/443 and SSH are open, everything else blocked."
+    why: "Edge-firewall configuration with default-deny inbound — the hcloud firewall create/add-rule/apply flow the skill prescribes."
+  - prompt: "Make my new Hetzner VPS ready to install Coolify on it later."
+    why: "Host-prep boundary case: getting the host hardened and Docker/Coolify-ready is still this skill; the actual Coolify install is the handoff, not the work here."
+
+should_not_trigger:
+  - prompt: "Deploy my Next.js app through Coolify's dashboard and set the build command."
+    route_to: "coolify"
+    why: "Past host setup — this is the Coolify app-deploy flow, which the boundary phrase explicitly routes to coolify."
+  - prompt: "Spin up a DigitalOcean droplet and harden the SSH config on it."
+    route_to: "digitalocean"
+    why: "Same shape of task but a different provider; DO droplets and DO tooling belong to digitalocean."
+  - prompt: "Write me a multi-stage Dockerfile that slims the final image and runs as non-root."
+    route_to: "docker"
+    why: "Container authoring — Dockerfiles and image hardening are out of scope; route to docker."
+  - prompt: "Point my domain's A record at the server's IP and add the MX records."
+    route_to: "domains-dns"
+    why: "Forward DNS records (A/MX) are generic domain wiring; the skill only touches host-level reverse DNS. Route to domains-dns."
+  - prompt: "Deploy this service to Fly.io with a release command and a health check."
+    route_to: "fly-io"
+    why: "A managed-platform deploy, not a self-managed VPS — belongs to fly-io."
+
+capability:
+  - scenario: "I bought a CPX22 in Falkenstein on Debian 12. Give me a reproducible flow to provision and harden it — I want to be able to recreate the box from files."
+    must_include:
+      - "hcloud server create with --user-data-from-file (cloud-init), not console click-ops"
+      - "non-root sudo user created via cloud-init with ssh_authorized_keys"
+      - "PermitRootLogin no and PasswordAuthentication no (or disable_root: true / ssh_pwauth: false)"
+      - "SSH key-only auth, no password"
+      - "Hetzner Cloud Firewall: default-deny inbound, allow 80/443 and SSH"
+      - "host ufw as defense-in-depth in addition to the Cloud Firewall"
+      - "fail2ban and unattended-upgrades installed/enabled"
+      - "verification step: ssh root@ip refused and sshd -T shows the hardening"
+      - "uses --location (fsn1), not the deprecated --datacenter"
+      - "notes that a snapshot is not a backup (Backups add-on for that)"
