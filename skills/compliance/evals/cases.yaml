@@ -1,0 +1,46 @@
+skill: compliance
+
+should_trigger:
+  - prompt: "What compliance frameworks do we need for a fintech operating in the EU?"
+    why: Core scoping — map business attributes (financial entity, EU) to binding frameworks (DORA, GDPR-as-source, maybe SOC 2).
+  - prompt: "Build us a SOC 2 readiness checklist with control owners and what proves each control."
+    why: Core artifact — the control register with owner + evidence columns.
+  - prompt: "We have an ISO 27001 audit in 90 days, set up the prep rhythm and evidence collection."
+    why: Non-obvious — the deliverable is a cadence/runbook, not a document; audit-prep is squarely this skill.
+  - prompt: "Map our controls — who owns what, how often each is reviewed, and what evidence backs it."
+    why: The control register is the exact artifact; ownership + cadence + evidence is the skill's spine.
+  - prompt: "Set up a continuous-compliance calendar so we stop scrambling the week before every audit."
+    why: Non-obvious operating-rhythm trigger — the weekly control-health review and cadence calendar.
+  - prompt: "Does the EU AI Act apply to our recommender system, and what's the deadline we have to hit?"
+    why: Scoping to a dated framework — must surface 2 Aug 2026 as active and flag the Omnibus deferral as not-yet-adopted.
+  - prompt: "¿Qué compliance necesitamos para una app de salud con datos médicos de usuarios europeos?"
+    why: Spanish + multi-framework sector scoping (HIPAA-style PHI, GDPR-as-source, SOC 2), not a single document.
+
+should_not_trigger:
+  - prompt: "Write our privacy policy and cookie consent banner."
+    route_to: gdpr-privacy
+    why: Privacy-document drafting and consent UX — substance owned by gdpr-privacy, not program scoping.
+  - prompt: "Draft the Terms of Service for our SaaS website."
+    route_to: terms-conditions
+    why: A one-to-many published legal document, not a control register or cadence.
+  - prompt: "Fix the SQL injection and harden the auth on our API endpoints."
+    route_to: secure-coding
+    why: Code-level hardening (the evidence source), not the program-level control mapping.
+  - prompt: "Review this vendor MSA and DPA before we sign it."
+    route_to: contracts
+    why: Negotiated two-party agreement review, not framework scoping.
+  - prompt: "Write our internal data retention and classification policy text."
+    route_to: data-policy
+    why: Internal policy-document prose, not the control register that references it.
+
+capability:
+  - scenario: "We're a Series-A health SaaS with EU users and an AI triage feature that scores patient symptoms. Tell us what compliance we need and how to keep it true between audits."
+    must_include:
+      - Scopes to HIPAA for the PHI, flagging the 2024 NPRM as forthcoming/not-yet-finalized while noting OCR is already enforcing toward it
+      - Treats GDPR as a control source for the EU users (and routes the privacy-document drafting to gdpr-privacy, not drafting it here)
+      - Includes SOC 2 (Security TSC) for the enterprise-readiness angle and notes Type II tests operating effectiveness over a 3-12 month window
+      - Scopes the EU AI Act high-risk obligations to the active 2 Aug 2026 date while flagging the 7 May 2026 Digital Omnibus proposed deferral to 2 Dec 2027 as not-yet-adopted
+      - Produces a control register with owner / evidence / cadence columns, one row per control
+      - Notes the SOC 2 / ISO 27001 ~60-70% overlap to keep a single multi-tagged register instead of duplicates
+      - Stands up an operating rhythm with a weekly control-health review and a cadence calendar
+      - Routes privacy-policy / DPA drafting to gdpr-privacy and contracts, and does NOT give a legal opinion

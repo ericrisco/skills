@@ -1,0 +1,48 @@
+skill: terms-conditions
+
+should_trigger:
+  - prompt: "Draft Terms of Service for our SaaS app."
+    why: Core direct case — the master user agreement for a hosted service.
+  - prompt: "Write an Acceptable Use Policy listing what users can't do on our platform."
+    why: The AUP is squarely in scope as its own referenced document.
+  - prompt: "We just shipped an AI writing feature — update our terms for AI output ownership and disclaimers."
+    why: 2025-2026 AI-clause case (input/output ownership, accuracy disclaimer, Art. 50).
+  - prompt: "Our terms are just a footer link; how do we make users actually agree so it's binding?"
+    why: Non-obvious — this is an acceptance-flow/clickwrap problem, not a drafting one.
+  - prompt: "What does our website footer need to say legally — copyright, DMCA, that kind of notice?"
+    why: Non-obvious — legal-notices framing rather than a named document.
+  - prompt: "We auto-renew monthly subscriptions; what does our terms page need to disclose before we charge?"
+    why: ROSCA/CARL auto-renewal disclosure is owned here.
+  - prompt: "Redactar los términos y condiciones de nuestra plataforma marketplace."
+    why: Spanish trigger for the core case.
+
+should_not_trigger:
+  - prompt: "Draft a mutual NDA between us and a contractor."
+    route_to: contracts
+    why: A negotiated two-party agreement, not a one-to-many published user policy.
+  - prompt: "Write our privacy policy — how we collect, store, and share user personal data and cookies."
+    route_to: gdpr-privacy
+    why: Terms link to the privacy policy; the data-handling substance is not part of them.
+  - prompt: "Set up the signer order and audit trail so this agreement gets signed."
+    route_to: e-signature
+    why: The signing mechanics, not the document being signed.
+  - prompt: "We need to register our brand name as a trademark."
+    route_to: ip-trademark
+    why: IP filing strategy beyond the terms' IP clause.
+  - prompt: "Get us SOC 2 ready and document our compliance posture."
+    route_to: compliance
+    why: Regulatory/standards posture, not user-facing published terms.
+
+capability:
+  - scenario: "We run a consumer SaaS with user-uploaded content, monthly auto-renewing subscriptions, and a new AI feature. Draft our Terms of Service."
+    must_include:
+      - Identifies the full document set needed (ToS + AUP + DMCA notice + auto-renewal disclosure + AI clauses)
+      - Builds an enforceable acceptance flow (clickwrap with conspicuous notice + affirmative act, not a footer browsewrap)
+      - Limitation-of-liability cap at trailing 3-12 months' fees with the unwaivable carve-outs (gross negligence, willful misconduct, bodily injury, fraud) and does NOT exclude all direct damages
+      - Arbitration paired with a ~30-day opt-out plus a class-action waiver for consumer users
+      - ROSCA/CARL-compliant auto-renewal disclosure shown before billing info, with easy cancellation
+      - DMCA designated-agent notice AND the U.S. Copyright Office registration step (with the 3-year renewal)
+      - AI input/output ownership + accuracy disclaimer + EU AI Act Art. 50 transparency note
+      - Governing law/venue, modification/change-notice, termination, and severability clauses present
+      - Routes the privacy policy out to gdpr-privacy rather than inlining it
+      - Ends with the attorney-review / not-legal-advice boundary

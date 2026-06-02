@@ -1,0 +1,44 @@
+skill: data-policy
+
+should_trigger:
+  - prompt: "Write our data retention policy with periods for HR, customer, and finance data."
+    why: "Core artifact — a retention schedule mapping categories to periods, the skill's primary job."
+  - prompt: "How long are we allowed to keep customer support tickets and server logs?"
+    why: "Everyday entry point — a retention-period question per data category."
+  - prompt: "Set up a Record of Processing Activities for our SaaS."
+    why: "ROPA / Art. 30 inventory, explicitly in scope."
+  - prompt: "Is our lawful basis for the newsletter consent or legitimate interest?"
+    why: "Non-obvious — looks like a marketing question, but it is a lawful-basis governance call (Art. 6) this skill owns."
+  - prompt: "We auto-delete users after 2 years but our backups still have them — how do we fix retention in backups?"
+    why: "Non-obvious — the backups/enforcement gap is squarely this skill's 'make it real in systems' section, not db mechanics."
+  - prompt: "Define cuánto tiempo guardamos los datos de clientes y qué borramos al expirar."
+    why: "Spanish trigger — retention period + expiry action, the core artifact."
+  - prompt: "Design our consent capture and withdrawal flow and log proof of consent."
+    why: "Consent model — capture, withdrawal, proof logging, the consent-matrix part of the skill."
+
+should_not_trigger:
+  - prompt: "Write the privacy policy our users see on the website."
+    route_to: gdpr-privacy
+    why: "Public-facing notice + DSAR handling, not the internal retention/governance machinery."
+  - prompt: "Draft the Data Processing Addendum clauses in our vendor contract."
+    route_to: contracts
+    why: "Negotiated two-party contractual clauses, not an internal policy artifact."
+  - prompt: "Get us SOC 2 audit-ready and map our security controls."
+    route_to: compliance
+    why: "Audit posture / framework control mapping, not data-lifecycle rules."
+  - prompt: "Encrypt the PII at rest and harden the database access."
+    route_to: secure-coding
+    why: "Security controls on the systems, not the governance policy they enforce."
+  - prompt: "Write the TTL migration to actually drop the old partitions."
+    route_to: db-migrations
+    why: "Deletion mechanics in the database, not the retention policy those mechanics satisfy."
+
+capability:
+  - scenario: "A 20-person SaaS asks for a retention schedule covering customer accounts, support tickets, marketing consents, and access logs — with the lawful basis for each and what runs at expiry."
+    must_include:
+      - "A table with one row per category, each having all of: retention period, lawful basis (specific Art. 6 sub-paragraph), expiry action (delete/anonymize/archive), and system of record."
+      - "At least one row using a lawful basis other than consent (e.g. Art. 6(1)(b) contract or 6(1)(f) legitimate interest for logs)."
+      - "Explicit handling of backups/archives, not just live data."
+      - "A legal-hold exception note for the auto-deletion workflow."
+      - "The DPO/counsel sign-off boundary and a not-legal-advice statement."
+      - "A 'validate against local + sector law' caveat — no period asserted as universally lawful."
