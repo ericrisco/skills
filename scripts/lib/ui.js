@@ -33,6 +33,22 @@ const C = {
   green: (s) => `\x1b[32m${s}\x1b[39m`,
 };
 
+// ASCII wordmark shown at the top of the wizard.
+export function banner() {
+  const tty = Boolean(stdout.isTTY);
+  const art = [
+    '',
+    ' ██████╗ ███████╗ ██████╗',
+    ' ██╔══██╗██╔════╝██╔════╝',
+    ' ██████╔╝███████╗██║     ',
+    ' ██╔══██╗╚════██║██║     ',
+    ' ██║  ██║███████║╚██████╗',
+    ' ╚═╝  ╚═╝╚══════╝ ╚═════╝',
+  ];
+  for (const l of art) say(tty ? C.cyan(l) : l);
+  say((tty ? C.dim('  231 skills · one CLI · zero bloat') : '  231 skills · one CLI · zero bloat'));
+}
+
 // Repaint a fixed block of lines in place (cursor ends just below the block).
 function makePainter() {
   let height = 0;
