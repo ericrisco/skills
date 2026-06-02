@@ -1,0 +1,43 @@
+skill: sdd-init
+
+should_trigger:
+  - prompt: "Calibrate this repo before we run the SDD flow."
+    why: "Direct request for technical SDD calibration before phases."
+  - prompt: "Run sdd init and detect my test runner before implementing."
+    why: "Names sdd init and test-runner detection, the core responsibility."
+  - prompt: "Set up the SDD config.yaml for this existing repo."
+    why: "Creating the persisted SDD config is this skill's output."
+  - prompt: "Before coding, detect package manager, test commands, strict TDD mode and registry."
+    why: "All requested facts are the preflight calibration surface."
+  - prompt: "Prepara este repo para desarrollo dirigido por especificacion y dime que comandos de verify usar."
+    why: "Spanish SDD prep plus verify command detection should trigger sdd-init."
+  - prompt: "Refresh the project skill registry and write the SDD runtime config."
+    why: "Registry refresh plus runtime config is exactly this skill."
+
+should_not_trigger:
+  - prompt: "Inicia mi empresa/harness general y monta 01-TOOLS y 02-DOCS."
+    route_to: "init"
+    why: "First-contact/general workspace bootstrap belongs to init, which then hands off to harness."
+  - prompt: "Audit this workspace and scaffold provider tools under 01-TOOLS."
+    route_to: "harness"
+    why: "Operational scaffolding and provider tools are harness work, not SDD technical calibration."
+  - prompt: "Write the feature spec for CSV export."
+    route_to: "specify"
+    why: "Feature requirements/spec writing is specify."
+  - prompt: "All implementation is done; run lint, tests and acceptance criteria."
+    route_to: "verify"
+    why: "Post-implementation evidence gate belongs to verify."
+  - prompt: "Create a Next.js app with Tailwind."
+    route_to: "nextjs"
+    why: "Stack scaffolding is the stack skill, not SDD init."
+
+capability:
+  - scenario: "A repo has package.json with pnpm, test/lint/typecheck/build scripts, Vitest and Playwright, plus no existing SDD config. The user asks to calibrate before SDD."
+    must_include:
+      - "Detects stack, package manager, scripts, test runners and monorepo signals from repo files."
+      - "Writes 02-DOCS/wiki/sdd/config.yaml, not an openspec/ folder."
+      - "Sets testing.strict_tdd true because a runner exists and records apply/verify commands."
+      - "Asks or defaults execution_mode, artifact_store, review budget and delivery strategy."
+      - "Runs or instructs npx rsc registry refresh and records .rsc/skill-registry.json as registry_path."
+      - "Distinguishes itself from init and harness."
+      - "Ends with the standard result envelope including skill_resolution and evidence."

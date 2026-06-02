@@ -43,8 +43,8 @@ capability:
       id, a serving mode, and estimate the cost.
     must_include:
       - Picks batch inference and states it is ~50% off serverless on both providers.
-      - Names a cheap small model with a concrete namespaced id (e.g. openai/gpt-oss-20b on Together, or a Fireworks <4B/4B-16B tier id).
-      - Applies the cost formula (in_tokens*in_price + out_tokens*out_price)/1e6 with the dated 2026-06 $/1M numbers and the 0.5 batch multiplier.
+      - Names a cheap small model with a concrete namespaced id from a stable (non-projected) row (e.g. openai/gpt-oss-20b on Together, or a Fireworks <4B/4B-16B tier id) — not a fast-moving flagship.
+      - Applies the cost formula (in_tokens*in_price + out_tokens*out_price)/1e6 with the $/1M numbers as read off the provider page on 2026-06-02 and the 0.5 batch multiplier; any flagship/(projected) figure is flagged "re-read the page before quoting".
       - Uses the correct base_url and a namespaced model id (no bare model name).
       - Notes that Together uses its native Batch API (JSONL upload), not the OpenAI /v1/batches endpoint.
       - Prioritizes model choice (cheap small model) over serving mode as the bigger cost lever.

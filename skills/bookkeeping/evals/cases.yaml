@@ -35,12 +35,13 @@ should_not_trigger:
 
 capability:
   - scenario: >
-      Given six mixed transactions and no chart of accounts — (1) paid $800 office rent,
-      (2) owner took $1,500 out of the business, (3) a customer paid $2,000 upfront for work
-      not yet delivered, (4) paid $49 for a monthly software subscription, (5) made a $600
-      loan principal repayment, (6) earned and received $3,000 in service revenue —
+      Given six bank-feed lines for the month and no chart of accounts — (1) a $800 debit to
+      the landlord, (2) a $1,500 transfer to the owner's personal account, (3) a $2,000 wire
+      received from a customer for a project that has not started, (4) a $49 recurring charge
+      from a SaaS vendor, (5) a $600 payment to the bank against the business term loan,
+      (6) a $3,000 deposit for a consulting engagement completed this month —
       produce a small chart of accounts and the correct journal entry for each, then state
-      the closing check.
+      the closing check that proves the books are done for the period.
     must_include:
       - Builds a small COA covering all five categories (asset, liability, equity, revenue, expense) with numbered ranges.
       - Every journal entry has equal debits and credits, shown explicitly.
@@ -48,4 +49,4 @@ capability:
       - Treats the loan principal repayment as a liability reduction (DR Loan Payable / CR Cash), not an expense.
       - Treats the customer upfront payment as a liability (Unearned Revenue), not revenue.
       - Posts rent and software as expenses (debit) against Cash (credit), and service revenue as a credit to Revenue against Cash (debit).
-      - States that the resulting ledger must be reconciled to the bank statement at period end.
+      - States the closing discipline: the period is not done until the resulting ledger is reconciled against the bank statement (book balance must tie to bank balance, with any difference explained).

@@ -49,7 +49,7 @@ fireworks = OpenAI(
     api_key=os.environ["FIREWORKS_API_KEY"],
 )
 r = fireworks.chat.completions.create(
-    model="accounts/fireworks/models/deepseek-v4-pro",  # accounts/fireworks/models/<name>
+    model="accounts/fireworks/models/gpt-oss-120b",  # accounts/fireworks/models/<name>
     messages=[{"role": "user", "content": "Explain this stack trace."}],
 )
 ```
@@ -68,7 +68,7 @@ const r = await fireworks.chat.completions.create({
 });
 ```
 
-- **Bad → Good (model id):** `model="deepseek-v4-pro"` → `model="deepseek-ai/DeepSeek-V4-Pro"` (Together) or `model="accounts/fireworks/models/deepseek-v4-pro"` (Fireworks). Why: the compat layer routes by the full namespaced id; a bare name has no route → 404.
+- **Bad → Good (model id):** `model="gpt-oss-120b"` → `model="openai/gpt-oss-120b"` (Together) or `model="accounts/fireworks/models/gpt-oss-120b"` (Fireworks). Why: the compat layer routes by the full namespaced id; a bare name has no route → 404.
 - **Bad → Good (base_url):** `base_url="https://api.openai.com/v1"` with a Together key → auth error / wrong models. Why: a Together/Fireworks key only authenticates against its own host.
 - **Bad → Good (key):** `api_key="sk-..."` literal → `api_key=os.environ["TOGETHER_API_KEY"]`. Why: a committed key is a leaked key.
 
@@ -76,16 +76,18 @@ const r = await fireworks.chat.completions.create({
 
 ## Pick the model
 
-Match the task to the smallest model that clears the quality bar. Every $/1M figure below is **per 1M tokens, input/output, USD**, read off each **provider's own pricing page** on 2026-06-02 (Together: together.ai/pricing; Fireworks: docs.fireworks.ai/serverless/pricing) — never an aggregator. The model *ids* in the table are illustrative of that catalog, not byte-verified id strings; treat them as "confirm before you ship." Prices move and ids get retired — **re-confirm at the provider page before you quote a customer.**
+Match the task to the smallest model that clears the quality bar. Every $/1M figure below is **per 1M tokens, input/output, USD**, read directly off each **provider's own pricing page** on 2026-06-02 (Together: together.ai/pricing; Fireworks: docs.fireworks.ai/serverless/pricing) — never a tracker. Confirm the exact id string and rate at that page before you ship; casing and suffixes (`-Turbo`, `-Lite`) are load-bearing, and a plausible id absent from the catalog 404s like a typo.
+
+Rows tagged **(projected)** are current-generation flagships whose id and price move fast and that you may not recognize from older training data — the number is the page's figure on 2026-06-02, but re-read the page before you quote one. Untagged rows are long-lived ids with stable pricing; the worked examples and defaults below lean on these on purpose.
 
 | Task | Together id + $/1M (in/out) | Fireworks id + $/1M (in/out) |
 |---|---|---|
 | Cheap classify / extract / tag | `openai/gpt-oss-20b` — $0.05 / $0.20 | `accounts/fireworks/models/gpt-oss-20b` — $0.07 / $0.30 |
-| Small instruct | `meta-llama/Meta-Llama-3-8B-Instruct-Lite` — $0.10 / $0.10 | `accounts/fireworks/models/llama-v3p1-8b-instruct` — 4B–16B tier, $0.20 |
+| Small instruct | `meta-llama/Meta-Llama-3-8B-Instruct-Lite` — $0.14 / $0.14 | `accounts/fireworks/models/llama-v3p1-8b-instruct` — 4B–16B tier, $0.20 |
 | General chat | `meta-llama/Llama-3.3-70B-Instruct-Turbo` — $1.04 / $1.04 | `accounts/fireworks/models/gpt-oss-120b` — $0.15 / $0.60 |
-| Reasoning / hard tasks | `deepseek-ai/DeepSeek-V4-Pro` — $2.10 / $4.40 | `accounts/fireworks/models/deepseek-v4-pro` — $1.74 / $3.48 |
-| Cheaper reasoning | `Qwen/Qwen3.6-Plus` — $0.50 / $3.00 (watch output) | `accounts/fireworks/models/deepseek-v4-flash` — $0.14 / $0.28; `kimi-k2p6` — $0.95 / $4.00 |
-| Long context (≥512K) | `Qwen/Qwen3.6-Plus` (1M ctx); `deepseek-ai/DeepSeek-V4-Pro` (512K serverless) | size/MoE tier — see fallback below |
+| Reasoning / hard tasks | `deepseek-ai/DeepSeek-V4-Pro` — $2.10 / $4.40 *(projected)* | `accounts/fireworks/models/deepseek-v4-pro` — $1.74 / $3.48 *(projected)* |
+| Cheaper reasoning | `Qwen/Qwen3.6-Plus` — $0.50 / $3.00 (watch output) *(projected)* | `accounts/fireworks/models/deepseek-v4-flash` — $0.14 / $0.28 *(projected)*; `kimi-k2p6` — $0.95 / $4.00 *(projected)* |
+| Long context (≥512K) | `Qwen/Qwen3.6-Plus` (1M ctx) *(projected)*; `deepseek-ai/DeepSeek-V4-Pro` (512K serverless) *(projected)* | size/MoE tier — see fallback below |
 | Embeddings | `intfloat/multilingual-e5-large-instruct` — $0.02 / 1M input | embeddings — $0.008–$0.10 / 1M input (by param count) |
 
 Rules:
@@ -121,13 +123,15 @@ cost = (in_tokens * in_price_per_1M + out_tokens * out_price_per_1M) / 1_000_000
 
 Apply the multipliers: cached input → `in_price * 0.5` on the cached portion; Priority → `* 1.5`; Batch → `total * 0.5`.
 
-Worked example — 1,000,000 input + 500,000 output tokens, one shot:
+Worked example — 1,000,000 input + 500,000 output tokens, one shot. Both anchors are **stable** ids (gpt-oss, Llama 3.3 70B), so the arithmetic stays checkable even after the flagship rows churn:
 
 - **GPT-OSS 20B on Together**, serverless: `(1M*0.05 + 0.5M*0.20)/1e6 = $0.05 + $0.10 = $0.15`.
-- **DeepSeek V4-Pro on Together**, serverless: `(1M*2.10 + 0.5M*4.40)/1e6 = $2.10 + $2.20 = $4.30` — ~29× the small model.
-- Same DeepSeek job **as batch**: `$4.30 * 0.5 = $2.15`.
+- **GPT-OSS 120B on Together**, serverless: `(1M*0.15 + 0.5M*0.60)/1e6 = $0.15 + $0.30 = $0.45` — 3× the 20B for the bigger open GPT-OSS.
+- **Llama 3.3 70B on Together**, serverless: `(1M*1.04 + 0.5M*1.04)/1e6 = $1.04 + $0.52 = $1.56` — ~10× the 20B for general chat.
+- Same Llama 3.3 70B job **as batch**: `$1.56 * 0.5 = $0.78`.
+- Escalating to a *(projected)* reasoning flagship (e.g. DeepSeek V4-Pro at $2.10/$4.40 on the 2026-06-02 page) lands near `$4.30` serverless / `$2.15` batch — ~29× the 20B — but re-read the page before you commit to that number.
 
-So for a large offline classification run, the lever is *model choice first* (~29×), *batch second* (2×). Pick the small model AND batch it. Realtime is only worth its premium when a human is waiting.
+So for a large offline run the lever is *model choice first* (up to ~29×), *batch second* (2×). Pick the smallest model that passes the eval AND batch it. Realtime is only worth its premium when a human is waiting.
 
 ## Write provider-agnostic code
 

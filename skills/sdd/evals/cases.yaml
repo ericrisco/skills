@@ -29,6 +29,9 @@ should_trigger:
   - prompt: "What's the right order to do this feature in, and which phase skill handles each part?"
     why: "Asks for the phase map and the per-phase ownership — the dispatcher's core deliverable; it should produce the chain and the routing rule."
 
+  - prompt: "We have an existing repo and no SDD config yet. Start the SDD flow properly before we write a spec."
+    why: "The dispatcher should notice the missing runtime calibration and route to sdd-init before specify on non-trivial work."
+
 should_not_trigger:
   - prompt: "Write the spec for the new export-to-CSV feature."
     route_to: "specify"
@@ -59,10 +62,12 @@ capability:
     must_include:
       - "States the SDD method in brief: decide what & why before how, write it down, each artifact gates the next ('the artifact is the contract')"
       - "Reads (or notes it should read) 02-DOCS/wiki/harness/user-profile.md for the accompaniment dial and, at L1, gives a one-line why per step rather than long explanations"
-      - "Presents the chained phase map: constitution -> specify -> clarify -> plan -> tasks -> analyze -> implement -> verify -> review -> ship, with debug/worktrees/parallel on demand"
+      - "Presents the chained phase map: sdd-init -> constitution -> proposal? -> specify -> clarify -> plan -> tasks -> analyze -> implement -> verify -> review -> ship -> archive, with debug/worktrees/parallel on demand"
+      - "Includes sdd-init as step zero when 02-DOCS/wiki/sdd/config.yaml is missing, and explains that it detects test commands, strict TDD and .rsc/skill-registry.json"
       - "Applies the invoke rule: a fuzzy idea with no spec on disk routes to specify (and notes constitution runs once per project if not yet present)"
       - "Does NOT itself write the spec or start coding — it hands off to the specify phase skill (../specify/SKILL.md)"
       - "Notes that artifacts will be written under 02-DOCS/wiki/sdd/ (specs/, plans/, decisions.md) and indexed in the root CLAUDE.md Knowledge map"
+      - "Mentions standard result envelopes with status, artifact, next_recommended, risk, skill_resolution and evidence"
       - "Defers concrete stack tooling (test runner, build, framework idioms) to the relevant stack skill rather than prescribing it here"
 
   - scenario: "A user says: 'It's a tiny copy change in the footer — do I really have to run this whole spec/plan/tasks ceremony?' Show how the dispatcher handles the skip case honestly."

@@ -74,7 +74,7 @@ def fetch(client: httpx.Client, url: str):
 ```
 
 ```java
-// Java — Resilience4j 2.2.0: Retry + TimeLimiter + CircuitBreaker composed.
+// Java — Resilience4j 2.3.0 (2.x): Retry + TimeLimiter + CircuitBreaker composed.
 RetryConfig retry = RetryConfig.custom()
     .maxAttempts(4)
     .intervalFunction(IntervalFunction.ofExponentialRandomBackoff(
@@ -84,7 +84,7 @@ RetryConfig retry = RetryConfig.custom()
 ```
 
 ```csharp
-// .NET — Polly 8.6.5 resilience pipeline: timeout → retry → circuit breaker.
+// .NET — Polly 8.6.6 resilience pipeline: timeout → retry → circuit breaker.
 var pipeline = new ResiliencePipelineBuilder()
     .AddRetry(new RetryStrategyOptions {
         MaxRetryAttempts = 4,

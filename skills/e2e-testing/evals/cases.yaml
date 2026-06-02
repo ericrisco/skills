@@ -16,7 +16,7 @@ should_trigger:
     why: "Auth via a setup project that writes session JSON and dependent projects loading it is exactly the storageState recipe this skill owns."
 
   - prompt: "Should I use getByRole or a CSS selector for this submit button?"
-    why: "Locator strategy — the role>label/text>testId>CSS ladder and the 2026 removal of _react/_vue — is core e2e judgment."
+    why: "Locator strategy — the role>label/text>testId>CSS ladder and the v1.58.0 removal of _react/_vue — is core e2e judgment."
 
   - prompt: "Els tests d'extrem a extrem fallen aleatòriament al pipeline, com els estabilitzo?"
     why: "Catalan for 'the end-to-end tests fail randomly in the pipeline' — flaky CI e2e, the skill's central concern."

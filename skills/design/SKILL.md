@@ -63,6 +63,7 @@ These are constraints, not preferences. Violating any one is a defect, not a sty
 9. **Motion must guide attention, communicate state, or preserve continuity** — else delete it.
 10. **Copy is benefit-led and specific.** No hype; the ban-list is enforced. (→ `references/copywriting-frameworks.md`)
 11. **Match the product domain.** Density and composition follow the audience and the job, not a template.
+12. **Commit to a visual concept and one signature element.** A page with no point of view defaults to AI-generic. Name the concept in one sentence; manufacture the ONE distinctive idea (not a gradient); force scale contrast and section rhythm; run the senior-designer crit before shipping. (→ "From competent to premium" below, `references/signature-and-craft.md`)
 
 ## Decision rules (pick a direction first)
 
@@ -100,6 +101,41 @@ Trends churn quarterly and your built-in aesthetic prior is the median of every 
 6. Only THEN build; re-check the result against the references in QA.
 
 Re-research per project — trends churn, competitors moved, and the domain dictates the reference set. Do not rely on stale memory: whenever the brand study lacks aesthetic direction or the user asks for "modern" / "2026" / "premium", WebSearch/WebFetch current trends (award sites, Linear/Stripe/Vercel/Resend-tier, current type/color/motion/layout moves), fold the findings into the output **with citations + dates**, and refresh `references/trends-2026.md`. Full loop, source map, and synthesis template → `references/research-method.md`. Current snapshot (dated, cited) → `references/trends-2026.md`.
+
+## From competent to premium (the part that earns the score)
+
+Obeying every non-negotiable gets you to *competent* — a page that ships and passes review. It does NOT
+get you to premium, because every constraint catches an *absence* (no missing `<h1>`, contrast passes),
+while premium is a *presence*: a point of view. Competent-but-generic is the default failure mode of
+under-specified design output. Close it with four deliberate moves, in order, before and during the build:
+
+1. **Choose a visual concept.** One sentence the whole page answers to — `[feeling] + [structural metaphor]
+   for [audience doing job]` (e.g. "quiet instrument-panel precision for ops engineers"). Drawn from the
+   brand study + research exemplars, never your prior. If you cannot name what makes this surface different
+   from the median SaaS page, you have no concept yet, and the output will default to generic.
+2. **Manufacture the ONE signature element** the brief asks for — the thing you'd describe first to a
+   friend. Pick exactly one from a real vocabulary, biased by domain: a hero that *demonstrates not
+   describes* (live terminal / real chart / actual diff), an owned type moment, a structural signature
+   (asymmetric split, horizontal feature rail, editorial index), a material signature (hairline grid, one
+   grain pass, duotone), a motion signature, or a real-number/proof signature. Never default to "a
+   gradient". It must be true to the product, and cite the research exemplar that inspired it.
+3. **Force scale contrast.** Generic pages are tonally flat — headline, titles, body all within ~1.5×.
+   Make the hero dominant **3–5× the body**, demote eyebrows/labels/metadata smaller and quieter than
+   feels comfortable, and allow **one focal point per viewport**. If a section feels flat, add contrast,
+   not elements.
+4. **Give the page rhythm.** Ten identical `py-24` white card-grid sections read as one stripe. Vary
+   format (full-bleed vs. contained, alternate media sides), background (a dark section between light ones
+   anchors a CTA), density (a breathing statement after a dense grid), and container idiom (not everything
+   is a bordered card). Inter-section gap > intra-section gap, padding stepping on the scale.
+
+Then, **before claiming done, run the senior-designer crit** and make at least one concrete change as a
+result: What is the one idea here (name it in a sentence)? Would this place on Awwwards/Godly or just pass
+review? What is the single most generic element right now — and replace it. Where does the eye land first,
+and is that what should win? If the logo were removed, would anyone know whose product this is? Does every
+section earn its place, or is one there out of habit (cut it)?
+
+Full method — concept formula, signature vocabulary, scale/rhythm rules, the crit, and a worked
+generic→signature dev-tool hero — → `references/signature-and-craft.md`.
 
 ## Visual system in 90 seconds
 
@@ -310,22 +346,23 @@ Automate → `scripts/verify.sh` (runs Lighthouse if a dev server is up, else st
 
 ### Optional: graded visual-audit rubric (0–10)
 
-The checklist above is pass/fail. When the user asks for a *design review*, a *critique*, or a quality grade — or when you want to argue a surface is genuinely premium rather than merely compliant — score these 10 dimensions 0–10 and report the weighted total. Pass/fail tells you it ships; the rubric tells you how good it is.
+The checklist above is pass/fail. When the user asks for a *design review*, a *critique*, or a quality grade — or when you want to argue a surface is genuinely premium rather than merely compliant — score these 11 dimensions 0–10 and report the weighted total. Pass/fail tells you it ships; the rubric tells you how good it is.
 
 | # | Dimension | What a 10 looks like | Weight |
 | --- | --- | --- | --- |
 | 1 | First impression & value clarity | Passes the 5s test instantly; product shown, not a gradient | 1.5 |
-| 2 | Typographic craft | Modular scale, ≤2 families, balanced headings, 45–75ch measure, tabular numerals | 1.0 |
-| 3 | Color & contrast | Disciplined 60-30-10 OKLCH system, all text ≥ 4.5:1, dark mode via token swap | 1.0 |
-| 4 | Layout & spacing rhythm | Consistent 4/8px scale, intentional asymmetry/bento, clear focal point | 1.0 |
-| 5 | Hierarchy & scannability | Eye lands in the right order; one primary action per viewport | 1.0 |
-| 6 | Depth & detail polish | Concentric radius, layered shadows, hairline borders, restrained glass | 1.0 |
-| 7 | Motion quality | Purposeful only, compositor-only props, reduced-motion + `@supports` guards | 1.0 |
-| 8 | Accessibility | Landmarks, one `<h1>`, visible focus, 24px+ targets (44 ideal), no motion-only meaning | 1.0 |
-| 9 | Performance (CWV) | LCP < 2.5s, INP < 200ms, CLS < 0.1; LCP image `priority`, `next/font` | 1.0 |
-| 10 | Copy & brand fidelity | Benefit-led, specific, ban-list clean, voice matches the `02-DOCS/wiki/brand/` study | 0.5 |
+| 2 | Concept & signature | A nameable visual concept; one distinctive, domain-true signature element; logo-removed it's still recognizably this product, not a template | 1.5 |
+| 3 | Typographic craft | Modular scale, ≤2 families, balanced headings, 45–75ch measure, tabular numerals; deliberate 3–5× scale contrast | 1.0 |
+| 4 | Color & contrast | Disciplined 60-30-10 OKLCH system, all text ≥ 4.5:1, dark mode via token swap | 1.0 |
+| 5 | Layout, spacing & rhythm | Consistent 4/8px scale, intentional asymmetry/bento, clear focal point; sections vary in format/background/density, not one repeated stripe | 1.0 |
+| 6 | Hierarchy & scannability | Eye lands in the right order; one primary action per viewport | 1.0 |
+| 7 | Depth & detail polish | Concentric radius, layered shadows, hairline borders, restrained glass | 1.0 |
+| 8 | Motion quality | Purposeful only, compositor-only props, reduced-motion + `@supports` guards | 1.0 |
+| 9 | Accessibility | Landmarks, one `<h1>`, visible focus, 24px+ targets (44 ideal), no motion-only meaning | 1.0 |
+| 10 | Performance (CWV) | LCP < 2.5s, INP < 200ms, CLS < 0.1; LCP image `priority`, `next/font` | 1.0 |
+| 11 | Copy & brand fidelity | Benefit-led, specific, ban-list clean, voice matches the `02-DOCS/wiki/brand/` study | 0.5 |
 
-Score = Σ(dimension × weight), max 100. **Bands:** < 60 ships generic — redo; 60–79 competent but improvable — name the lowest two and fix; 80–94 premium; 95+ award-tier. For each dimension below 8, give one concrete, actionable fix (not "improve spacing" but "section padding jumps 48→96px with no 64px step — add `py-16` on mobile"). Cite the brand article or trend source that sets the bar where relevant.
+Score = Σ(dimension × weight), max 115 (normalize to /100 by ×100/115 if you want a percentage). **Bands (on the /115 raw total):** < 69 ships generic — redo; 69–91 competent but improvable — name the lowest two and fix; 92–108 premium; 109+ award-tier. (These are the prior 60/80/95-per-100 cutoffs rescaled to 115.) A surface that scores well on every constraint dimension but low on #1–2 is the classic "competent but generic" result — fix concept and signature first, it has the most leverage. For each dimension below 8, give one concrete, actionable fix (not "improve spacing" but "section padding jumps 48→96px with no 64px step — add `py-16` on mobile"). Cite the brand article or trend source that sets the bar where relevant.
 
 ## Project grounding (02-DOCS + CLAUDE.md)
 
@@ -359,4 +396,4 @@ keep outputs consistent with them.
 - *product-lens* — validating the "why" before you build.
 - *liquid-glass-design* — native iOS 26 Liquid Glass material (this skill ships the *web* glass approximation only).
 
-- References (in this skill): `references/brand-grounding.md`, `references/research-method.md`, `references/trends-2026.md`, `references/visual-system.md`, `references/landing-anatomy-and-cro.md`, `references/copywriting-frameworks.md`, `references/motion-and-interaction.md`.
+- References (in this skill): `references/brand-grounding.md`, `references/research-method.md`, `references/trends-2026.md`, `references/signature-and-craft.md`, `references/visual-system.md`, `references/landing-anatomy-and-cro.md`, `references/copywriting-frameworks.md`, `references/motion-and-interaction.md`.

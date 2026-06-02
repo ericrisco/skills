@@ -29,7 +29,7 @@ Browser Mode at component granularity. The moment scope crosses a boundary, swit
 
 | Project shape | Runner | Why |
 |---|---|---|
-| New Vite / React 19 / Next 16 repo | **Vitest 4** | Shares your `vite.config`, zero second transform pipeline, Browser Mode is stable as of v4.0 (Dec 2025). |
+| New Vite / React 19 / Next 16 repo | **Vitest 4** | Shares your `vite.config`, zero second transform pipeline, Browser Mode is stable as of v4.0 (Oct 2025). |
 | Established Jest / CRA / React Native repo | **Jest 30** | Migration cost outweighs the win; Jest 30 is current (min Node 18.x, min TS 5.4). |
 | Both installed | pick one and rip the other out | Two runners means two configs, two mock APIs, doubled CI — and tests that pass in one, fail in the other. |
 

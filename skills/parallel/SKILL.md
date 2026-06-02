@@ -61,13 +61,30 @@ SUBAGENT BRIEF (one per unit)
 - Goal         — what to build, in its own words, no "see the other task"
 - Done-check   — the verifiable condition that means this unit is finished (from the tasks phase)
 - Constraints  — the constitution rules + stack skill it must honor (e.g. ../fastapi/SKILL.md testing)
+- Selected skills — ids + paths resolved from .rsc/skill-registry.json
+- Compact rules — 4-5 actionable rules digested from those skills for THIS unit
+- Skill fallback — what to do if a referenced skill is unavailable
 - Interface    — any contract it must conform to, FROZEN before dispatch (see the rule below)
-- Report-back  — what to return: the diff, the test output, decisions worth logging
+- Report-back  — what to return: the diff, the test output, decisions worth logging, skill_resolution
 ```
 
 **Freeze shared contracts before you dispatch, never during.** If two units both touch the same API shape, type, or schema, that interface is a *dependency*, not something to negotiate in flight. Define it in the serial spine first, hand the frozen version to every unit, and only then fan out. Cross-talk between live subagents is the smell that the partition was wrong.
 
 Each subagent still owns its own discipline inside its scope — TDD via `implement`, the stack skill's test mechanics, decision logging. This skill does not relax any of that; it just runs several of them at once.
+
+### Skill resolution feedback
+
+Every subagent result must report:
+
+```yaml
+skill_resolution:
+  used: []
+  missing: []
+  fallback: []
+  compact_rules: []
+```
+
+The orchestrator folds these into the final parallel result. If a unit claims it used a skill that was not available in the registry or not included in the brief, treat that as a review risk and inspect the work before merging.
 
 ### 3. GATHER — collect every result, hold the merge
 
@@ -135,11 +152,34 @@ Be honest about this — most task lists are *mostly* serial with a few disjoint
 - [ ] PARTITION: independence test passed for every pair; batches + serial spine written down
 - [ ] Shared contracts/types/schemas FROZEN in the serial spine before dispatch
 - [ ] DISPATCH: one self-contained brief per unit (scope, goal, done-check, constraints, report-back)
+- [ ] Each brief includes selected skills, compact rules, and fallback behavior from registry
 - [ ] Each unit honors the constitution + its stack skill; TDD stays inside the unit
 - [ ] GATHER: all units reported; each checked against its done-check BEFORE merge
+- [ ] GATHER: each unit returned skill_resolution (used/missing/fallback/compact_rules)
 - [ ] RECONCILE: merged, conflicts resolved by hand, decision logs folded into 02-DOCS
 - [ ] Combined suite run across the merged result and GREEN (not just green-in-isolation)
 - [ ] Result handed back to the calling phase (usually implement → verify)
+```
+
+## Result envelope
+
+End with:
+
+```json result-envelope
+{
+  "status": "complete",
+  "executive_summary": "Parallel units gathered, reconciled, and combined suite checked.",
+  "artifact": "02-DOCS/wiki/sdd/progress/<slug>.md",
+  "next_recommended": "implement",
+  "risk": "low|medium|high",
+  "skill_resolution": {
+    "used": ["parallel"],
+    "missing": [],
+    "fallback": [],
+    "compact_rules": ["Freeze shared contracts before dispatch.", "Run combined suite after merge."]
+  },
+  "evidence": ["partition", "unit reports", "combined suite output"]
+}
 ```
 
 ## What this skill is NOT
