@@ -1,0 +1,57 @@
+skill: orient
+
+# The always-on brújula. It fires at the END of a turn to keep the user oriented:
+# map + what happened + why (scaled to the dial) + a next step phrased as a question.
+# It defers "install a missing skill?" to suggest and does not interrupt mid-work.
+
+should_trigger:
+  - prompt: "Ya está instalado el postgresdb. ¿Y ahora qué?"
+    why: "An action just finished and the user is explicitly unsure what to do next — orient must situate them and propose the next step."
+
+  - prompt: "Vale, hemos creado la landing. ¿Qué hago con esto?"
+    why: "A step finished and the user asks for direction — orient closes with the map + next options as a question."
+
+  - prompt: "No sé por dónde seguir con mi proyecto."
+    why: "The user is lost — the core trigger: situate on the map and propose 1-3 next steps."
+
+  - prompt: "Explícame menos, que me agobio con tanto detalle."
+    why: "A spoken dial request — orient lowers accompaniment_level, confirms it, and applies the new depth."
+
+  - prompt: "¿En qué punto del proyecto vamos?"
+    why: "A 'where am I?' question — orient renders the map (what's built, what's missing, what phase)."
+
+  - prompt: "Acabo de terminar el spec. Listo."
+    why: "A turn ends after finishing work — orient must not end in seco; it proposes the next phase as a question."
+
+should_not_trigger:
+  - prompt: "Renombra esta variable a `userCount`."
+    route_to: "none"
+    why: "A trivial mechanical edit mid-flow — orient does not interrupt with a full brújula block over a one-line change."
+
+  - prompt: "Necesito una base de datos para guardar pedidos."
+    route_to: "suggest"
+    why: "This is an install gap — suggest owns it. orient must not duplicate the 'install it?' prompt."
+
+  - prompt: "Optimiza esta query de Postgres que va lenta."
+    route_to: "postgresdb"
+    why: "A concrete task owned by another skill; orient adds the closing block but does not drive the work."
+
+  - prompt: "Arregla el test que falla."
+    route_to: "debug"
+    why: "Root-cause work owned by debug; orient does not take over the task itself."
+
+capability:
+  - scenario: "The user just ran `npx rsc add postgresdb` and says 'ya está, ¿y ahora qué?'. The profile shows technical_level L0. Show how orient closes the turn."
+    must_include:
+      - "Situates the user on the map ('📍 dónde estás' / what is built vs missing)"
+      - "States what just happened in one plain-language line ('✅ instalaste la base de datos')"
+      - "Proposes a concrete next step ending in a question, never leaving the turn in seco"
+      - "At L0, keeps it to ✅ + ➡️ with a single yes/no option and zero jargon"
+      - "Does NOT re-prompt to install a skill (defers that to suggest)"
+
+  - scenario: "Mid-project, the user says 'explícame menos'. The profile shows accompaniment_level L2. Show how orient responds."
+    must_include:
+      - "Updates accompaniment_level in 02-DOCS/wiki/harness/user-profile.md to a lower level"
+      - "Confirms the change in one line"
+      - "Re-renders guidance at the reduced depth from this turn on"
+      - "Still closes with a next-step question (no seco)"
