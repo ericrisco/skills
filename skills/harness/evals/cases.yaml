@@ -36,11 +36,11 @@ should_not_trigger:
 
   - prompt: "Bootstrap a brand-new project from scratch — gauge me, draft my profile, and scaffold the first version."
     route_to: "init"
-    why: "First-contact bootstrap / gauging the user / drafting the profile is the `/rsc-core:init` front door; harness is the ONGOING control after bootstrap, not the kickoff."
+    why: "First-contact bootstrap / gauging the user / drafting the profile is the `init` front door; harness is the ONGOING control after bootstrap, not the kickoff."
 
   - prompt: "Walk me through choosing and configuring where to deploy my app — Hetzner vs Vercel vs Fly, with the actual deploy commands."
     route_to: "deployment"
-    why: "Harness defers concrete deploy mechanics to /rsc-ops:deployment; the user wants the deploy specifics and commands, which deployment owns."
+    why: "Harness defers concrete deploy mechanics to deployment; the user wants the deploy specifics and commands, which deployment owns."
 
   - prompt: "Design a normalized Postgres schema with the right indexes and write the migration SQL."
     route_to: "postgresdb"

@@ -105,7 +105,7 @@ plane keeps about the user and its own decisions. It is a normal wiki topic
 - `wiki/harness/user-profile.md` — the living portrait of the user: technical
   level, accompaniment level (L0–L3), goals, context, constraints. **Every
   skill reads this first** and adapts verbosity + how many questions it asks to
-  the level recorded here. Created/updated by `/rsc-core:init` and `harness`.
+  the level recorded here. Created/updated by `init` and `harness`.
   When absent, the agent defaults to non-technical framing and asks the two
   gauging questions (technical level, then accompaniment level) before
   proceeding. See the "Core behavior" section of the parent `SKILL.md`.

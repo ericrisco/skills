@@ -151,4 +151,4 @@ When the gate is passed and the spec is de-risked, hand off to **plan** — turn
 ## See Also
 
 - `../harness/SKILL.md` — the accompaniment dial and the `02-DOCS/wiki/` convention this skill reads and writes into.
-- The SDD chain (sibling phases, namespaced `/rsc-sdd:*`): `specify` (creates the spec clarify interrogates), `plan` (consumes the de-risked spec), `analyze` (cross-checks constitution ↔ spec ↔ plan ↔ tasks), `debug` (root-cause diagnosis, callable any time), `constitution` (the principles clarify reads as guardrails).
+- The SDD chain (sibling phases): `specify` (creates the spec clarify interrogates), `plan` (consumes the de-risked spec), `analyze` (cross-checks constitution ↔ spec ↔ plan ↔ tasks), `debug` (root-cause diagnosis, callable any time), `constitution` (the principles clarify reads as guardrails).
