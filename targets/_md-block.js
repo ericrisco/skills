@@ -1,13 +1,17 @@
-import { cpSync, readFileSync, writeFileSync, existsSync, mkdirSync } from 'node:fs';
+import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'node:fs';
 import { dirname } from 'node:path';
+import { linkOrCopy } from './index.js';
 
+// Shared adapter for every assistant whose "always-on" surface is a plain
+// markdown instructions/rules file (AGENTS.md, copilot-instructions.md, a
+// .windsurf/.roo/.continue rule, …). Skills are symlinked to the shared base;
+// the suggest block is injected between idempotent markers so re-installs and
+// multiple assistants sharing one file never duplicate it.
 const MARK_START = '<!-- rsc-suggest:start -->';
 const MARK_END = '<!-- rsc-suggest:end -->';
 
 export function writeSkill(id, fromDir, toPath) {
-  mkdirSync(dirname(toPath), { recursive: true });
-  cpSync(fromDir, toPath, { recursive: true });
-  return [toPath];
+  return linkOrCopy(fromDir, toPath);
 }
 
 export function wireHook(paths, sourceMd) {

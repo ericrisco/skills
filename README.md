@@ -11,9 +11,11 @@
 
 # `rsc` — 231 agent skills, one CLI, zero bloat
 
-**A self-recommending skill catalog for Claude Code, Cursor, Codex & Gemini.**
+**A self-recommending skill catalog for 17 coding assistants** — Claude Code,
+Codex, GitHub Copilot, Cursor, Gemini, Windsurf, Cline, Antigravity, Zed and more.
 Describe what you want in plain language. It reads your repo, installs *only* the
-skills that fit — one at a time — and keeps your assistant equipped as you work.
+skills that fit — one at a time — into every assistant you pick, and keeps them
+equipped as you work.
 
 From *"document my company"* to *"ship a FastAPI service"* to *"grow my YouTube
 channel"* — **231 skills across 21 domains**, every one researched against live
@@ -70,9 +72,17 @@ git clone https://github.com/ericrisco/skills.git ~/rsc-skills
 cd ~/rsc-skills && npm install && npm link
 ```
 
-The first run installs the **floor** — `orient` + `rsc-suggest` (always-on) +
-`harness` + `init` — and, in Claude Code, wires a `SessionStart` hook so your
-assistant proposes new skills on its own from then on.
+The first run asks **which assistants** you want — Claude Code, Codex, Copilot,
+Cursor, Gemini, Windsurf, Cline and 11 more (pick any combination) — and installs
+the **floor**:
+`orient` + `rsc-suggest` (always-on) + `harness` + `init`. In Claude Code it
+also wires a `SessionStart` hook so your assistant proposes new skills on its
+own from then on.
+
+Everything stays **in the project**, and the real skill files are written
+**once** to `.rsc/skills/<id>/`. Each assistant you pick gets a lightweight
+symlink back to that shared base — no copy is duplicated across IDEs. (If the
+filesystem can't symlink, it falls back to a real copy automatically.)
 
 ---
 
@@ -102,18 +112,33 @@ Languages:                       ↑↓ move · space toggle · a all · enter c
   ◯ rust
 ```
 
-It auto-detects your IDE and stack, installs only what you chose, then prints the
-exact next steps for **Claude Code / Cursor / Codex / Gemini** — and from there
-keeps proposing the skills a task needs.
+Then it asks **which assistants** to install for — tick as many as you like:
+
+```
+Which assistants do you want to install for?   space toggle · a all · enter confirm
+❯ ◉ Claude Code      (.claude/skills/)   ⟵ detected here
+  ◉ Codex CLI        (AGENTS.md)
+  ◯ GitHub Copilot   (.github/copilot-instructions.md)
+  ◯ Cursor           (.cursor/rules/)
+  ◉ Windsurf         (.windsurf/rules/)
+  ◯ Cline            (.clinerules/)
+  …17 in total — Gemini, Antigravity, Zed, Continue, Roo, Amp, opencode, Jules, Junie, Kiro, Aider
+```
+
+It detects your stack, asks which assistants to install for (the one it found in
+your folder is pre-marked), installs only what you chose, then prints the exact
+next steps for **Claude Code / Codex / Cursor / Gemini / Antigravity** — and from
+there keeps proposing the skills a task needs.
 
 ---
 
 ## The CLI
 
 ```bash
-rsc                                  # plain-language wizard (recommended)
+rsc                                  # plain-language wizard (recommended) — pick skills AND assistants
 rsc add fastapi postgresdb           # install specific skills, by name
 rsc add youtube-api remotion-video   # …grow a channel, edit with Remotion
+rsc add fastapi --target claude,codex   # install into several assistants at once
 rsc install --profile minimal        # the floor: orient + suggest + harness + init
 rsc install --profile core           # floor + the full SDD workflow
 rsc install --profile full           # everything (all 231)
@@ -238,15 +263,33 @@ Each with a `02-DOCS` feedback loop that learns from your own results. `remotion
 
 ## Multi-target
 
-`skills/<name>/` is the source; the installer writes the right format for your
-IDE (auto-detected, or `--target`):
+`skills/<name>/` is the catalog source. On install the real files land **once**
+in the project at `.rsc/skills/<id>/`; each assistant you pick gets a symlink
+(or a converted file) back to that shared base — pick several and nothing is
+duplicated. The wizard asks which ones; `--target a,b` does it non-interactively.
 
-| Target | Destination | Always-on detector |
+| Target | Skill destination (→ `.rsc/skills/<id>/`) | Always-on detector |
 | --- | --- | --- |
-| `claude` | `~/.claude/skills/rsc/<id>/` | SessionStart hook in `settings.json` |
-| `cursor` | `.cursor/rules/<id>.mdc` | always-apply rule |
-| `codex` | `.codex/rsc/<id>/` + `AGENTS.md` | block in `AGENTS.md` |
-| `gemini` | `.gemini/rsc/<id>/` + `GEMINI.md` | block in `GEMINI.md` |
+| `claude` | `.claude/skills/rsc/<id>/` → symlink | SessionStart hook in `.claude/settings.json` |
+| `codex` | `.codex/rsc/<id>/` → symlink | block in `AGENTS.md` |
+| `copilot` | `.github/rsc/<id>/` → symlink | block in `.github/copilot-instructions.md` |
+| `cursor` | `.cursor/rules/<id>.mdc` (converted) | always-apply rule |
+| `gemini` | `.gemini/rsc/<id>/` → symlink | block in `GEMINI.md` |
+| `windsurf` | `.windsurf/rsc/<id>/` → symlink | rule in `.windsurf/rules/rsc-suggest.md` |
+| `cline` | `.clinerules/rsc/<id>/` → symlink | rule in `.clinerules/rsc-suggest.md` |
+| `antigravity` | `.antigravity/rsc/<id>/` → symlink | block in `.antigravity/AGENTS.md` |
+| `zed` | `.zed/rsc/<id>/` → symlink | block in `AGENTS.md` |
+| `continue` | `.continue/rsc/<id>/` → symlink | rule in `.continue/rules/rsc-suggest.md` |
+| `roo` | `.roo/rsc/<id>/` → symlink | rule in `.roo/rules/rsc-suggest.md` |
+| `amp` | `.amp/rsc/<id>/` → symlink | block in `AGENTS.md` |
+| `opencode` | `.opencode/rsc/<id>/` → symlink | block in `AGENTS.md` |
+| `jules` | `.jules/rsc/<id>/` → symlink | block in `AGENTS.md` |
+| `junie` | `.junie/rsc/<id>/` → symlink | block in `.junie/guidelines.md` |
+| `kiro` | `.kiro/rsc/<id>/` → symlink | doc in `.kiro/steering/rsc-suggest.md` |
+| `aider` | `.aider/rsc/<id>/` → symlink | block in `CONVENTIONS.md` |
+
+> `codex`, `zed`, `amp`, `opencode` and `jules` all share the one root
+> `AGENTS.md`; the block is idempotent, so picking several writes it once.
 
 ---
 
