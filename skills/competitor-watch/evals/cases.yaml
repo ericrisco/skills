@@ -1,0 +1,54 @@
+skill: competitor-watch
+
+# Prompts that MUST load `competitor-watch`. The skill owns the STANDING WATCH over a
+# named set of rivals: a maintained tracker (pricing/features/positioning), a classified
+# change log over time, and the monitoring config (URL + selector + cadence). It does NOT
+# size the market or build the list (market-research), set our price (pricing), build the
+# sales battlecard (sales-pipeline), or do a one-off extraction (data-scraper).
+should_trigger:
+  - prompt: "Set up monitoring on our top 3 competitors' pricing and feature pages."
+    why: "Core watch: named set, watched surfaces, ongoing cadence — the skill's whole job."
+
+  - prompt: "Did Competitor X change their pricing or ship anything new this month?"
+    why: "Change-loop ask — capture, diff, classify the move, report what changed over a period."
+
+  - prompt: "Build a feature comparison matrix versus our rivals and keep it updated."
+    why: "Non-obvious: reads like a one-off table, but 'keep it updated' makes it the maintained matrix + change log, not a snapshot."
+
+  - prompt: "monitoritza els competidors i avisa'm quan canviïn de preu."
+    why: "Catalan: monitor competitors and alert me on price changes — the watch loop with notification, phrased without the skill name."
+
+  - prompt: "Track how their positioning has shifted over the last 6 months."
+    why: "Non-obvious time-series framing — no 'monitor/competitor' keyword in the obvious slot, but it's the dated change-over-time the skill produces (Wayback reconstruction + change log)."
+
+should_not_trigger:
+  - prompt: "How big is this market and who are the main players we should worry about?"
+    route_to: market-research
+    why: "Sizing the market and producing the landscape/list is upstream; competitor-watch watches an already-named set, it doesn't build the list."
+
+  - prompt: "What price should we charge for our new mid-tier plan?"
+    route_to: pricing
+    why: "Setting OUR price is a decision, not an observation of a rival; pricing owns it."
+
+  - prompt: "Write the sales battlecard for beating Competitor X on calls."
+    route_to: sales-pipeline
+    why: "The sales-enablement battlecard / objection handling is a sales artifact; competitor-watch only supplies the tracker behind it."
+
+  - prompt: "Scrape this one page and give me the table once."
+    route_to: data-scraper
+    why: "A one-off extraction with no cadence, tracker, or change log — that's the generic scraping primitive, not the standing watch."
+
+  - prompt: "Schedule the competitor monitor to run every morning and post to Slack via webhook."
+    route_to: automation-flows
+    why: "Cron/webhook scheduling and reliable delivery is automation wiring; competitor-watch defines the watches, automation-flows makes them run."
+
+capability:
+  - scenario: "We have a validated list of 3 competitors. Set up a competitor watch: the tracker of record, the watch config, and a repeatable change-loop process."
+    must_include:
+      - "Applies the ethics gate first: public/observable sources only, transparent identity, the front-page test; never pose as a customer or bypass access controls/paywalls."
+      - "Persists the tracker under 02-DOCS/ (wiki/competitors + raw/competitors) as a maintained artifact, not a chat answer — or STOPs and routes to market-research if the list were not validated."
+      - "Requires a source_url + date on every price/feature cell and refuses to invent a rival's number (blank cell when unconfirmed)."
+      - "Maps each watched surface to URL + selector + tiered cadence: pricing 5-15 min, features/changelog daily, positioning/careers daily-weekly."
+      - "Defines the change-log schema with axis classification (pricing|feature|positioning|messaging|team|other) and materiality (high|medium|low), append-only over time."
+      - "Recommends changedetection.io (CSS/JSONPath selectors, ~1-min capable, notify) as the runnable default and flags the Wayback Machine as archive-only, not a live monitor."
+      - "Routes the recurring run to automation-flows and the battlecard to sales-pipeline; does not build either inside this skill."

@@ -1,0 +1,42 @@
+skill: newsletter
+
+should_trigger:
+  - prompt: "Write the subject line and preview text for this week's newsletter issue."
+    why: Core subject + preview pair job, fit to inbox truncation.
+  - prompt: "My newsletter has a 50% open rate but almost nobody clicks — what's wrong?"
+    why: Non-obvious — high opens / no clicks is the post-MPP metric truth plus issue/CTA structure, the signature rescue case.
+  - prompt: "Set up a welcome sequence for new subscribers and work in a referral ask."
+    why: Welcome/onboarding sequence plus the growth-loop referral ask placed inside it.
+  - prompt: "How often should I send my newsletter and how do I segment subscribers by engagement?"
+    why: Cadence + engagement-segmentation decision table and the sunset policy.
+  - prompt: "What metrics should I trust now that Apple makes my open rate fake?"
+    why: Non-obvious — the MPP metric-truth scorecard (clicks / non-Apple CTOR as north star).
+  - prompt: "Escriu la newsletter d'aquesta setmana perquè la gent l'obri i hi faci clic."
+    why: Catalan — recurring-issue subject/body job (open then click).
+
+should_not_trigger:
+  - prompt: "Write the launch announcement email for our new product drop."
+    route_to: marketing
+    why: One-off campaign send, not the recurring opted-in publication.
+  - prompt: "Our newsletter lands in spam — fix our SPF, DKIM and DMARC records."
+    route_to: email-deliverability
+    why: DNS / authentication / reputation plumbing, not the issue or cadence.
+  - prompt: "Write the subscribe landing page that captures newsletter signups."
+    route_to: landing-copy
+    why: The opt-in page copy, not the email or the list system.
+  - prompt: "Win back customers who haven't purchased in 90 days."
+    route_to: retention
+    why: Lifecycle/churn reactivation of paying customers, not newsletter readers.
+
+capability:
+  - scenario: >
+      A B2B SaaS founder is launching a weekly newsletter and asks for the first
+      issue's subject + preview pair, a 3-email welcome sequence, and the success
+      metric they should track.
+    must_include:
+      - "Subject line ≤ ~50 chars with the payload in the first ~33 chars, paired with a preview that EXTENDS rather than repeats the subject."
+      - "The issue and each welcome email have exactly one primary CTA."
+      - "A referral ask is placed inside the welcome sequence (not bolted on later)."
+      - "The success metric is click-rate / CTOR-based (NOT raw open rate) with an explicit Apple MPP caveat."
+      - "A visible unsubscribe line / one-click unsubscribe is noted as required on every send."
+      - "DNS/auth (SPF/DKIM/DMARC) is deferred to email-deliverability rather than attempted here."

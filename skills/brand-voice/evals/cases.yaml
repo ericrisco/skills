@@ -1,0 +1,57 @@
+skill: brand-voice
+
+# Prompts that MUST load `brand-voice`. The skill owns the reusable DEFINITION of
+# how a brand sounds: 3-5 traits -> linguistic rules -> four-dimension ratios ->
+# use/avoid word bank -> tone-by-context matrix -> AI voice-DNA block. It never
+# writes the finished landing copy, email, article, or logo.
+should_trigger:
+  - prompt: "We don't have a brand voice guide — help me define our tone of voice."
+    why: "Defining a voice/tone system from scratch is the skill's core artifact job."
+
+  - prompt: "Our blog, our emails, and our support replies all sound like different people wrote them. Fix it."
+    why: "Non-obvious drift symptom with no keyword — the cure is a single shared voice definition, which is exactly what this skill produces."
+
+  - prompt: "Turn these adjectives — 'bold, warm, expert' — into rules a writer can actually follow."
+    why: "Translating fuzzy adjectives into applicable linguistic rules (Step 2) is a named use; the prompt never says 'voice guide'."
+
+  - prompt: "Necesito definir el tono de voz de nuestra marca y una lista de palabras a evitar."
+    why: "Spanish for 'define our brand tone of voice and a list of words to avoid' — traits/tone plus the ban list, both owned here."
+
+  - prompt: "Give me a voice block I can paste into ChatGPT so it always writes like our brand."
+    why: "The AI voice-DNA block (Step 6) — quantified rules + lexicon so an LLM stays on-brand — is the explicit deliverable, not the generated copy itself."
+
+  - prompt: "Audit our last ten emails for off-brand drift against our voice guide and tell me what's wrong."
+    why: "Auditing existing copy for drift against a defined voice is a listed use; it scores against the guide, it does not rewrite the emails."
+
+# NEAR-MISS prompts that must NOT load `brand-voice`. Each routes to the sibling
+# that actually owns it. The trap: anything that produces a FINISHED piece against
+# the voice (copy/email/article), the brand's LOOK (identity), or a live reply.
+should_not_trigger:
+  - prompt: "Write the hero and CTA for our new pricing page."
+    route_to: "landing-copy"
+    why: "Producing finished page copy (hero, value prop, CTA) is landing-copy's job; brand-voice only defines how it should sound."
+
+  - prompt: "Design our logo and pick our brand colors and fonts."
+    route_to: "brand-identity"
+    why: "Logo, color, and typography are the brand's visual identity, owned by brand-identity — how it looks, not how it sounds."
+
+  - prompt: "Write our product launch announcement email."
+    route_to: "marketing"
+    why: "A finished launch email is a marketing deliverable; it reads the voice guide but is not authored here."
+
+  - prompt: "Reply to this angry customer ticket in our usual tone."
+    route_to: "customer-support"
+    why: "Applying the voice to a live ticket is customer-support; it consumes the guide rather than authoring it."
+
+# Rubric-scored generation, not an automated pass/fail.
+capability:
+  - scenario: "Define a complete brand voice guide for a B2B fintech that wants to feel trustworthy but human."
+    must_include:
+      - "3-5 traits, each with a this-means / this-does-not-mean line (reject brand-neutral filler like 'innovative')"
+      - ">=2 linguistic rules per trait, each cluster with a Bad->Good rewrite"
+      - "the four NN/G dimensions (Formal-Casual, Serious-Funny, Respectful-Irreverent, Matter-of-fact-Enthusiastic) positioned as ratios, with a one-line reason each"
+      - "15-20 power words plus an explicit, non-empty ban list including AI tells"
+      - "a tone-by-context matrix covering >=4 contexts, with voice held constant and tone shifting per row"
+      - "a paste-ready AI voice-DNA block (traits + rules + ratios + lexicon)"
+      - "a note to persist the guide under 02-DOCS/wiki/brand/ so marketing/landing-copy/content-engine can ground against it"
+      - "does NOT write any finished landing copy, email, or article"

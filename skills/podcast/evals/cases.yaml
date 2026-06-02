@@ -1,0 +1,61 @@
+skill: podcast
+
+# Prompts that MUST load `podcast`. The skill owns ONE episode end to end: the
+# run-of-show, recording settings, the loudness master, the Podcasting 2.0
+# sidecars, the RSS <item>, and the timestamped show-notes page. It does NOT
+# clip the episode for social (social-publisher), cut the vertical short
+# (video-shorts), define the show voice (brand-voice), pick which episodes
+# exist (content-engine), or write the announcement email (newsletter).
+should_trigger:
+  - prompt: "Plan the run-of-show for a 40-minute interview episode with a founder guest."
+    why: "Core Phase 1 — format choice, timed segments, guest brief and question design are exactly this skill's plan deliverable."
+
+  - prompt: "What LUFS and true-peak should I master this episode to for Apple and Spotify?"
+    why: "Core Phase 3 — the central loudness number (-16 LUFS stereo / -1 dBTP, Spotify normalizes to -14) lives here."
+
+  - prompt: "Write a valid RSS item with the transcript and chapters tags for episode 14."
+    why: "Core Phase 4 — a compliant <item> with Podcasting 2.0 enclosure/guid/transcript/chapters is the publish deliverable."
+
+  - prompt: "Write timestamped, SEO show notes for this episode."
+    why: "The show-notes phase — blog-shaped, timestamped, ~1,500-word page is owned here."
+
+  - prompt: "Generate a chapters.json and wire the double-ender locals into a -16 master."
+    why: "Non-obvious — jargon only, never says the word 'podcast'; chapters.json + double-ender + -16 master are unambiguously this skill."
+
+  - prompt: "Masteritzar l'àudio del podcast i escriure les show notes amb timestamps."
+    why: "Catalan for 'master the podcast audio and write the show notes with timestamps' — covers Phase 3 + show notes in another language."
+
+should_not_trigger:
+  - prompt: "Cut three vertical clips from this episode for Reels and TikTok."
+    route_to: video-shorts
+    why: "Editing the vertical/short video cut is video-shorts; podcast delivers the full-length audio master and its sidecars, not the clip."
+
+  - prompt: "Schedule this episode's promo posts across X, LinkedIn, and Instagram."
+    route_to: social-publisher
+    why: "Distribution and repurposing scheduling is social-publisher; podcast stops at the RSS item and the show-notes page."
+
+  - prompt: "Define the tone and personality our show should sound like."
+    route_to: brand-voice
+    why: "The verbal identity/persona spec is brand-voice; podcast shapes one episode but does not invent the voice."
+
+  - prompt: "Write the email announcing the new episode to our subscriber list."
+    route_to: newsletter
+    why: "The list email is newsletter; podcast produces the episode page, not the broadcast email."
+
+  - prompt: "Which episode topics should we line up for next quarter?"
+    route_to: content-engine
+    why: "Deciding WHICH episodes exist and the catalog cadence is content-engine; podcast produces ONE chosen episode."
+
+capability:
+  - scenario: >
+      Take a recorded 35-minute remote founder interview to publish-ready: give the
+      mastering target, produce a chapters.json and wire the transcript, write a valid
+      RSS <item>, and draft the show-notes page.
+    must_include:
+      - "States master ONCE to -16 LUFS integrated, stereo, -1 dBTP true peak, and notes Spotify normalizes to -14 (no per-platform master)."
+      - "Specifies 48 kHz WAV as the archive master and an MP3 for the enclosure (and that the interview should have been a double-ender, locals not the call)."
+      - "Produces a chapters.json with version + chapters[], numeric startTimes that are monotonically non-decreasing, wired via <podcast:chapters>."
+      - "Wires the transcript via <podcast:transcript> WITH a required type attribute (e.g. text/vtt)."
+      - "Writes an RSS <item> with <enclosure url length type>, a stable <guid>, an <itunes:duration>, and square 1400-3000 px artwork."
+      - "Drafts blog-shaped show notes: H1 target keyword, 2-3 sentence summary, timestamped chapter list, key takeaways, guest bio + links, one CTA, ~1,500 words."
+      - "Notes a feed needs one published episode before submission and that Apple review can take up to 72 hours."

@@ -1,0 +1,44 @@
+skill: webinar
+
+should_trigger:
+  - prompt: "Plan a webinar to launch our new course"
+    why: "Core plan-from-offer — webinar owns the full conversion-event lifecycle."
+  - prompt: "People register for our webinars but barely half show up live"
+    why: "Non-obvious symptom that maps to the show-up funnel stage; the reminder sequence is the lever."
+  - prompt: "We got 200 attendees but zero sales — what went wrong?"
+    why: "Diagnose the converted stage — run-of-show offer/transition plus segmented follow-up."
+  - prompt: "Write the reminder email sequence for our Thursday webinar"
+    why: "Pre-event reminder cadence (confirmation → 24h → 1h → 5-min) is squarely webinar's show-up block."
+  - prompt: "How do I transition into the pitch without it feeling salesy?"
+    why: "Non-obvious phrasing — the permission transition inside the run-of-show."
+  - prompt: "Montar un webinar para vender nuestro programa"
+    why: "Spanish trigger for the full offer-first funnel."
+
+should_not_trigger:
+  - prompt: "Design the slides for my webinar deck — make them look good"
+    route_to: presentations
+    why: "Slide visuals/craft, not the funnel or run-of-show."
+  - prompt: "Write the registration landing page copy"
+    route_to: landing-copy
+    why: "The page's final words; webinar only writes the brief and hands it off."
+  - prompt: "Set up our monthly newsletter"
+    route_to: newsletter
+    why: "Recurring email publication, not a one-time conversion event."
+  - prompt: "Build me a target list of accounts to invite"
+    route_to: lead-gen
+    why: "Sourcing and scoring the list, not running the event."
+  - prompt: "Move the deals from last week's webinar through our sales stages"
+    route_to: sales-pipeline
+    why: "Working deals through stages is downstream of webinar's 0–72h window."
+
+capability:
+  - scenario: "We're running a live webinar in 3 weeks to sell a $1,500 cohort; we have a list of 4,000 and a finished deck. Build the plan."
+    must_include:
+      - "Confirms or sets the single offer + the single next step before any tactics"
+      - "Registrant-anchored funnel math using the ~42% show-up assumption"
+      - "4-week promotion schedule with an email-led, multi-channel mix"
+      - "Reminder sequence including the day-of and 5-min touches plus the SMS lever"
+      - "Run-of-show with the permission transition and at least one poll"
+      - "Segmented follow-up across attendee / no-show / replay within the 0–72h window"
+      - "Platform note appropriate to the ~1,700 expected live attendees (e.g. Zoom/Riverside scale, not Demio's 50 cap)"
+      - "Hands the slide work to presentations and the registration page to landing-copy"

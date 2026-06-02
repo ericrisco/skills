@@ -1,0 +1,40 @@
+skill: community
+
+should_trigger:
+  - prompt: "Set up our Discord server for the SaaS user community — channels, roles, and rules."
+    why: Core stand-up job — structure + onboarding + moderation for a persistent two-way space.
+  - prompt: "Our Telegram group is a graveyard, nobody posts anymore. How do we revive it?"
+    why: Non-obvious — no setup words, but it is a dead two-way space needing rituals + re-activation, the heart of this skill.
+  - prompt: "We keep getting spam raids and scam-DM waves in our community — lock it down."
+    why: Moderation / incident response (native + bot + human stack, raid runbook) is owned here.
+  - prompt: "Should we run our paid membership on Circle or just use Discord?"
+    why: Platform decision including monetization — the decision table routes this.
+  - prompt: "La comunitat de Discord està morta, ningú escriu — com la reactivem?"
+    why: Catalan phrasing for a graveyard re-activation; rituals + growth loops.
+  - prompt: "How do I get the lurkers in our community to actually post something?"
+    why: Lurker-to-contributor growth (90-9-1 is a range, move members up a tier) is a core job.
+
+should_not_trigger:
+  - prompt: "Our SaaS users keep cancelling in month 2 — build a win-back and churn-reduction flow."
+    route_to: retention
+    why: Paying-customer churn of a product, not activity in a shared member space.
+  - prompt: "Write this week's broadcast email to our subscriber list."
+    route_to: newsletter
+    why: One-to-many opted-in email, not a two-way persistent space.
+  - prompt: "Schedule and cross-post our launch announcement across X, LinkedIn, and Instagram."
+    route_to: social-publisher
+    why: Public-feed posting, not a community space.
+  - prompt: "Run our product-launch webinar end-to-end: registration page, speakers, and replay."
+    route_to: webinar
+    why: A single timed live event, not a persistent two-way space.
+
+capability:
+  - scenario: "Stand up a Discord community for an indie game-dev audience whose business goal is converting free players into paying supporters."
+    must_include:
+      - States or extracts a one-line purpose AND one north-star business metric before designing anything (Step 0 gate).
+      - Justifies Discord over Telegram and Circle for this audience using the decision rules.
+      - Minimal channel set (no sprawl) + role-on-join + an onboarding "first meaningful action" path with the rules/membership gate.
+      - 3-layer moderation — native AutoMod + a verification level, a bot, and human mods — sized to expected scale.
+      - At least one weekly ritual with an explicit cadence.
+      - Names the one business metric plus at least one health metric (e.g. TTFR or DAU/MAU ≥20% floor).
+      - Emits a community-plan.md + moderation-config artifact and references scripts/verify.sh.

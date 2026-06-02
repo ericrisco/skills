@@ -1,0 +1,63 @@
+skill: case-studies
+
+# Prompts that MUST load `case-studies`. The skill owns one customer's
+# consent-cleared, metrics-anchored success story AND the portable attributed
+# testimonial quote that travels with it. It does NOT pitch the company vision to
+# a room (pitch-deck) or write a long thought-leadership piece with no single
+# named customer (article-writing).
+should_trigger:
+  - prompt: "Turn this customer win into a case study — they cut churn 40% in one quarter."
+    why: "Core job: a single named customer's measured outcome, written up as proof for the next buyer."
+
+  - prompt: "We have a great result but the case study reads like a brochure — make it convert."
+    why: "Non-obvious. The buyer-serving, metrics-first rewrite is this skill's signature; the user names the symptom (brochure, won't convert), not the craft."
+
+  - prompt: "Draft a testimonial quote from this customer-interview transcript."
+    why: "The attributed testimonial quote is the skill's portable sub-artifact, lifted straight from a real customer source."
+
+  - prompt: "Escríbeme un caso de éxito de este cliente con métricas y una cita."
+    why: "Spanish for 'write me a case study of this customer with metrics and a quote' — a direct request for the core artifact plus its quote."
+
+  - prompt: "Build a reusable customer-story template plus the intake/consent form we can reuse."
+    why: "The ordered skeleton and the consent/substantiation intake are both things this skill defines and owns."
+
+  - prompt: "We landed a 97% faster invoicing result for a client and want proof a prospect will actually believe — what do we publish?"
+    why: "Non-obvious. No keyword 'case study'; the ask is buyer-believable proof from one customer win, which is exactly this skill's output and consent gate."
+
+should_not_trigger:
+  - prompt: "Build the investor deck that tells our company story and vision."
+    route_to: pitch-deck
+    why: "Selling the vision/story to a room or investors is pitch-deck, not documenting one customer's measured outcome."
+
+  - prompt: "Write a long SEO thought-leadership article on churn reduction with no single customer."
+    route_to: article-writing
+    why: "General long-form/SEO content with no single named customer is article-writing; case-studies is one customer's story."
+
+  - prompt: "This customer is unhappy — plan the QBR and a churn-save play."
+    route_to: retention
+    why: "Managing the live relationship, QBRs, and churn-saves is retention; case-studies tells the story of one who already won."
+
+  - prompt: "We got a 2-star Google review — draft a public reply and a review-solicitation campaign."
+    route_to: review-management
+    why: "Soliciting and replying to public reviews/ratings is review-management, not authoring a consent-cleared customer story."
+
+  - prompt: "Define our reusable brand tone of voice and writing style guide."
+    route_to: brand-voice
+    why: "The reusable cross-channel voice rules are brand-voice; case-studies writes one story in that voice, it does not define it."
+
+capability:
+  - scenario: >
+      Write a full case study from this brief: B2B SaaS client, support tickets down
+      from 1,200/mo to 300/mo over 90 days, CSAT 72 → 94, one named quote available
+      with the customer's written consent. Industry HR tech, products Helpdesk AI and
+      Knowledge Base.
+    must_include:
+      - "A results headline that leads with a number/KPI, not the customer's company name."
+      - "A snapshot box above the fold: industry, region, products used, and the headline KPIs."
+      - "The Challenge → Solution → Result spine, in that order."
+      - "At least one metric line pairing baseline → result → timeframe (e.g. 1,200/mo → 300/mo over 90 days)."
+      - "A named + titled + company attributed quote making one specific claim."
+      - "A decision-stage CTA matched to the reader's funnel stage."
+      - "A consent/approval marker present (consent: signed / approved date in front-matter)."
+      - "Total length 600–1,200 words."
+      - "No unsubstantiated superlatives (no 'revolutionary', 'seamless', 'best-in-class', 'game-changer', 'world-class')."

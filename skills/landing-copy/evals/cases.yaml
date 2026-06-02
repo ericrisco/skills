@@ -1,0 +1,63 @@
+skill: landing-copy
+
+# Prompts that MUST load `landing-copy`. The skill owns the WORDS that convert on
+# one page: hook (hero H1 + subhead), offer (feature->benefit), proof
+# (result-bearing testimonials near the ask), and one primary CTA. It does NOT
+# own the ad (ads), the layout (design), the build (nextjs), or the experiment
+# (ab-testing).
+should_trigger:
+  - prompt: "Write the hero headline and subhead for our project-management SaaS landing page."
+    why: "Hero H1 + benefit subhead is the core hook block — the highest-leverage copy the skill owns."
+
+  - prompt: "We get plenty of traffic but almost nobody clicks the signup button — fix the page copy."
+    why: "Non-obvious: a symptom, not a keyword. 'Traffic but no conversion' with the fix scoped to copy (not layout) is exactly the page-rescue case; routes to copy diagnosis, not design or ab-testing."
+
+  - prompt: "Turn these five product features into benefit-led copy with one CTA."
+    why: "Feature->benefit transform (FAB) plus a single primary CTA are two named jobs of the offer and CTA blocks."
+
+  - prompt: "Escríbeme el copy de la landing para nuestro curso, con titular, oferta, prueba social y CTA."
+    why: "Spanish phrasing naming all four blocks (titular/oferta/prueba social/CTA) — the full single-page copy job."
+
+  - prompt: "Make the landing page headline match the Google ad that sends people there."
+    why: "Message match — aligning the page H1 to the ad's promise is owned here; note the skill matches the page copy, it does NOT write the ad (that is ads)."
+
+  - prompt: "Our testimonials are a wall of generic 'great product' quotes — rewrite them so they actually convert next to the signup."
+    why: "Non-obvious: proof block. Specific-beats-superlative result-bearing testimonials placed adjacent to the CTA is the proof job."
+
+# NEAR-MISS prompts that must NOT load `landing-copy`. Each routes to the real
+# sibling that owns it. The recurring trap: anything that touches a 'landing
+# page' but is actually the ad, the pixels, the build, or the experiment.
+should_not_trigger:
+  - prompt: "Write the Google Ads and Meta ad copy that drives traffic to our landing page."
+    route_to: ads
+    why: "Writing the paid ad that creates the click is ads; landing-copy only matches the page to whatever ad already exists."
+
+  - prompt: "Design the layout, type scale, and visual hierarchy of the hero section."
+    route_to: design
+    why: "Layout/hierarchy/spacing is the pixels — design owns the visual container; landing-copy only owns the words inside it."
+
+  - prompt: "Build this landing page as a Next.js component with the signup form wired up."
+    route_to: nextjs
+    why: "Implementing the page in code — components, form wiring, routing — is the build, owned by nextjs (or react)."
+
+  - prompt: "Set up an A/B test to find which of our two headline variants converts best."
+    route_to: ab-testing
+    why: "Designing and running the experiment that picks the winning variant is ab-testing; landing-copy writes the variants, it does not run the test."
+
+  - prompt: "Define our brand's tone of voice, lexicon, and do/don't word list."
+    route_to: brand-voice
+    why: "The reusable voice rules and word lists are brand-voice; landing-copy consumes that voice on one page, it does not author it."
+
+# CAPABILITY: prove the skill changes the output, not just routing.
+capability:
+  - scenario: "Write the full hero + offer + proof + CTA copy for a B2B SaaS that automates expense reports. Traffic comes from a Google ad reading 'Cut expense-report time 80%'."
+    must_include:
+      - "H1 is under ~8 words / ~44 chars and is clear, not clever (names the outcome)."
+      - "Subhead carries the benefit and names who it is for."
+      - "Headline echoes the ad's '80%' promise (message match), not a disconnected claim."
+      - "Offer lines are feature->benefit (FAB), benefit on top with the mechanism beneath — not a bare feature list."
+      - "3-5 specific, named testimonials each with a concrete numeric result, placed adjacent to the CTA."
+      - "Exactly one primary CTA with a movement verb (e.g. 'Start my free trial'), repeated unchanged — no competing asks, no 'Submit'."
+      - "No banned superlatives ('world-class', 'cutting-edge', 'game-changer', 'revolutionize', 'seamlessly')."
+      - "Conversion expectation, if mentioned, is given as a per-vertical band (SaaS ~3.8%), never a flat promised number."
+      - "Any proof that is not real is marked [[NEEDS PROOF]], not fabricated."

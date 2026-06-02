@@ -1,0 +1,56 @@
+skill: video-shorts
+
+# Prompts that MUST load `video-shorts`. The skill owns the CRAFT of one short:
+# the timecoded script (hook → body → payoff → loop) written for sound-off, and
+# the edit decision sheet (cut cadence, B-roll, captions, safe zones, loop seam).
+# It does NOT schedule (social-publisher), commission/calendar (content-engine),
+# define brand voice (brand-voice), buy reach (ads), or make audio episodes (podcast).
+should_trigger:
+  - prompt: "Write me a 30-second TikTok script about cold brew coffee."
+    why: "Core ask — a single vertical short script is exactly the deliverable."
+
+  - prompt: "My Reels lose everyone in the first 3 seconds, fix the hook."
+    why: "Non-obvious — the user names a retention symptom, not the skill; fixing the hook is the skill's signature move."
+
+  - prompt: "Turn this 40-minute podcast into 3 vertical Shorts."
+    why: "Long-video → short extraction; each short needs its own hook and loop, which this skill owns."
+
+  - prompt: "Give me 5 hook variants to A/B test for this clip."
+    why: "Hook-only craft ask — the skill's hook library produces patterned variants, not five rewrites of one."
+
+  - prompt: "Convierte este vídeo largo en un Short de 30 segundos con captions."
+    why: "Spanish for 'turn this long video into a 30s Short with captions' — long→short extraction plus the sound-off caption layer."
+
+  - prompt: "Plan the cuts and on-screen text for this faceless voiceover Reel."
+    why: "Edit-direction ask — cut cadence + burned-in captions are the EDS half of the skill."
+
+should_not_trigger:
+  - prompt: "When should I post my Reels and how often across platforms?"
+    route_to: social-publisher
+    why: "Cadence, best-time slots and cross-platform scheduling are distribution mechanics, not the craft of the clip."
+
+  - prompt: "Build our monthly content calendar and brief the team."
+    route_to: content-engine
+    why: "Commissioning shorts and running the editorial pipeline is the factory; this skill is one station."
+
+  - prompt: "Define our brand's tone of voice we reuse everywhere."
+    route_to: brand-voice
+    why: "The durable voice system is consumed by this skill, not authored by it."
+
+  - prompt: "Set up a Meta Advantage+ campaign with 5 paid creative variants and budgets."
+    route_to: ads
+    why: "Paid acquisition, ad-account structure and ROAS math live in ads; organic short craft lives here."
+
+  - prompt: "Edit and publish a full talking podcast episode."
+    route_to: podcast
+    why: "An audio-first episode is a different format; this skill makes vertical clips, not podcasts."
+
+capability:
+  - scenario: "Produce a 30s vertical Short script + edit decision sheet from a given topic (e.g. 'why morning posting is a myth')."
+    must_include:
+      - "A hook beat covering 0:00–0:03 with 4–7-word on-screen text that promises/opens a loop rather than describing"
+      - "A timecoded beat sheet whose rows sum to the declared runtime, inside the 15–30s sweet spot"
+      - "On-screen text present for EVERY beat (the sound-off rule), distinct from the VO line"
+      - "An EDS cut-cadence note: ~1 cut / 2–4s, micro-cuts in the first 2–3 shots, dead air trimmed under ~250ms"
+      - "A loop seam (last frame match-cuts to the first) or a single one-action CTA — never a traditional outro"
+      - "An export note: 9:16 @ 1080×1920, MP4 H.264+AAC, captions burned-in inside safe zones"
