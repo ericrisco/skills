@@ -10,6 +10,7 @@ export const meta = {
 
 const skillId = (typeof args === 'string' ? args : (args && args.skillId)) || ''
 if (!skillId) throw new Error('skill-harden: pass the skill id as args, e.g. "debug"')
+const noCommit = typeof args === 'object' && args && args.noCommit === true
 
 const MAX_ROUNDS = 2
 
@@ -135,7 +136,7 @@ while (true) {
 }
 
 const passed = history.length > 0 && history[history.length - 1].pass === true
-if (passed) {
+if (passed && !noCommit) {
   phase('Commit')
   const commit = await agent(
     `The skill "${skillId}" now passes its behavioral gate. Commit ONLY its files: ` +
