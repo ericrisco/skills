@@ -1,0 +1,41 @@
+skill: ruby
+
+should_trigger:
+  - prompt: "Refactor this Ruby loop that builds a hash of counts into something idiomatic"
+    why: "Enumerable refactor (each_with_object/tally) is the core day-to-day use of the skill."
+  - prompt: "I want to package this Ruby code as a gem — what goes in the gemspec and do I commit Gemfile.lock?"
+    why: "Gems + Bundler packaging, including the lock-file commit rule."
+  - prompt: "Should I use method_missing or define_method for this dynamic attribute API?"
+    why: "Metaprogramming judgment call — the skill's signature value-add (prefer define_method, pair method_missing with respond_to_missing?)."
+  - prompt: "Set up tests for my plain Ruby library — Minitest or RSpec, and how do I run them?"
+    why: "Testing-framework decision and rake/rspec wiring for non-Rails Ruby."
+  - prompt: "After upgrading to Ruby 3.4 I suddenly get a FrozenError when mutating a string literal"
+    why: "Non-obvious: the symptom routes to frozen_string_literal hygiene, not a generic bug hunt."
+  - prompt: "Vull escriure una gema en Ruby amb blocs i mòduls, sense Rails"
+    why: "Catalan phrasing for plain-Ruby gem authoring with blocks and modules, explicitly non-Rails."
+  - prompt: "Is a mixin or inheritance better here, and when should I prepend vs include?"
+    why: "Module composition design, a core section of the skill."
+
+should_not_trigger:
+  - prompt: "Add a has_many association and a migration to my User model"
+    route_to: rails
+    why: "ActiveRecord associations and migrations load the Rails framework — that is rails, not plain Ruby."
+  - prompt: "Write this list-comprehension data pipeline in Python with pandas"
+    route_to: python
+    why: "Different language; the Ruby skill does not own Python idioms."
+  - prompt: "Build a GenServer that supervises a pool of workers"
+    route_to: elixir
+    why: "BEAM/OTP concurrency belongs to elixir."
+  - prompt: "Set up GitHub Actions CI to run my Ruby tests on every push"
+    route_to: github-actions
+    why: "Authoring the CI workflow is the pipeline skill; this skill writes the tests, not the YAML workflow."
+
+capability:
+  - scenario: "Write a small non-Rails Ruby gem `tally` that exposes a module method counting word frequencies in a string, with a test."
+    must_include:
+      - "A `# frozen_string_literal: true` magic comment at the top of source files."
+      - "An Enumerable idiom (each_with_object, tally, or group_by) rather than a manual index loop."
+      - "A module (e.g. `module Tally`) holding the public method, not just a top-level def."
+      - "Bundler/gem packaging signal: a .gemspec or Gemfile, with a sane version constraint (~>)."
+      - "A real test in Minitest or RSpec that asserts the counts."
+      - "No gratuitous metaprogramming (no method_missing/eval where a plain method suffices)."

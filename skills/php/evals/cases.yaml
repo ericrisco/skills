@@ -1,0 +1,45 @@
+skill: php
+
+should_trigger:
+  - prompt: "Write a PHP value object for Money using a backed enum for the currency."
+    why: "Core authoring — value object + backed enum + typed signatures is exactly this skill's center."
+  - prompt: "Set up composer.json with PSR-4 autoload for my new package."
+    why: "Composer + PSR-4 project setup is canonical here and nowhere else in the catalog."
+  - prompt: "Convert these getter/setter methods to PHP 8.4 property hooks."
+    why: "Version-specific 8.4 idiom (property hooks) owned by this skill."
+  - prompt: "configura PHPStan a nivel max para mi proyecto PHP"
+    why: "Spanish phrasing for wiring the static-analysis gate — tooling lives here."
+  - prompt: "Is this PHP idiomatic modern code or does it look like 2015?"
+    why: "Non-obvious review framing — no explicit task verb, but it is a modern-PHP idiom judgment."
+  - prompt: "How do I use the pipe operator and clone-with safely on PHP 8.5?"
+    why: "8.5 language features with a runtime-gating concern this skill owns."
+
+should_not_trigger:
+  - prompt: "Create an Eloquent model with a migration and a factory."
+    route_to: laravel
+    why: "Eloquent/migrations/factories are the Laravel framework surface, not the language."
+  - prompt: "Add a custom WordPress plugin hook to filter post titles."
+    route_to: wordpress
+    why: "WP hooks and the_title filter are WordPress APIs, not framework-agnostic PHP."
+  - prompt: "Do a threat model and OWASP review of my login flow."
+    route_to: secure-coding
+    why: "Generic appsec discipline; this skill keeps only PHP-native controls like PDO and password_hash."
+  - prompt: "Design the REST resource naming and status codes for my API."
+    route_to: api-design
+    why: "API contract design is a discipline, not PHP code authoring."
+  - prompt: "Tune the indexes and query plan for this slow MySQL query."
+    route_to: mysql
+    why: "DB engine schema/index tuning; this skill only keeps the PDO usage on the PHP side."
+
+capability:
+  - scenario: "Scaffold a strictly-typed PHP 8.4 package: a composer.json with PSR-4 autoload, a backed enum, a readonly DTO that uses a property hook, a typed exception, and a phpstan.neon at max level."
+    must_include:
+      - "declare(strict_types=1) at the top of every .php file"
+      - "PSR-4 autoload mapping (namespace prefix -> src/) in composer.json"
+      - "a backed enum (: string or : int) with at least one case"
+      - "readonly used on the DTO class or its properties"
+      - "fully typed signatures: every parameter, return, and property typed (no bare mixed)"
+      - "a property hook (get and/or set) on the 8.4 DTO"
+      - "a typed exception extending a Throwable/RuntimeException, not bare \\Exception"
+      - "phpstan.neon with level: max"
+      - "no Laravel or WordPress coupling (no Eloquent/Blade/Artisan, no wp_* APIs)"

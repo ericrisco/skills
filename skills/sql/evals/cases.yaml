@@ -1,0 +1,49 @@
+skill: sql
+
+should_trigger:
+  - prompt: "Get the top 3 orders per customer by amount"
+    why: Classic top-N-per-group — ROW_NUMBER partitioned by customer, filtered on the rank. Core window-function craft.
+  - prompt: "My SUM is double the real total after I joined order_items, why?"
+    why: Non-obvious. A one-to-many join fans out rows and inflates every downstream aggregate — the canonical wrong-total bug this skill owns.
+  - prompt: "Write a running 7-day total with a window function"
+    why: Frame-clause craft (explicit ROWS vs implicit RANGE on tied dates).
+  - prompt: "Necesito una función de ventana para el ranking por categoría"
+    why: Spanish window-function trigger (PARTITION BY category, RANK/ROW_NUMBER).
+  - prompt: "Recursive CTE to walk an org-chart hierarchy with a depth limit"
+    why: WITH RECURSIVE with a depth/cycle guard — squarely in scope.
+  - prompt: "NOT IN with a subquery returns zero rows even though data exists"
+    why: Non-obvious. The NULL three-valued-logic footgun — NOT IN over a NULL-bearing subquery; fix is NOT EXISTS.
+  - prompt: "per què el JOIN duplica files i em surten totals inflats?"
+    why: Catalan trigger for the join fan-out / inflated-aggregate diagnosis.
+  - prompt: "Gaps and islands: find consecutive login streaks per user"
+    why: Non-obvious named pattern solved with window functions (difference of row numbers).
+
+should_not_trigger:
+  - prompt: "Add an index to speed up this Postgres query and read the EXPLAIN plan"
+    route_to: postgresdb
+    why: Engine internals — indexing and planner output are Postgres behavior, not portable query craft.
+  - prompt: "Configure MySQL InnoDB buffer pool size for better throughput"
+    route_to: mysql
+    why: MySQL engine configuration, not SQL query logic.
+  - prompt: "Write this query using Drizzle's query builder API"
+    route_to: drizzle-orm
+    why: ORM builder ergonomics; this skill owns the raw SQL, not the builder API.
+  - prompt: "Design the schema and write the migration for this orders table"
+    route_to: db-migrations
+    why: Schema design / DDL / migration, not SELECT-side query craft.
+  - prompt: "Optimize this columnar scan in ClickHouse"
+    route_to: clickhouse-analytics
+    why: OLAP columnar-engine specifics, not engine-agnostic query language.
+
+capability:
+  - scenario: >
+      Given orders(customer_id, created_at, amount), write a portable query returning each
+      customer's most recent order plus the percent change in amount vs their previous order.
+      Note any non-portable construct you use.
+    must_include:
+      - Uses a window function (LAG, or ROW_NUMBER to pick the latest)
+      - Explicit PARTITION BY customer_id ORDER BY created_at
+      - Handles the first-order case where the previous amount is NULL or zero (NULLIF/COALESCE or a filter)
+      - Computes percent change correctly ((cur - prev) / prev * 100)
+      - Flags at least one portability caveat (e.g. QUALIFY is DuckDB/BigQuery only; otherwise wrap in a subquery)
+      - Does NOT rely on an implicit window frame where ties on created_at would change the result
