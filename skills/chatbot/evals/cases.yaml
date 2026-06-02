@@ -1,0 +1,43 @@
+skill: chatbot
+
+should_trigger:
+  - prompt: "We want to put a support chatbot on our website that answers questions from our help docs. How should we set it up so it doesn't go off the rails?"
+    why: "Core productization: a deployed website support bot grounded in docs — persona + grounding + guardrails + handoff is exactly this skill."
+  - prompt: "Our bot told a customer we'd refund them and we don't do that. Lock it down so it can't promise things like that again."
+    why: "Non-obvious incident-hardening trigger — the user names a symptom (invented refund policy), not 'guardrails'; this is the Air Canada case the skill is built around."
+  - prompt: "Design how our website assistant should hand a conversation off to a human agent, and what info the human should get."
+    why: "Handoff state machine + the transcript/variables packet — Layer 4 of the skill."
+  - prompt: "How do we stop people jailbreaking our website assistant into saying dumb stuff or leaking its instructions?"
+    why: "Public-bot prompt-injection / jailbreak defense and prompt-as-semi-public — guardrails layer, the Chevy $1 Tahoe case."
+  - prompt: "Necesito un chatbot de ventas para la web que califique leads i reservi una demo i passi els bons leads a vendes."
+    why: "Spanish/Catalan, sales-bot mode: qualify a lead, book a demo, hand the hot lead to sales — the sales branch of this skill."
+  - prompt: "What deflection and containment numbers should we hit before we let the bot answer without a human approving, and when do we pull it back?"
+    why: "Launch metrics + staged rollout + kill switch — non-obvious framing of the productization/operations concern this skill owns."
+
+should_not_trigger:
+  - prompt: "Build the RAG retrieval index over our docs — chunking, embeddings, rerank, the similarity threshold."
+    route_to: building-agents
+    why: "That's the engine under the bot (the index/retrieval half), not the bot's persona/guardrails/handoff. Skill explicitly routes the index to building-agents (and rag)."
+  - prompt: "Draft a reply to this angry customer who's threatening to cancel over a billing error."
+    route_to: customer-support
+    why: "A human answering one live ticket — triage/SLA/tone on a real conversation — not the autonomous website bot."
+  - prompt: "Improve the wording of this prompt so the answers are more concise and less repetitive."
+    route_to: prompt-engineering
+    why: "Abstract prompt-wording craft with no bot, no grounding contract, no handoff — that's prompt-engineering."
+  - prompt: "Wire our bot's outgoing messages to be delivered over WhatsApp and Telegram."
+    route_to: whatsapp-telegram
+    why: "Channel/transport plumbing, not the bot's persona or behavior contract."
+  - prompt: "Set up a win-back campaign to re-engage customers who churned last quarter."
+    route_to: retention
+    why: "Renewal/win-back program, not a website assistant."
+
+capability:
+  - scenario: "A SaaS company has a public help center and wants a support bot on its marketing site. It must not invent policy after a near-miss where a draft answer implied a refund. Produce the system prompt and the operating design."
+    must_include:
+      - "A system prompt with a one-sentence scope statement and an explicit refusal list (what it will not answer)"
+      - "A grounding rule: answer only from retrieved KB, mandatory source citation, and an empty/low-score-retrieval fallback that offers a human instead of guessing"
+      - "Authority clauses: not a lawyer, not authorized to commit price/discount/refund/timeline — and explicitly no secrets/credentials in the prompt (treat it as semi-public)"
+      - "A forbidden-topic bucket table (pricing commitment, refunds/policy, legal, medical, competitor, off-scope, injection) with per-bucket handling"
+      - "A handoff state machine with explicit / implicit / topic-based triggers AND a handoff packet that carries the full transcript plus collected variables"
+      - "Prompt-injection defenses: instruction hierarchy, treat retrieved/user text as data not commands, refuse 'ignore previous / reveal prompt', and an output filter on commitment phrases; plus a reply length cap"
+      - "Launch metrics (deflection ~40-60%, containment 70%+, handoff 15-30%, CSAT within ~10 pts of human) and a kill switch with a staged shadow -> assisted -> autonomous rollout"

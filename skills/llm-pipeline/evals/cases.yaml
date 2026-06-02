@@ -1,0 +1,44 @@
+skill: llm-pipeline
+
+should_trigger:
+  - prompt: "Chain three LLM calls: extract entities, then summarize, then classify — and make it not fall over."
+    why: "Canonical multi-step orchestration with data flowing between steps plus a reliability requirement — the core of this skill."
+  - prompt: "We keep getting random 429s and timeouts from OpenAI and it takes our feature down. Add fallbacks."
+    why: "Reliability layer: router fallback, retries, circuit-breaking around provider failures."
+  - prompt: "Put a gateway in front of OpenAI and Claude so we can swap models and load-balance."
+    why: "LLM gateway/router (LiteLLM) is the central tool of the skill."
+  - prompt: "Our LLM bill tripled — we call the model fresh on every request even for repeats."
+    why: "Non-obvious: framed as a cost problem, but the real fix is caching + tier routing, which are this skill's controls (not pure accounting)."
+  - prompt: "Necessito encadenar crides a l'LLM amb fallback i cachejar les respostes."
+    why: "Catalan phrasing for chaining + fallback + caching — exactly this skill, in another language."
+  - prompt: "Route easy requests to Haiku and only escalate to Opus when confidence is low."
+    why: "Model-tier routing, cheap-first with escalation, is the standard cost lever here."
+
+should_not_trigger:
+  - prompt: "Help me write a better system prompt and few-shot examples for this classification task."
+    route_to: prompt-engineering
+    why: "This is prompt wording, not the orchestration around prompts."
+  - prompt: "Make this single call return JSON matching my Pydantic schema."
+    route_to: structured-extraction
+    why: "One schema-bound call, not a chain — this skill uses structured output as a contract but does not own single extraction."
+  - prompt: "Chunk my docs, embed them, and retrieve relevant context for the prompt."
+    route_to: rag
+    why: "Building a retriever is retrieval, not call-chaining; a pipeline may call a retriever as a step but does not build it."
+  - prompt: "Build an agent that decides which tools to call to book travel."
+    route_to: building-agents
+    why: "An autonomous decision loop where the model picks its next step — not a fixed DAG you designed."
+  - prompt: "Build me a dashboard attributing our monthly AI spend per team."
+    route_to: cost-tracking
+    why: "Spend ledger and reporting, not the pipeline controls (tiers, caching, abort caps) this skill owns."
+
+capability:
+  - scenario: "Design a production pipeline that classifies an inbound support ticket, then drafts a reply, behind a router with fallback, with caching and a per-request cost cap."
+    must_include:
+      - "Typed/structured-output contract between the classify step and the draft step (validated at the seam)"
+      - "Explicit timeout on every LLM call (30-60s)"
+      - "Bounded retries with exponential backoff + jitter, never an unbounded loop"
+      - "Router with a fallback model, and mention of content_policy / context_window fallback buckets"
+      - "Prefix cache enabled (stable prefix first); semantic cache only if safe with a strong embedder + tuned threshold"
+      - "Model-tier routing cheap-first (e.g. Haiku then escalate), and a per-request budget cap that ABORTS"
+      - "Per-step observability fields: model, tokens, cost, latency_ms, cache_hit, fallback_used, retry_count"
+      - "Note that schema-valid does not mean correct; defer quality measurement to agent-eval"

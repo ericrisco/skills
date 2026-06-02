@@ -1,0 +1,44 @@
+skill: embeddings-search
+
+should_trigger:
+  - prompt: "Which embedding model and chunk size should I use for these PDFs?"
+    why: "The core model + chunking decision this skill owns; no store or pipeline named."
+  - prompt: "My semantic search returns irrelevant results, how do I make retrieval better?"
+    why: "Relevance-quality symptom at the technique layer — model/chunking/hybrid/rerank, not store ops."
+  - prompt: "How do I measure if my retrieval is actually good — recall@k or nDCG?"
+    why: "Retrieval-quality measurement (golden set, recall/nDCG/MRR) is explicitly owned here."
+  - prompt: "Add a reranker and hybrid BM25+vector scoring to lift relevance."
+    why: "Hybrid fusion + reranker stage is a named section of this skill."
+  - prompt: "Exact-match queries like product SKUs return nothing but paraphrases work fine."
+    why: "Non-obvious: never names embeddings, but the diagnosis is a dense-only blind spot fixed by adding sparse/BM25 — squarely this skill."
+  - prompt: "recall@10 is fine but the top result is the wrong document, why?"
+    why: "Non-obvious ordering symptom — points at nDCG/MRR and a reranker, both owned here, not a store problem."
+  - prompt: "quin model d'embeddings i quina mida de chunk faig servir per a aquests documents legals"
+    why: "Catalan trigger on the model + chunk-size choice, the skill's primary decision."
+
+should_not_trigger:
+  - prompt: "Set up a Qdrant collection with HNSW and a metadata filter."
+    route_to: vector-db
+    why: "Collection schema and index/filter path are store operation, not embedding technique."
+  - prompt: "Build the full RAG pipeline: retrieve, prompt, and generate the grounded answer."
+    route_to: rag
+    why: "End-to-end answer loop plus groundedness eval is beyond where this skill stops (chunks returned)."
+  - prompt: "Pull the invoice number, date, and total out of these PDFs into JSON."
+    route_to: structured-extraction
+    why: "Typed field extraction from documents, not search/retrieval."
+  - prompt: "My Postgres <=> query is slow and returns fewer than k rows with a WHERE filter."
+    route_to: vector-db
+    why: "pgvector iterative-scan / index issue lives in the store layer."
+  - prompt: "Write a better system prompt so the model stops hallucinating tools."
+    route_to: prompt-engineering
+    why: "Prompt design, not retrieval quality."
+
+capability:
+  - scenario: "Semantic search over 50k multilingual support articles returns irrelevant results. The user doesn't know which embedding model or chunk size to use and has no way to tell whether a change helps."
+    must_include:
+      - "Picks a multilingual-capable model and justifies dims/cost, noting Matryoshka truncation as the lever instead of re-embedding"
+      - "Matches the distance metric to the model and embeds query vs document with the correct input_type asymmetry"
+      - "Gives a concrete chunking default (recursive ~512-token, token-accurate count, 10–20% overlap) and names when to upgrade (semantic/late/contextual) gated on metrics"
+      - "Adds hybrid dense+sparse fused by RRF (1/(k+rank), k≈60), then a reranker top-50→top-5, with the rule that a reranker cannot recover missed recall"
+      - "Builds a labeled golden query set and measures recall@k / nDCG@k (and MRR) before and after, changing exactly one variable"
+      - "Routes store/index setup to vector-db and the full answer/generation loop to rag"

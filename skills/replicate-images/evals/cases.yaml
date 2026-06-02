@@ -1,0 +1,41 @@
+skill: replicate-images
+
+should_trigger:
+  - prompt: "Write a Node script that generates a 16:9 hero image with google/nano-banana-2 and saves it."
+    why: "Core mechanics — run() call, aspect_ratio, FileOutput save; the most direct entry point."
+  - prompt: "My Flux images ignore half my prompt. How should I structure the prompt so it follows?"
+    why: "Non-obvious: framed as a bug, not 'generate' — routes to per-family prompt shape (dense paragraph)."
+  - prompt: "How do I edit an existing photo to remove a person using Replicate?"
+    why: "Image-to-image / text-driven inpainting with image_input and the 'keep everything else identical' idiom."
+  - prompt: "What aspect ratios and seed options does nano-banana-2 take, and how do I make a generation reproducible?"
+    why: "Universal levers — allowed aspect_ratio set, seed for reproducible A/B."
+  - prompt: "Generar y editar imágenes con la API de Replicate desde Node, eligiendo resolución y formato."
+    why: "Spanish trigger for the core image mechanics on Replicate."
+  - prompt: "How do I get a generated product label to show readable text 'SALE 20%' in a specific font?"
+    why: "Non-obvious text-rendering: quoted literal + named font, a family-specific prompt idiom."
+  - prompt: "Per què Flux no segueix el prompt i se salta la meitat del que li demano?"
+    why: "Catalan trigger (matches the description's Catalan phrasing); bug-framed, routes to per-family Flux prompt shape — exercises non-English routing, not just asserted in the description."
+
+should_not_trigger:
+  - prompt: "How do I run a Llama 3 LLM on Replicate and stream the tokens back?"
+    route_to: replicate
+    why: "Non-image model plus platform run mechanics — the platform layer, not image craft."
+  - prompt: "Help me tune the system prompt and few-shot examples for my GPT chatbot."
+    route_to: prompt-engineering
+    why: "Text-LLM prompt design, nothing to do with image models or Replicate image calls."
+  - prompt: "Generate images with fal.ai's flux endpoint instead of Replicate."
+    route_to: fal
+    why: "Different hosted-inference provider; this skill is Replicate-only for the run mechanics."
+  - prompt: "Build a pipeline that turns a script into a narrated video with background music."
+    route_to: ai-media
+    why: "Multi-modal media pipeline spanning audio and video, not single-image generation."
+
+capability:
+  - scenario: "Write a Node script that takes a product photo and a logo file, composes a 4:5 advertisement with the headline 'Summer Sale' rendered in a bold sans-serif font using nano-banana-2, and saves the result to disk."
+    must_include:
+      - "uses the correct slug google/nano-banana-2"
+      - "passes both images in an image_input array (fs.readFile/Buffer for local files, or URLs) — not bare path strings"
+      - "sets aspect_ratio: \"4:5\""
+      - "prompt puts the headline in quotes AND names the font (bold sans-serif)"
+      - "reads the FileOutput via .blob()/.url() and writes the bytes to disk (indexing the output array)"
+      - "does not invent unsupported parameters; only uses inputs that exist on the model"

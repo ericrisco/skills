@@ -1,0 +1,46 @@
+skill: prompt-engineering
+
+should_trigger:
+  - prompt: "My prompt returns valid JSON most of the time but breaks on long inputs."
+    why: "Non-obvious symptom of a missing output contract plus attention falloff on long input — the output-contract + robustness core of the skill, phrased as a flaky-output complaint, not a request for 'prompt engineering'."
+  - prompt: "How many few-shot examples should I give this classifier, and which ones?"
+    why: "Direct few-shot selection question — count and diversity (normal/awkward/edge) is a named section."
+  - prompt: "El prompt a veces da respuestas distintas con la misma entrada, ¿cómo lo hago determinista?"
+    why: "Spanish; outputs drift between reruns for identical input — the determinism / contract problem this skill exists to fix."
+  - prompt: "Make this prompt enforce a fixed schema reliably instead of sometimes returning prose."
+    why: "Forcing a fixed schema out of a model — the output-contract decision table (strict json_schema / strict tool use vs JSON mode)."
+  - prompt: "Write me a small eval set to check this prompt before I change it."
+    why: "Inline eval set authored before tuning — 'the one rule' of the skill; the small set, not a standing harness."
+  - prompt: "Users can paste 'ignore your instructions' into my input field and the model obeys it."
+    why: "Prompt-scope injection hardening — delimiting untrusted input and treating it as data, a named robustness rule."
+  - prompt: "I'm moving this prompt from one model to another and the behavior shifted; how do I keep it stable?"
+    why: "Porting a prompt across models without drift — re-run the same inline cases and pin the contract; non-obvious that this is prompt craft, not infra."
+
+should_not_trigger:
+  - prompt: "Build the agent loop with tool calling and a retriever over our docs."
+    route_to: building-agents
+    why: "The agent loop, tool wiring, and RAG retrieval are the systems layer — the explicit NOT boundary in the description."
+  - prompt: "Set up a golden-set regression harness with LLM-as-judge that gates CI."
+    route_to: agent-eval
+    why: "A standing automated eval harness with CI gates is agent-eval; prompt-engineering owns only the small inline set you run while tuning."
+  - prompt: "Extract invoice number, date, and total from these PDFs into a table."
+    route_to: structured-extraction
+    why: "Document/field extraction as a pipeline is structured-extraction, not the craft of one prompt."
+  - prompt: "Chain three model calls: summarize, then classify, then route to a team."
+    route_to: llm-pipeline
+    why: "Multi-step orchestration / prompt-chaining as a workflow is llm-pipeline, not a single-prompt task."
+  - prompt: "Design our product's refusal policy and abuse-monitoring across all endpoints."
+    route_to: agent-safety
+    why: "System-scope safety policy and abuse monitoring is agent-safety, not hardening one prompt."
+
+capability:
+  - scenario: "A 'classify this support ticket' prompt is flaky: it sometimes returns prose explanations instead of exactly one of {bug, billing, other}, and it obeys instructions users paste into the ticket text. Harden it."
+    must_include:
+      - "Ordered skeleton: role -> task -> context -> constraints -> output contract -> examples, with the real input last."
+      - "An explicit output contract recommending strict json_schema (OpenAI) or strict tool use (Anthropic), noting JSON mode guarantees valid JSON but NOT the schema."
+      - "Three deliberately different few-shot examples (normal / awkward / edge), not near-identical clones."
+      - "At least 5 inline eval cases including one adversarial injection case, written before tuning."
+      - "Delimit untrusted ticket text as data and re-state the task after long input; phrase constraints positively; add a refusal anchor."
+      - "Iterate one variable at a time and re-run the cases; mention DSPy (MIPROv2/GEPA) only once manual tuning plateaus."
+      - "No banned hedges such as 'try to' or 'as best you can' in the prompt text."
+      - "Pointer to building-agents for the surrounding loop/tooling, not handled here."
