@@ -14,5 +14,9 @@ __pycache__/
 .mypy_cache/
 .ruff_cache/
 
+# docs/ is local scratch (specs, notes) — not part of the distributable catalog
+docs/
+
+
 # NOTE: do NOT ignore .claude-plugin/ — marketplace.json + plugin.json are the
 # distributable manifest and must stay tracked.
