@@ -26,7 +26,7 @@ Before asking anything, read `02-DOCS/wiki/harness/user-profile.md` and match it
 | L2 — explica decisiones | Justify each principle as you propose it; surface trade-offs where a rule constrains the team. |
 | L3 — acompañamiento total | Explain what a constitution is and why each section matters, one kind question at a time, before writing anything. Non-technical framing. |
 
-If there is no profile yet, default to non-technical and ask the two gauging questions (technical level, accompaniment level) before proceeding — or point the user at `/rsc-core:init`. Never assume fluency.
+If there is no profile yet, default to non-technical and ask the two gauging questions (technical level, accompaniment level) before proceeding — or point the user at `init`. Never assume fluency.
 
 ## When to use / when NOT to use
 

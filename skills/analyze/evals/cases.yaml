@@ -25,7 +25,7 @@ should_trigger:
   - prompt: "Sanity-check the spec against the plan and tasks for me — I don't want to find contradictions halfway through implementing."
     why: "Pre-implementation contradiction detection across the artifacts is the gate's purpose; 'halfway through implementing' is the cost analyze exists to avoid."
 
-  - prompt: "Before /rsc-sdd:implement, is everything aligned? Give me a coverage map of requirements to tasks."
+  - prompt: "Before implement, is everything aligned? Give me a coverage map of requirements to tasks."
     why: "Asking for alignment plus a requirement-to-task coverage map immediately before the implement phase is precisely the analyze hand-off."
 
 # NEAR-MISS prompts that must NOT load `analyze`. Each routes to the genuinely
