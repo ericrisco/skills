@@ -1,0 +1,50 @@
+skill: modal
+
+should_trigger:
+  - prompt: "Run my Python embedding job on an H100 without managing any servers — just ship the function and have it scale."
+    why: "Core serverless GPU on Modal: @app.function + gpu string + scale-to-zero. The defining use case."
+  - prompt: "My @app.function fails with gpu=modal.gpu.A100(). What's the right way to ask for that GPU now?"
+    why: "Non-obvious 1.0-migration error: the modal.gpu.X() object form was removed for the string form. Modal-specific symptom."
+  - prompt: "Cache my HuggingFace model weights across runs so cold starts don't re-download 16GB every time."
+    why: "Volume-backed weight-cache pattern (from_name + commit/reload) — squarely Modal state, phrased without naming Modal."
+  - prompt: "modal serve isn't hot-reloading my fastapi_endpoint changes — edits to the handler don't show up."
+    why: "Non-obvious dev-loop symptom tied to Modal's serve-vs-deploy lifecycle and web decorators."
+  - prompt: "Schedule a nightly scrape in the cloud at 6am New York time and keep it running."
+    why: "modal.Cron with timezone + the deploy-not-run gotcha for schedules to live. Cron/Period territory."
+  - prompt: "Desplegar un model de difusió amb GPU serverless i exposar-lo per HTTP amb endpoint propi."
+    why: "Catalan: serverless GPU + web endpoint (web_server/asgi_app) — the GPU-serving-over-HTTP core."
+  - prompt: "Ejecutar Python en GPU serverless que escale a cero y solo pague por segundo de uso."
+    why: "Spanish: scale-to-zero per-second GPU compute — Modal's billing/scaling model, not a managed API."
+
+should_not_trigger:
+  - prompt: "Run Stable Diffusion through a hosted prediction API where I just POST a prompt and get an image — no infra code."
+    route_to: "replicate"
+    why: "Managed prediction endpoint with no container of your own; Modal is for code-first containers."
+  - prompt: "Rent a persistent GPU pod I can SSH into and keep running for a week to iterate by hand."
+    route_to: "runpod"
+    why: "Persistent long-lived rentable GPU box; Modal is scale-to-zero serverless, not per-pod rental."
+  - prompt: "Design my FastAPI routers, Pydantic v2 models, and dependency injection for a user API."
+    route_to: "fastapi"
+    why: "FastAPI app design independent of host; Modal only mounts such an app, it doesn't design it."
+  - prompt: "Write a Dockerfile and push the image to a registry to deploy on Kubernetes."
+    route_to: "docker"
+    why: "Generic container/registry/k8s mechanics; Modal builds images inline in Python, no Dockerfile."
+  - prompt: "Structure my RAG retrieval, chunking, and reranking pipeline logic."
+    route_to: "llm-pipeline"
+    why: "LLM/RAG orchestration logic itself; Modal would only host it, the pipeline design is the sibling's."
+
+capability:
+  - scenario: "User asks: 'Build a Modal app that serves a vLLM endpoint on an H100 with a warm pool and a weight-cache volume, and tell me how to ship it.'"
+    must_include:
+      - "modal.App(...) defined as the deployable unit"
+      - "modal.Image with .uv_pip_install/.pip_install including vllm and fastapi[standard] (or equivalent server deps)"
+      - "GPU requested as the string form gpu=\"H100\" (NOT modal.gpu.H100())"
+      - "modal.Volume.from_name(..., create_if_missing=True) mounted via volumes={\"/path\": vol} for weight caching, with commit/reload noted"
+      - "Warm pool + lifecycle: min_containers and scaledown_window (and timeout) on @app.function"
+      - "A web decorator (@modal.web_server(port=...) for vLLM's own server, or @modal.asgi_app()) stacked UNDER @app.function in correct order"
+      - "Ship with `modal deploy` (not `modal run`) because the endpoint must persist"
+  - scenario: "User asks: 'Schedule a Python function to run every night at 6am New York time on Modal, and make sure it actually keeps firing.'"
+    must_include:
+      - "schedule=modal.Cron(\"0 6 * * *\", timezone=\"America/New_York\") on @app.function (Cron preferred over Period for wall-clock time)"
+      - "Note that Period resets on every redeploy whereas Cron is wall-clock stable (if Period is mentioned at all)"
+      - "Must `modal deploy` (not `modal run`) for the schedule to live on the platform"

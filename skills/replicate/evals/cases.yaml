@@ -1,0 +1,45 @@
+skill: replicate
+
+should_trigger:
+  - prompt: "Run flux-schnell from my Python script and save the image to disk"
+    why: "Core run + FileOutput handling — the most common entry point."
+  - prompt: "My Replicate prediction takes 8 minutes and my web request keeps timing out"
+    why: "Non-obvious symptom that routes to async predictions + webhook, not blocking run()."
+  - prompt: "Package my fine-tuned PyTorch model with Cog and push it to Replicate"
+    why: "Cog packaging — cog.yaml + predict.py + cog push."
+  - prompt: "How do I keep an instance warm so users don't hit a cold start on Replicate?"
+    why: "Non-obvious phrasing for deployments min_instances / warm floor."
+  - prompt: "Desplegar mi propio modelo en Replicate con un endpoint privado y autoescalado"
+    why: "Spanish phrasing for a deployment with a private endpoint and autoscaling."
+  - prompt: "How do I verify a webhook actually came from Replicate before trusting it?"
+    why: "Signature verification with the whsec_ secret — a security-critical ops task."
+  - prompt: "cog push fails with a CUDA/torch mismatch — how do I fix the build?"
+    why: "Cog build troubleshooting, covered in the cog-packaging reference."
+
+should_not_trigger:
+  - prompt: "What prompt and aspect ratio give the best product photo on flux?"
+    route_to: replicate-images
+    why: "Image prompt/param craft, not platform operations."
+  - prompt: "Run my own arbitrary Python on a serverless GPU, not a packaged Replicate model"
+    route_to: modal
+    why: "General serverless GPU containers, not the Replicate platform."
+  - prompt: "Rent a raw GPU box by the hour to train a model"
+    route_to: runpod
+    why: "Raw rented GPU infrastructure, not Replicate model serving."
+  - prompt: "Design a generic webhook receiver with retries and dedupe for Stripe events"
+    route_to: webhooks
+    why: "Provider-agnostic webhook consumer design, unrelated to Replicate signing."
+  - prompt: "Track our total AI spend across OpenAI, Anthropic, and Replicate as a discipline"
+    route_to: cost-tracking
+    why: "Cross-provider spend tracking; this skill covers only Replicate-specific levers."
+
+capability:
+  - scenario: "A team has a custom PyTorch model and wants it on Replicate as a private, autoscaling endpoint that fires webhooks on completion, while controlling GPU cost."
+    must_include:
+      - "cog.yaml declaring both build (gpu/python_version/python_packages) and predict"
+      - "predict.py with a Predictor whose setup() loads weights once and a typed predict()"
+      - "cog push r8.im/owner/model to publish a version"
+      - "a deployment configured with min_instances and max_instances and a hardware choice"
+      - "predictions.create with webhook= plus webhook_events_filter, and signature verification against the whsec_ secret"
+      - "cost guidance: scale-to-zero default vs warm-floor trade-off, prediction deadlines, right-sizing the GPU"
+      - "pins replicate>=1,<2 and treats file output as FileOutput (.read()/.url), not a string"

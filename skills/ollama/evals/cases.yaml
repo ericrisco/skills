@@ -1,0 +1,43 @@
+skill: ollama
+
+should_trigger:
+  - prompt: "How do I run Llama 3.3 70B locally with Ollama?"
+    why: Core local-serve request — pull/run a named model on this machine.
+  - prompt: "My Ollama model keeps OOMing once the conversation gets long — how do I fix it?"
+    why: Non-obvious — the cause is KV-cache growth with context; fix is num_ctx cap / OLLAMA_KV_CACHE_TYPE / smaller model, all owned here.
+  - prompt: "Write a Modelfile that gives qwen3 an 8k context and a terse system prompt."
+    why: Modelfile authoring (FROM + SYSTEM + PARAMETER num_ctx) plus ollama create.
+  - prompt: "Point my OpenAI Python SDK at a local model instead of api.openai.com."
+    why: OpenAI-compat layer at localhost:11434/v1 with a dummy key — a non-obvious 'it just works' path.
+  - prompt: "Quina quantització (Q4 o Q8) i quin model caben a la meva RTX 3060 de 12GB?"
+    why: Catalan; quant choice + VRAM sizing for a specific GPU, the heart of the skill.
+  - prompt: "Convert this GGUF file into an Ollama model and quantize it to Q4_K_M."
+    why: FROM ./model.gguf import plus ollama create --quantize q4_K_M.
+  - prompt: "ejecutar un LLM en local sin API key, totalmente offline"
+    why: Spanish; the local/offline/no-key framing that defines Ollama's niche.
+
+should_not_trigger:
+  - prompt: "Deploy this model on a serverless GPU endpoint that autoscales with traffic."
+    route_to: modal
+    why: Managed/serverless autoscaled serving — Ollama is single-box, no autoscale.
+  - prompt: "Rent a GPU in the cloud to serve a 70B model behind an HTTP endpoint."
+    route_to: runpod
+    why: Remote/managed GPU rental and serving, not local inference.
+  - prompt: "Download the Llama weights and a fine-tuning dataset from the Hub with the hf CLI."
+    route_to: huggingface
+    why: Weights/dataset/repo management — Ollama imports a result, it doesn't manage the Hub.
+  - prompt: "Build a retrieval pipeline that chunks PDFs and reranks before calling the model."
+    route_to: rag
+    why: Retrieval/chunking/reranking design; the model is the downstream consumer.
+  - prompt: "Help me write a better system prompt for tone and refusal behavior."
+    route_to: prompt-engineering
+    why: Prompt content authoring, not model serving or hardware.
+
+capability:
+  - scenario: "I have an RTX 4070 with 12GB VRAM. I want a coding assistant running locally via Ollama, called from a Python app, with a custom 16k-context system prompt."
+    must_include:
+      - Recommends a model size + quant that fits ~12 GB (e.g. 7B–14B at Q4_K_M) with the sizing reasoning (weights ≈ params × bytes/param × 1.2).
+      - Warns that a 16k context adds KV cache on top of weights; suggests PARAMETER num_ctx 16384 and OLLAMA_KV_CACHE_TYPE=q8_0 if tight.
+      - Gives a Modelfile (FROM + SYSTEM + PARAMETER num_ctx 16384) and the ollama create command.
+      - Shows calling it from Python — native /api/chat or the OpenAI-compat /v1 with base_url http://localhost:11434/v1 and a dummy key.
+      - Names the boundary — if it doesn't fit or needs scale, move to runpod/modal.
