@@ -1,0 +1,7 @@
+cases:
+  - prompt: "ayúdame a crear la tabla de pedidos en la base de datos"
+    expect_skill_suggested: postgresdb
+  - prompt: "quiero publicar mi web online con docker"
+    expect_skill_suggested: deployment
+  - prompt: "renombra esta variable"
+    expect_no_suggestion: true
