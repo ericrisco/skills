@@ -1,0 +1,3 @@
+# Evals — compose-multiplatform
+
+`cases.yaml` is a trigger/routing harness, not an executable test suite. Run it through the repo's eval runner (or read it by hand) to confirm three things: the `should_trigger` prompts — including the non-obvious orphaned-`expect` case and the Catalan phrasing — actually fire this skill on its description; each `should_not_trigger` prompt routes to the named sibling (`kotlin-android`, `swift-ios`, `flutter`, `tauri`) instead of here; and a real skill response to the `capability` scenario satisfies every item in its `must_include` rubric. There is nothing to compile or execute — judgment is against the description and the SKILL.md body.

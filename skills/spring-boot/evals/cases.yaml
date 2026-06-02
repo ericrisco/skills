@@ -1,0 +1,49 @@
+skill: spring-boot
+
+should_trigger:
+  - prompt: "Add a REST endpoint to create an order in our Spring Boot service."
+    why: "Core controller/service work — the central job of the skill."
+  - prompt: "My @Transactional method isn't rolling back when it throws, why?"
+    why: "Non-obvious proxy self-invocation + checked-exception-no-rollback rule; a defining Spring trap."
+  - prompt: "I get LazyInitializationException when the JSON serializer reads the response."
+    why: "Classic JPA fetch/session-boundary symptom; the fix is map-to-DTO-in-tx, a core rule here."
+  - prompt: "Migra esta config de seguridad, usa WebSecurityConfigurerAdapter y está deprecada."
+    why: "Spanish; SecurityFilterChain migration is an explicit modern-surface concern of the skill."
+  - prompt: "Set up a @WebMvcTest for the controller and mock the service."
+    why: "Slice testing + @MockitoBean — non-obvious that @MockBean is the wrong (removed) idiom."
+  - prompt: "Configura @ConfigurationProperties con perfiles para esta app."
+    why: "Catalan/Spanish; typed config + profiles is a named decision rule."
+  - prompt: "We have N+1 selects on a lazy collection — how do I fetch-join it?"
+    why: "JPA fetch strategy / @EntityGraph, a documented depth area."
+
+should_not_trigger:
+  - prompt: "Refactor this instanceof ladder into a pattern-matching switch."
+    route_to: java
+    why: "Pure Java language feature, no Spring wiring involved."
+  - prompt: "Build the same API in FastAPI with async SQLAlchemy."
+    route_to: fastapi
+    why: "Structural twin but a different framework/ecosystem."
+  - prompt: "Design the Postgres indexes and run EXPLAIN on this slow query."
+    route_to: postgresdb
+    why: "Engine-level SQL; this skill drives the JPA layer above it, not index design."
+  - prompt: "Write the Dockerfile and GitHub Actions pipeline to deploy this jar."
+    route_to: deployment
+    why: "Container/CI mechanics, not Spring framework code."
+  - prompt: "Explain how SQL injection defenses work in general."
+    route_to: secure-coding
+    why: "Language-agnostic security theory, not the Spring security surface."
+
+capability:
+  - scenario: >
+      Implement a POST /api/v1/users endpoint backed by JPA: validate the request, run the
+      write in a service-layer transaction, add a SecurityFilterChain that permits the route,
+      and add a @WebMvcTest for the controller.
+    must_include:
+      - "Constructor injection with final fields (no field @Autowired)."
+      - "DTO records for request and response (never the @Entity exposed)."
+      - "@Transactional on the service method, not the controller."
+      - "SecurityFilterChain bean using authorizeHttpRequests + requestMatchers."
+      - "@WebMvcTest with the service supplied via @MockitoBean (not @MockBean)."
+      - "jakarta.* imports (validation/persistence), never javax.*."
+      - "@Valid at the controller edge."
+      - "ResponseEntity 201 Created with a Location header."

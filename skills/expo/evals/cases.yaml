@@ -1,0 +1,44 @@
+skill: expo
+
+should_trigger:
+  - prompt: "Set up eas.json with dev, preview, and production profiles and push an iOS build to TestFlight."
+    why: "Core EAS Build + Submit + build-profile configuration — the heart of this skill."
+  - prompt: "My EAS Update published fine but none of the devices ever get the new JS bundle."
+    why: "Non-obvious; the runtime-version exact-match footgun, the #1 reason updates silently never apply."
+  - prompt: "How do I add a custom AndroidManifest permission without ejecting or editing native code?"
+    why: "Config plugin / CNG — declaring native config in JS instead of hand-editing android/."
+  - prompt: "com configuro EAS Update amb branques i canals per a staging i producció?"
+    why: "Catalan; channel/branch model for staged OTA rollouts."
+  - prompt: "expo-doctor says a dependency isn't New-Architecture compatible and newArchEnabled is gone from app.json — how do I ship?"
+    why: "Non-obvious; New Arch is mandatory since SDK 55 with no legacy fallback, so a non-compliant dep is a hard blocker, not a flag flip."
+  - prompt: "Write an EAS Workflow that builds Android then submits to the Play Store."
+    why: "EAS Workflows YAML with build->submit chaining via needs/outputs."
+  - prompt: "subir la app a la Play Store con EAS y configurar el runtimeVersion con fingerprint"
+    why: "Spanish; EAS Submit plus runtime-version policy choice."
+
+should_not_trigger:
+  - prompt: "Build a custom swipeable card list with React Native Reanimated."
+    route_to: "react-native"
+    why: "Pure RN UI/animation, no EAS/Expo toolchain or shipping concern."
+  - prompt: "Set up a GitHub Actions workflow to run my Jest tests on every push."
+    route_to: "github-actions"
+    why: "Generic CI unrelated to EAS Workflows; only route here if the user explicitly wants EAS CI."
+  - prompt: "How do I structure a Flutter app with Riverpod and go_router?"
+    route_to: "flutter"
+    why: "Different ecosystem (Dart), not React Native / Expo."
+  - prompt: "Write a native Swift widget extension for iOS."
+    route_to: "swift-ios"
+    why: "Native-Swift-only work with no Expo/CNG angle."
+  - prompt: "Memoize this React component so it stops re-rendering on every parent update."
+    route_to: "react"
+    why: "Web/component performance, no mobile shipping or native config."
+
+capability:
+  - scenario: "I have an Expo SDK 55 app. Configure eas.json for preview and production, set up EAS Update so I can ship JS fixes safely, and give me the build and submit commands."
+    must_include:
+      - "eas.json with a build.production profile + channel mapping and a preview profile with distribution internal"
+      - "runtimeVersion fingerprint policy recommended (or appVersion), with the exact-match rule explained: an update applies only when BOTH platform AND runtimeVersion match exactly"
+      - "explicit commands: eas build -p ios --profile production and eas submit -p ios --profile production"
+      - "eas update --branch production --message <msg> for JS-only OTA, noting native changes need a new build"
+      - "warning never to hand-edit ios/ or android/ (use a config plugin / prebuild --clean) and never to commit a keystore/.p12/.mobileprovision"
+      - "note that the New Architecture is mandatory since SDK 55 (Legacy Architecture removed, newArchEnabled deleted from app.json) so the app is already on New Arch"

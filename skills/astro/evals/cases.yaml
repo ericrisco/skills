@@ -1,0 +1,41 @@
+skill: astro
+
+should_trigger:
+  - prompt: "Build an Astro blog with content collections."
+    why: "Astro content collections and static-first pages are core to the skill."
+  - prompt: "Make this widget hydrate only when it scrolls into view in Astro."
+    why: "Partial hydration/client directives are Astro-specific."
+  - prompt: "Use a server island to personalize a static Astro page."
+    why: "Server islands and static-plus-dynamic composition belong here."
+  - prompt: "Migrate this project from Astro 5 to Astro 6."
+    why: "Astro version migration and v6 content config are skill-specific."
+  - prompt: "Quiero una web de marketing rapida con Astro y cero JS innecesario."
+    why: "Spanish marketing site with Astro and zero-JS directive triggers this skill."
+
+should_not_trigger:
+  - prompt: "Implement a Next.js server action with App Router."
+    route_to: "nextjs"
+    why: "Next.js RSC/App Router is not Astro."
+  - prompt: "Write conversion copy for this landing page."
+    route_to: "landing-copy"
+    why: "Copywriting belongs to landing-copy; Astro may implement it later."
+  - prompt: "Configure Cloudflare DNS and workers."
+    route_to: "cloudflare"
+    why: "Platform configuration is the Cloudflare skill."
+  - prompt: "Design the visual system for this marketing page."
+    route_to: "design"
+    why: "Visual design belongs to design."
+  - prompt: "Write the hooks and state logic for this React island."
+    route_to: "react"
+    why: "The component-internals (hooks/state) of a React island are React's job; Astro only decides whether and how the island hydrates (client:* directive), not its internal logic — the closest near-miss sibling."
+
+capability:
+  - scenario: "A user wants an Astro 6 marketing site with a static blog, one interactive pricing calculator, and per-request personalization."
+    must_include:
+      - "Keeps the default static/zero-client-JS model and hydrates only the calculator island."
+      - "Chooses the appropriate client directive such as client:visible/client:idle instead of client:load by habit."
+      - "Uses content collections for typed blog/content data."
+      - "Uses server islands or per-route on-demand rendering only for request-specific personalization."
+      - "Checks Astro major version and Node/runtime requirements before giving migration advice."
+      - "Routes copy, SEO, deploy-platform details to their matching skills when needed."
+      - "Explains that interactivity is the exception, not the default."
