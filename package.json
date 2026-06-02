@@ -1,6 +1,6 @@
 {
   "name": "rsc-universal",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "Eric Risco's agent-skills catalog as a granular, self-recommending CLI installer.",
   "type": "module",
   "bin": {
