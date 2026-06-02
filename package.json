@@ -16,6 +16,7 @@
     "validate": "node scripts/build-manifest.js --validate",
     "test": "node --test",
     "coverage": "c8 --reporter=text node --test",
+    "version": "npm run manifest && git add manifest.json",
     "prepublishOnly": "npm run manifest && npm run validate"
   },
   "dependencies": {
