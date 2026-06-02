@@ -1,0 +1,50 @@
+skill: youtube-api
+
+should_trigger:
+  - prompt: "Upload a video to my YouTube channel via the API and set its title and tags."
+    why: "Core write path — videos.insert + metadata. The transport job this skill owns."
+  - prompt: "My YouTube refresh token stops working after about a week — why?"
+    why: "Non-obvious: app left in Testing publishing status issues 7-day refresh tokens; this skill maps that symptom to the In-production fix."
+  - prompt: "Pull the averageViewPercentage and the audience-retention curve for video abc123."
+    why: "Analytics read path — elapsedVideoTimeRatio + audienceWatchRatio. Squarely this skill."
+  - prompt: "subir vídeos a YouTube por API y guardar las estadísticas del canal."
+    why: "Spanish; upload + ingest stats — the full transport + ingestion loop this skill owns."
+  - prompt: "videos.insert returns 403 quotaExceeded — how many uploads does the 10k unit quota allow?"
+    why: "Quota math, and a teachable premise correction: uploads use a separate ~100 videos.insert/day call cap, not the shared 10k unit pool (official docs, Last updated 2026-06-01 UTC). Debugging the Data API, this skill's domain."
+  - prompt: "Fetch this month's traffic sources and write them into 02-DOCS/wiki/youtube/."
+    why: "The ingestion deliverable: insightTrafficSourceType report appended to the channel feedback log."
+  - prompt: "I keep getting uploadLimitExceeded even though I have quota units left."
+    why: "Non-obvious separate daily upload-count cap distinct from unit quota — this skill explains the throttle-count rule."
+
+should_not_trigger:
+  - prompt: "What kind of videos should my channel make to grow this quarter?"
+    route_to: youtube-strategy
+    why: "Growth plan / niche / cadence is strategy; this skill only delivers the numbers, it does not set the plan."
+  - prompt: "Write me 5 high-CTR title and thumbnail text options for this video."
+    route_to: youtube-packaging
+    why: "Packaging/CTR copy. This skill fetches CTR; it does not write the title that lifts it."
+  - prompt: "Brainstorm 20 video ideas for my cooking niche."
+    route_to: youtube-ideation
+    why: "Idea generation, no API or ingestion involved."
+  - prompt: "Post this clip to Instagram, TikTok, and YouTube at the same time."
+    route_to: social-publisher
+    why: "Multi-network cross-posting; this skill is YouTube-only and deep on its two APIs."
+  - prompt: "Render the actual video file in code so I can upload it."
+    route_to: remotion-video
+    why: "Video production/rendering, not transport."
+  - prompt: "Wrap a generic REST API I picked with OAuth and retry/backoff."
+    route_to: api-connector-builder
+    why: "Arbitrary-provider connector; this skill is specific to YouTube's Data + Analytics APIs."
+
+capability:
+  - scenario: "Build a weekly cron that authenticates to a YouTube channel, fetches channel KPIs plus the retention curve and traffic sources for the latest video, and appends a dated entry to 02-DOCS/wiki/youtube/."
+    must_include:
+      - "User OAuth 2.0 flow (not a service account) with a persisted, refreshable token"
+      - "Note that the OAuth consent screen must be 'In production' or refresh tokens die in ~7 days"
+      - "Analytics query using ids=channel==MINE with metrics including averageViewPercentage"
+      - "Retention via dimensions=elapsedVideoTimeRatio and metrics audienceWatchRatio"
+      - "Traffic via dimensions=insightTrafficSourceType"
+      - "Least-privilege scopes (yt-analytics.readonly, not full auth/youtube)"
+      - "Append-not-overwrite dated wiki entry with frontmatter (date/range/channel)"
+      - "Exponential backoff with jitter on 403 quotaExceeded / 429"
+      - "Never commit client_secret.json or token.json"

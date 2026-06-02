@@ -1,0 +1,61 @@
+skill: youtube-strategy
+
+# Prompts that MUST load `youtube-strategy`. This skill works at CHANNEL/portfolio
+# altitude: positioning/niche, upload cadence, how videos chain into playlists/series,
+# end-screen routing for session time, and "what's working" reviews — read from and
+# written back to 02-DOCS/wiki/youtube/. It does NOT generate per-video topics/hooks
+# (youtube-ideation), per-video titles/thumbnail-text (youtube-packaging), thumbnail
+# images (youtube-thumbnails), or fetch metrics from the Data API (youtube-api).
+should_trigger:
+  - prompt: "Should I niche down or keep my channel broad?"
+    why: "Core positioning decision — broad-vs-narrow at channel altitude is exactly what this skill owns."
+
+  - prompt: "How often should I be uploading given my retention is dropping?"
+    why: "Cadence decision tied to the channel's own retention data, not a generic number — the skill's data-driven cadence call."
+
+  - prompt: "Organize my videos so new viewers binge several in a row."
+    why: "Non-obvious: no 'strategy' word, but it is playlist/series/end-screen session-time architecture, owned here."
+
+  - prompt: "Quarterly channel review — what's working and what should I do more of?"
+    why: "The read-wiki + double-down loop; reading what-worked and choosing the next bet is the skill's spine."
+
+  - prompt: "Qué temática debería tener mi canal de YouTube y cada cuánto subo vídeos?"
+    why: "Spanish for 'what topic should my YouTube channel have and how often do I upload' — positioning + cadence, both channel-level."
+
+  - prompt: "My end screens aren't keeping people watching — how should I route them?"
+    why: "Session-time architecture (end-screen routing to the next logical video) is a channel-system decision, not a per-video edit."
+
+should_not_trigger:
+  - prompt: "Give me 10 video ideas and hooks for next week's uploads."
+    route_to: youtube-ideation
+    why: "Generating specific topics/hooks fills the territory; strategy decides the territory but does not generate the ideas."
+
+  - prompt: "Write the title and thumbnail text for this upload."
+    route_to: youtube-packaging
+    why: "Per-video click optimization (title + thumbnail text + description) is packaging; strategy sets positioning, packaging expresses it per upload."
+
+  - prompt: "Design the thumbnail image for my new video."
+    route_to: youtube-thumbnails
+    why: "Designing the image is a craft asset job, not a channel-system decision."
+
+  - prompt: "Pull my last 28 days of watch-time data from the YouTube API."
+    route_to: youtube-api
+    why: "Fetching metrics, OAuth, quotas, report endpoints is the data plumbing; strategy consumes the numbers, it does not fetch them."
+
+  - prompt: "Schedule and cross-post this video to TikTok and Instagram too."
+    route_to: social-publisher
+    why: "Cross-platform scheduling/posting is social-publisher; strategy is YouTube channel architecture, not multi-platform distribution."
+
+capability:
+  - scenario: >
+      A channel has 40 videos and flat subscriber growth. 02-DOCS/wiki/youtube/
+      already contains retention and CTR notes (the top 3 videos by AVD are all
+      keyboard reviews) and current cadence of 2/week that held. Produce a strategy
+      decision for where this channel should go next.
+    must_include:
+      - "Reads 02-DOCS/wiki/youtube/ first (prior positioning, whether cadence held, top retention/CTR performers, killed experiments) — or bootstraps the dir if it were empty"
+      - "Gives a positioning/niche-down recommendation grounded in the three factors (interest x demand x monetization), narrowing 2-3 levels from an industry to a defensible angle"
+      - "Gives a cadence recommendation justified by the channel's own retention data (e.g. hold 2/wk since it held at quality), not a generic blog number, and applies the 8-week sustainability gate"
+      - "Proposes at least one playlist/Series-Playlist/end-screen move for session time (e.g. a binge chain built around the keyboard format that already earns the best AVD)"
+      - "Writes a dated decision record back to 02-DOCS/wiki/youtube/ that names the single metric it bets on and a review date"
+      - "Routes single-asset work out: next-video ideas to youtube-ideation, per-video packaging to youtube-packaging, raw metrics to youtube-api"
