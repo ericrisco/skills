@@ -5,7 +5,7 @@
     "email": "ericriscodelatorre@gmail.com"
   },
   "metadata": {
-    "description": "Eric Risco's agent-skills catalog, packaged as six installable Claude Code plugins (core, backend, frontend, content, agents, ops). Each bundle namespaces its skills as /<plugin>:<skill>."
+    "description": "Eric Risco's agent-skills catalog, packaged as eight installable Claude Code plugins (core, backend, frontend, content, agents, ops, sdd, review). Each bundle namespaces its skills as /<plugin>:<skill>."
   },
   "plugins": [
     {
@@ -63,6 +63,14 @@
       "license": "MIT",
       "category": "workflow",
       "keywords": ["sdd", "spec-driven", "workflow", "specify", "plan", "tasks", "implement", "verify", "review", "ship", "debug", "worktrees", "parallel", "constitution"]
+    },
+    {
+      "name": "rsc-review",
+      "source": "./plugins/rsc-review",
+      "description": "ECC-style reviewer fleet + /code-review and /security-scan commands. Fans a diff out to per-language reviewer agents in parallel, then aggregates one confidence-filtered, severity-ranked verdict — the automated counterpart to the rsc-sdd:review discipline.",
+      "license": "MIT",
+      "category": "quality/review",
+      "keywords": ["code-review", "security", "reviewer", "pr"]
     }
   ]
 }

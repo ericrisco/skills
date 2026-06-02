@@ -44,6 +44,24 @@ Do NOT use when (route elsewhere):
 
 Everything below is in service of that rule.
 
+## Confidence filtering
+
+A review's value is its signal-to-noise. Every finding you report costs the author triage time, so report only what you can stand behind:
+
+- **>80% sure, or it doesn't ship.** If you're not >80% confident a finding is a real defect, either trace it until you are, or downgrade it to `[question]` and ask. Plausible-looking ≠ verified.
+- **Zero findings is an acceptable verdict.** A clean diff gets `APPROVE`, not a manufactured nit. Padding a report to look thorough is the opposite of thorough.
+- **Common false positives to skip:** patterns guarded two functions up; "unsafe" calls on values that are provably constant/internal; missing checks the framework already enforces; style the linter owns; defects behind a flag that's off everywhere (note as `nit`, not blocker); test-only or generated code held to prod standards.
+- **No severity inflation.** A `should-fix` dressed as a `blocker` burns the same trust as a missed bug. Rank by actual blast radius and reachability — if everything is a blocker, nothing is.
+
+## Executable review
+
+This skill is the **discipline**; the **`rsc-review` bundle is its automated counterpart**. When you want the doctrine above run for you over a real diff:
+
+- **`/code-review [pr]`** — fans the diff out to the per-language reviewer fleet (`code-reviewer`, `web-reviewer`, `python-reviewer`, `go-reviewer`, `sql-reviewer`, `flutter-reviewer`) in parallel and aggregates one ranked verdict.
+- **`/security-scan`** — two-layer security pass: automated scanners plus the `security-reviewer` agent, merged into one exploitability-ranked report.
+
+Those commands and agents enforce the same evidence bar and the same confidence filtering described here — they are this skill, executed.
+
 ---
 
 ## GIVING a review
