@@ -2,7 +2,7 @@ skill: decision-records
 
 should_trigger:
   - prompt: "We just picked Postgres over DynamoDB — write it up so we don't argue about it again."
-    why: Classic ADR: a consequential, hard-to-reverse store choice that needs its rationale and alternatives frozen.
+    why: "Classic ADR: a consequential, hard-to-reverse store choice that needs its rationale and alternatives frozen."
   - prompt: "Freeze the rationale for choosing Remix instead of Next before everyone forgets why we did it."
     why: Non-obvious phrasing ("freeze the rationale", "before everyone forgets") for the durable why-capture this skill owns.
   - prompt: "We're dropping REST for tRPC; record the change but keep the old decision in history."

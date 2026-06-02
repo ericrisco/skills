@@ -22,7 +22,7 @@ This skill owns the **skeleton**: the measurable outcomes, the assessment that c
 - Auditing a *finished* course for gaps, redundancy, anachronisms with a written report → `../review/SKILL.md`.
 - Turning a designed module into slides/decks → `../presentations/SKILL.md` (+ `../design/SKILL.md` for the visual system).
 - Sales/landing copy and launch emails → `../marketing/SKILL.md`. You design the learning contract, never the pitch.
-- Fact-checking or sourcing the subject matter → `../deep-research/SKILL.md`. You structure what the user already knows.
+- Fact-checking or sourcing the subject matter → `../research-ops/SKILL.md`. You structure what the user already knows.
 - A repeatable internal procedure with steps but no outcomes/assessment → `../sop-builder/SKILL.md`. An SOP tells someone the steps; a course changes what they can DO and proves it.
 
 **The litmus.** If the question is *"what must the learner be able to DO, how do we prove it, and in what order do we build it?"* → here. If it's *"how do I make THIS concept click and stick?"* → `../course-storytelling/SKILL.md`.
