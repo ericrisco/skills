@@ -1,0 +1,45 @@
+skill: clickhouse-analytics
+
+should_trigger:
+  - prompt: "We're ingesting 2B clickstream events a day into ClickHouse — what ENGINE, ORDER BY and PARTITION BY should the table use?"
+    why: Core schema-design request at scale; engine + sort-key + partition choice is the heart of this skill.
+  - prompt: "Our ClickHouse dashboard queries scan the whole table, the primary key isn't pruning anything."
+    why: Non-obvious — points at sparse-index/ORDER-BY-prefix pruning, not generic SQL tuning.
+  - prompt: "After our hourly ingest job, parts keep piling up and merges can't keep up."
+    why: Non-obvious — too-many-parts from tiny/over-partitioned inserts; the merge-pressure symptom maps to ingestion + partition rules here.
+  - prompt: "Build a materialized view that keeps a rolling uniq-users-per-hour aggregate as events stream in."
+    why: AggregatingMergeTree + -State/-Merge incremental pre-aggregation, the MV section of this skill.
+  - prompt: "Montar ClickHouse para analítica de eventos a gran escala con ingesta continua y consultas sub-segundo."
+    why: Spanish trigger for standing up a high-volume ClickHouse analytics server.
+  - prompt: "Should the upserted order rows table be ReplacingMergeTree or AggregatingMergeTree?"
+    why: MergeTree-family engine choice with the FINAL/dedup tradeoff — exactly the engine decision table.
+  - prompt: "Consultes lentes a ClickHouse, l'index no poda particions — com l'optimitzo?"
+    why: Catalan trigger for query optimization / sparse-index pruning on a ClickHouse server.
+
+should_not_trigger:
+  - prompt: "Query a folder of Parquet files on my laptop with SQL, no server to run."
+    route_to: duckdb
+    why: In-process, single-machine, file-based analytics with no server — DuckDB's space, not a ClickHouse cluster.
+  - prompt: "Design the orders table with foreign keys and add an index to fix this slow OLTP point-lookup query."
+    route_to: postgresdb
+    why: Transactional CRUD schema, FKs, row-level point reads/updates — an OLTP relational job, not columnar OLAP.
+  - prompt: "Install PostHog and instrument signup and checkout events in our web app."
+    route_to: analytics
+    why: Event-capture instrumentation in the app, not designing the columnar store the events land in.
+  - prompt: "Lay out an executive KPI dashboard so the numbers fit on one screen."
+    route_to: dashboard
+    why: Visual layout/charting of metrics for humans, not the engine querying them.
+  - prompt: "Decide which five metrics the business should track this quarter and set their targets."
+    route_to: kpi-framework
+    why: Defining which metrics matter and their targets is strategy, not ClickHouse schema/query work.
+
+capability:
+  - scenario: "A team has a high-volume web-events table feeding a dashboard whose GROUP BY query over the last 7 days is now too slow. They ask how to model the table, ingest the firehose, and serve sub-second aggregates on ClickHouse 26.3 LTS."
+    must_include:
+      - Picks a MergeTree-family engine and justifies it (MergeTree for append-only events; AggregatingMergeTree only behind an MV).
+      - Proposes an ORDER BY ordered low-cardinality to high-cardinality, driven by WHERE/GROUP BY (not join keys), with the raw timestamp last; 3-5 columns.
+      - Chooses a coarse PARTITION BY (toYYYYMM monthly, or daily only at extreme volume) and explains partitioning is for data lifecycle, not query speed.
+      - Gives batched/async ingestion guidance — batches of 10k-100k+ rows or async inserts default-on since 26.3, and notes insert dedup default-on since 26.2 makes retries safe.
+      - Builds an AggregatingMergeTree materialized view with uniqState/sumState and -Merge readback, GROUP BY matching the target ORDER BY, and explicitly avoids POPULATE on the big base table (backfill in bounded windows).
+      - Adds a query-side accelerator (PREWHERE, projection, or a bloom_filter/minmax skip index) for a filter the ORDER BY prefix doesn't cover.
+      - Names at least one anti-pattern it is avoiding (e.g. single-row INSERTs, per-hour partitioning, SELECT *, or FINAL in the hot path).

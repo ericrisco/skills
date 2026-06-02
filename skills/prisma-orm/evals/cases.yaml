@@ -1,0 +1,56 @@
+skill: prisma-orm
+
+should_trigger:
+  - prompt: "My Prisma app throws 'requires either adapter or accelerateUrl' on startup"
+    why: >
+      The non-obvious v7 symptom — a bare PrismaClient with no driver adapter. Core to this
+      skill's "instantiate the client" section.
+  - prompt: "How do I fix N+1 with relationLoadStrategy in Prisma?"
+    why: Performance core; relationLoadStrategy join vs query is owned here.
+  - prompt: "Upgrade our schema.prisma and PrismaClient from Prisma 6 to 7"
+    why: v7 migration is explicitly owned (generator rename, output, adapter, prisma.config.ts).
+  - prompt: "modela el esquema de usuarios y pedidos con Prisma y añade índices a las claves foráneas"
+    why: Spanish phrasing, schema modeling with FK indexes — the "model the schema" section.
+  - prompt: "findMany is returning the whole table and the endpoint is slow"
+    why: >
+      Non-obvious symptom — unbounded read / missing take. Should route to the query-safety
+      rules, not to a generic performance skill.
+  - prompt: "Should I run migrate dev or migrate deploy in my CI pipeline?"
+    why: Prisma Migrate mechanics — the dev-vs-deploy decision table is owned here.
+  - prompt: "My client import broke after upgrading — it says client is not in node_modules anymore"
+    why: Non-obvious v7 change — generated output path replaces the node_modules import.
+  - prompt: "Necessito fer la migració de Prisma a la versió 7, què he de canviar a schema.prisma i al client?"
+    why: >
+      Catalan phrasing matching the description's stated coverage — the v6 to 7 upgrade
+      (generator rename, output, adapter, prisma.config.ts) is explicitly owned here.
+
+should_not_trigger:
+  - prompt: "Set up the same schema using Drizzle's pgTable and drizzle-kit"
+    route_to: drizzle-orm
+    why: Rival ORM, schema-as-TS with a SQL builder and no codegen — explicit boundary.
+  - prompt: "Plan a zero-downtime expand/contract migration with dual-writes and a backfill"
+    route_to: db-migrations
+    why: ORM-independent evolution strategy, not Prisma Migrate command mechanics.
+  - prompt: "Tune the Postgres connection pool size and run EXPLAIN ANALYZE on this query"
+    route_to: postgresdb
+    why: DB-server operations and the query planner, not how Prisma emits the query.
+  - prompt: "Write and optimize this raw SQL window-function report, no ORM involved"
+    route_to: sql
+    why: Raw SQL authoring unattached to Prisma.
+  - prompt: "Provision a Neon branch and grab its connection string for staging"
+    route_to: neon
+    why: Managed-DB platform provisioning, not Prisma schema/client/migrate.
+
+capability:
+  - scenario: >
+      Set up Prisma 7 for a Postgres app with User and Post models, write a paginated query
+      that loads each user with their latest posts without N+1, and give the dev and CI
+      migration commands.
+    must_include:
+      - generator with provider = "prisma-client" and a required output path
+      - driver adapter (@prisma/adapter-pg / PrismaPg) passed to the PrismaClient constructor
+      - connection config in prisma.config.ts (not url in the datasource block)
+      - select (not a fat include) and an explicit take for pagination
+      - relationLoadStrategy "join" to avoid N+1 on the posts relation
+      - "@@index on the Post.authorId foreign key"
+      - migrate dev for development and migrate deploy for CI/production

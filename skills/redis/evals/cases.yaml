@@ -1,0 +1,43 @@
+skill: redis
+
+should_trigger:
+  - prompt: "Our product cache key expires and the database gets hammered by a flood of concurrent requests until it's rebuilt."
+    why: Cache stampede / thundering herd — the core caching correctness contract this skill owns.
+  - prompt: "Two cron workers across our instances sometimes run the same nightly job. I need only one to actually do it."
+    why: Distributed lock / mutual exclusion — SET NX PX + Lua release + the de-dup decision.
+  - prompt: "My rate limiter occasionally lets bursts through and some users get throttled forever. I do INCR then EXPIRE in the app."
+    why: Non-obvious — the lost-EXPIRE race that leaves a TTL-less immortal counter, the canonical rate-limit foot-gun.
+  - prompt: "BullMQ jobs keep getting marked stalled and reprocessed. How do the job locks and lockRenewTime work?"
+    why: Redis queue reliability and stalled-job lock renewal — at-least-once + idempotency territory.
+  - prompt: "A reviewer flagged `KEYS user:*` in our request hot path. Is that actually a problem?"
+    why: Non-obvious ops foot-gun — KEYS is O(N) and blocks the single thread; route to SCAN. Review trigger.
+  - prompt: "Should we use Redlock or is a single SET NX PX enough for our locks? Do we need fencing tokens?"
+    why: Lock correctness decision — single-instance vs Redlock vs fencing for hard mutual exclusion.
+  - prompt: "Our Redis cache started returning OOM errors and refusing writes when memory filled up."
+    why: Eviction policy — a cache left on the default noeviction with no TTLs; route to allkeys-lru + TTL.
+
+should_not_trigger:
+  - prompt: "Build a durable background job queue in Postgres using SELECT ... FOR UPDATE SKIP LOCKED."
+    route_to: postgresdb
+    why: The durable relational store IS the queue — that's the postgresdb boundary, not a Redis queue.
+  - prompt: "Add semantic similarity search over our document embeddings with ANN indexing."
+    route_to: vector-db
+    why: Vector similarity as the primary job; Redis vector sets are only noted here, not owned.
+  - prompt: "Provision and size an ElastiCache / fly.io Redis cluster, set the node type and replicas."
+    route_to: fly-io
+    why: Provisioning and console/cluster sizing, not the client-side correctness contract.
+  - prompt: "Tune Cache-Control headers and ISR revalidation for our Next.js pages."
+    route_to: nextjs
+    why: HTTP/CDN/edge caching, not the Redis data-layer contract.
+  - prompt: "We need a high-throughput analytical store for clickstream events with columnar aggregation."
+    route_to: clickhouse-analytics
+    why: Analytical/event store, not a hot-path cache, lock, rate limiter, or queue.
+
+capability:
+  - scenario: "We have a hot product-detail cache that stampedes the DB on expiry, a cron that must run exactly once across 3 instances, and a per-API-key rate limiter built on INCR then EXPIRE. Fix all three correctly."
+    must_include:
+      - "Stampede: TTL with jitter plus a recompute-lock (SET NX) or probabilistic early expiry (XFetch); lock TTL must exceed worst-case rebuild."
+      - "Lock: SET <random-token> NX PX <ttl> released only via a Lua compare-and-delete (GET == my token then DEL); mentions TTL-vs-work-duration and fencing tokens for hard mutual exclusion."
+      - "Rate limiter: collapse INCR + EXPIRE into one atomic EVAL (or set EXPIRE only when n == 1); names the lost-EXPIRE race that creates an immortal counter."
+      - "Notes at-least-once / idempotency wherever double-execution is possible (the cron, the rate-limit edge)."
+      - "Examples stay client-agnostic (Lua / redis-cli), not tied to a single SDK."

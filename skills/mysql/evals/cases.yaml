@@ -1,0 +1,49 @@
+skill: mysql
+
+should_trigger:
+  - prompt: "This MySQL query is doing a full table scan, EXPLAIN shows type=ALL — how do I index it?"
+    why: Core of the skill — reading the EXPLAIN access type and choosing an InnoDB index.
+  - prompt: "Add a NOT NULL column to a 40GB hot InnoDB table without downtime."
+    why: Online DDL — ALGORITHM choice plus gh-ost/pt-osc on a hot table. MySQL-specific mechanics.
+  - prompt: "Set up GTID-based source-replica replication and check the replica lag."
+    why: Replication setup (CHANGE REPLICATION SOURCE TO, SOURCE_AUTO_POSITION) and lag diagnosis.
+  - prompt: "Getting 'Authentication plugin caching_sha2_password cannot be loaded' connecting to MySQL 8.4."
+    why: Non-obvious. The 8.4 default-auth + TLS trap; mysql_native_password is gone. Pure engine/ops.
+  - prompt: "Our composite index on (a,b,c) isn't used when I filter only on b — why?"
+    why: Non-obvious. The leftmost-prefix rule — the canonical InnoDB index-design confusion.
+  - prompt: "Emoji get stored as ???? in our MySQL VARCHAR column."
+    why: Non-obvious. The legacy 3-byte utf8 (utf8mb3) vs utf8mb4 silent-truncation bug.
+  - prompt: "optimizar consulta MySQL que tarda mucho, el índice no se usa"
+    why: Spanish trigger — slow MySQL query, index not used; squarely engine-level tuning.
+  - prompt: "InnoDB deadlock under REPEATABLE READ — how do I read SHOW ENGINE INNODB STATUS?"
+    why: Locking/concurrency — gap/next-key locks and the deadlock post-mortem, MySQL-specific.
+
+should_not_trigger:
+  - prompt: "Write a window-function query to rank rows per group."
+    route_to: sql
+    why: Portable, engine-agnostic SELECT grammar — identical on Postgres, so it belongs in sql.
+  - prompt: "How does Postgres VACUUM and autovacuum work?"
+    route_to: postgresdb
+    why: PostgreSQL engine behaviour (MVCC garbage collection) — the peer engine, not MySQL.
+  - prompt: "Create a PlanetScale branch and open a deploy request for this schema change."
+    route_to: planetscale
+    why: The PlanetScale/Vitess platform branch-and-deploy workflow, not raw MySQL mechanics.
+  - prompt: "Design an expand-contract migration sequence to rename a column safely."
+    route_to: db-migrations
+    why: Vendor-neutral migration strategy/ordering — mysql owns the ALGORITHM/gh-ost mechanics, not the theory.
+  - prompt: "Define my schema with Drizzle's table builder and run the generated migration."
+    route_to: drizzle-orm
+    why: ORM/query-builder API ergonomics, not engine-level SQL or InnoDB behaviour.
+
+capability:
+  - scenario: >
+      A MySQL 8.4 query on a large InnoDB orders table is slow: it filters
+      WHERE user_id = ? AND DATE(created_at) = ? ORDER BY created_at DESC and currently
+      does type=ALL. Diagnose and fix it end to end, engine-specifically.
+    must_include:
+      - Runs EXPLAIN / EXPLAIN ANALYZE and reads the access type (ALL→index→range→ref…) plus rows/filtered
+      - Identifies the non-sargable predicate (DATE() wrapping the indexed created_at) and rewrites it to a sargable range
+      - Proposes a composite index with equality column (user_id) first then the range/sort column (created_at), matching WHERE and ORDER BY
+      - Considers a covering index and notes the InnoDB clustered-index PK back-lookup implication
+      - Verifies the new plan with EXPLAIN ANALYZE (type improved, rows dropped, no Using filesort) rather than asserting
+      - Stays engine-specific — does not drift into ORM builder API or PlanetScale deploy-request workflow
