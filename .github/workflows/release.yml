@@ -59,7 +59,8 @@ jobs:
           git config user.name "Eric Risco"
           git config user.email "erisco@icloud.com"
       - name: Bump version
-        run: npm version "${{ github.event.inputs.bump || 'patch' }}" -m "chore(release): %s [skip ci]"
+        run: |
+          npm version "${{ github.event.inputs.bump || 'patch' }}" -m "chore(release): %s [skip ci]"
 
       # --- publish + push the bump back ----------------------------------------
       - name: Publish to npm
