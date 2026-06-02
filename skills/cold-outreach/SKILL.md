@@ -50,6 +50,21 @@ The two levers that actually move the number, in order:
 
 Cleverness ranks a distant third. Do not sell wit; sell relevance, delivered.
 
+## Diagnosing a failing campaign — read the metric, then fix the right lever
+
+Most rescue requests describe a *symptom*, not a cause, and the instinct (theirs and a naive agent's) is to rewrite the prose. Usually the prose is the wrong lever. Diagnose by the **earliest broken metric in the funnel** — fix that one, ignore everything downstream of it, because a downstream number can't be read until the upstream one is healthy.
+
+| Symptom the user reports | The number that's actually broken | Almost never the cause | What to fix, in order |
+|---|---|---|---|
+| "Bounces / lands in spam / domain flagged" | Bounce > 2% or sudden deliverability drop | Copy | List hygiene → `lead-gen`; sending auth + warm-up → `email-deliverability`. Stop sending until fixed. |
+| "Low open rate" (< ~30-40% on a verified list) | Delivery + subject line | Body copy (they never saw it) | First confirm it's not spam-foldering (a deliverability tell). If delivery is fine, the **subject and from-name** are the only things they saw — rewrite those, leave the body alone. |
+| "Good opens, ~zero replies" | The hook + the CTA | Subject (it worked) / volume | The INFER line is generic or the CTA isn't binary. Re-derive the hook (four-line bridge); make the ask one yes/no question. This is the #1 misdiagnosed case. |
+| "Replies but all negative / 'not interested'" | Targeting or timing, not wording | The email itself | You're reaching the wrong role or the wrong moment — a `lead-gen` ICP problem. Polishing the copy won't convert a person with no need. |
+| "First email gets replies, sequence doesn't" | The follow-ups repeat instead of adding an angle | The cadence length | Each step must add ONE new angle (proof → new pain → breakup). Delete any step that restates step 1. Confirm the breakup exists. |
+| "It all works at 20/day, dies when I scale" | Per-inbox volume / reputation | Copy | Don't raise per-inbox volume — add inboxes and hold 20-50/day each. See the cadence table. |
+
+The governing rule: **the prose is the lever only when opens are healthy and replies are absent.** If opens are low, the prose is unread; if replies are negative, the prose found the wrong person. Name the broken metric back to the user before you touch a word — it's the single highest-value thing this skill does that an unaided agent skips.
+
 ## Anatomy of a first touch
 
 Hard constraints for the opening email:
@@ -83,6 +98,19 @@ Worth a 15-min look next week — yes or no?
 ```
 
 The Good version names a real signal (`{{signal}}`), states one concrete outcome (`{{outcome}}`), and asks one binary question. No greeting filler, no "free", no double ask.
+
+## Deriving the hook — the four-line bridge (this is the hard part)
+
+"Use a real signal" is advice everyone gives and almost nobody executes. The reason a personalized email still reads generic is that the writer names the signal and then jumps straight to a generic pain ("...so you probably want to grow faster"). The skill of a cold open is the **inference chain** from an observable fact to a pain the reader silently agrees with. Build it in four lines, on paper, before you write a word of copy:
+
+1. **OBSERVE** — the raw, checkable fact. ("Acme posted 3 SRE reqs in Q1.") It must be something you could screenshot. If you can't cite where you saw it, it is not a signal.
+2. **INFER** — the operational consequence a person *in that role* feels. ("3 SRE openings unfilled for a quarter = the on-call rotation is thin and the existing team is absorbing the pages.") This is the line bare agents skip. The inference must be specific to the role and non-obvious enough that the reader thinks "how did they know that" — not "everyone says that."
+3. **BRIDGE** — connect the inference to the one thing you do. ("We cut the page volume so a thin rotation survives without the missing hires.") Not your whole value prop — the single slice that maps to *this* inference.
+4. **PROVE** — one comparable, with a number if you have it. ("~40% fewer alerts for two infra teams your size, month one.")
+
+The first-touch body is literally lines 2→3→4 in order; line 1 becomes the subject. If the INFER line is generic, the email is generic no matter how many merge fields you add. **Test the INFER line in isolation: would it be false for a competitor in the same situation? If it is true of everyone, it is a platitude — go back to the OBSERVE step and pick a sharper fact.**
+
+When the user hands you only a company name and no signal, do not invent one. Ask for (or, if you have web access, look up) one of these signal classes, ranked by reply lift: a **hiring/role-change** signal > a **funding/launch/news** signal > a **tech-stack or job-description detail** > a **public number from their own site/report** > a **shared context** (mutual, group, event). A generic industry trend ("AI is changing your space") is not a signal and never clears the INFER test. Worked OBSERVE→INFER→BRIDGE→PROVE chains across six industries live in `references/hook-derivation.md`.
 
 ## The sequence — decision table
 
@@ -153,7 +181,7 @@ EU enforcement varies — UK ICO and France CNIL are permissive for B2B; Germany
 
 ## Personalization without creepiness
 
-- **One real signal, surfaced plainly.** "Saw you're hiring 3 SREs" is relevant; "Saw you were at the lake house last weekend" is surveillance. Stay on professional, public, business-relevant signals.
+- **One real signal, surfaced plainly.** "Saw you're hiring 3 SREs" is relevant; "Saw you were at the lake house last weekend" is surveillance. Stay on professional, public, business-relevant signals. Then run it through the four-line bridge above — a relevant signal with a generic INFER line still reads like a template.
 - **Do not fake personalization with spintax.** Rotating "{Hi|Hey|Hello}" or `{{first_name}}`-only mail-merge is not personalization — it is a template wearing a name tag, and recipients can smell it. If the only variable is the name, the email is generic; add a real `{{signal}}` or do not send.
 - **Never invent the signal.** A fabricated "I loved your recent post on X" that does not exist destroys trust on contact. If you cannot find a true signal, that is a `lead-gen` targeting gap, not a copy task.
 

@@ -1,6 +1,6 @@
 # config-and-ci — full Playwright config, multi-role auth, and the CI workflow
 
-Everything the SKILL condenses. Current line is Playwright v1.58.x; install browsers with
+Everything the SKILL condenses. Current line is Playwright v1.60.x; install browsers with
 `npx playwright install --with-deps`.
 
 ## Full annotated playwright.config.ts

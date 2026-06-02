@@ -2,7 +2,7 @@
 name: sdd
 description: "Use when you want a disciplined, spec-driven path from a feature idea to shipped, verified software — the rsc-sdd dispatcher / front door. It states the SDD method, reads the accompaniment dial from 02-DOCS, and routes to the right phase skill: constitution -> specify -> clarify -> plan -> tasks -> analyze -> implement -> verify -> review -> ship, with debug / worktrees / parallel callable on demand. Use it to START a feature, when unsure which SDD phase you are in, or to govern the whole flow. Triggers: 'spec-driven development', 'sdd', 'build this feature properly', 'start a new feature', 'I have an idea, take it to production', 'which phase am I in', 'run the sdd flow', 'desarrollo dirigido por especificación', 'monta esta feature bien', 'de la idea a producción'. NOT itself a single phase (it dispatches), NOT the workspace harness (harness), NOT a stack build skill."
 tags: [sdd, spec, workflow, plan]
-recommends: [constitution, specify]
+recommends: [sdd-init, constitution, specify]
 profiles: [core, full]
 origin: risco
 ---
@@ -21,6 +21,16 @@ Spec-Driven Development (SDD, GitHub Spec Kit lineage) says: **decide what and w
 
 If you only remember one rule: **the artifact is the contract.** Code is checked against the plan, the plan against the spec, the spec against the constitution. When they disagree, you fix the disagreement before writing more code — you do not let the code silently win.
 
+## Step zero: calibrate the SDD runtime
+
+Before the first non-trivial feature in a repo, run `../sdd-init/SKILL.md`. It detects the stack, package manager, test runners, scripts, monorepo signals and review budget, refreshes `.rsc/skill-registry.json`, and writes:
+
+```text
+02-DOCS/wiki/sdd/config.yaml
+```
+
+If `config.yaml` is missing and the request is more than a tiny one-line change, route to `sdd-init` before `specify`. This is not the same as `init`: `init` profiles the user/workspace; `sdd-init` calibrates the technical SDD runtime.
+
 ## The chained phase map
 
 The canonical chain runs left to right. Solid arrows are the default path; you move forward when the current phase's exit gate passes.
@@ -28,7 +38,9 @@ The canonical chain runs left to right. Solid arrows are the default path; you m
 ```text
 constitution ─(once per project)─┐
                                  ▼
-   specify ─► clarify ─► plan ─► tasks ─► analyze ─► implement ─► verify ─► review ─► ship
+   sdd-init ─(once per repo/runtime)─┐
+                                     ▼
+   proposal? ─► specify ─► clarify ─► plan ─► tasks ─► analyze ─► implement ─► verify ─► review ─► ship ─► archive
                                                          ▲
                                           on demand ─────┴─────────────────────
                                           debug · worktrees · parallel
@@ -36,6 +48,8 @@ constitution ─(once per project)─┐
 
 | Phase | Owns | Writes | Sibling skill |
 | --- | --- | --- | --- |
+| **sdd-init** | Technical runtime calibration: stack, tests, commands, registry, budgets | `02-DOCS/wiki/sdd/config.yaml`, `.rsc/skill-registry.*` | `../sdd-init/SKILL.md` |
+| **proposal** | Optional pre-execution briefing for ambiguous/architectural/risky work | `02-DOCS/wiki/sdd/proposals/<slug>.md` | handled by `../specify/SKILL.md` when needed |
 | **constitution** | Project non-negotiables: stack canon, quality bars, conventions | `02-DOCS/wiki/sdd/constitution.md` | `../constitution/SKILL.md` |
 | **specify** | Turn a fuzzy intent into a spec — what & why, no how | `02-DOCS/wiki/sdd/specs/<slug>.md` | `../specify/SKILL.md` |
 | **clarify** | Surface ambiguities / edge cases, ask, bake answers back in | updates the spec | `../clarify/SKILL.md` |
@@ -45,7 +59,7 @@ constitution ─(once per project)─┐
 | **implement** | Execute tasks with checkpoints; TDD discipline embedded | logs to `02-DOCS/wiki/sdd/decisions.md` | `../implement/SKILL.md` |
 | **verify** | Post-build gate: run the stack's checks + done-checks + acceptance | evidence | `../verify/SKILL.md` |
 | **review** | Adversarial code review — give and receive with rigor | review notes | `../review/SKILL.md` |
-| **ship** | Close the branch: PR / merge / cleanup. **Git authorship = Eric** | the merge/PR | `../ship/SKILL.md` |
+| **ship** | Close the branch: PR / merge / cleanup. **Git authorship = Eric** | the merge/PR and archive bundle | `../ship/SKILL.md` |
 | **debug** | Root-cause diagnosis: reproduce → isolate → fix → verify | a diagnosis | `../debug/SKILL.md` |
 | **worktrees** | Isolate feature work in a branch/worktree before executing a plan | an isolated workspace | `../worktrees/SKILL.md` |
 | **parallel** | Fan out independent tasks across subagents, gather results | merged results | `../parallel/SKILL.md` |
@@ -56,15 +70,17 @@ constitution ─(once per project)─┐
 
 When a request lands, do not start typing code. Place it on the map first, then invoke the phase skill that owns it.
 
-1. **No constitution yet AND this project will grow?** → `constitution` once, then come back to the chain.
-2. **A new idea, fuzzy, no spec on disk?** → `specify`.
-3. **A spec exists but feels risky / has open questions?** → `clarify`.
-4. **A clarified spec, no technical plan?** → `plan`.
-5. **A plan with no task breakdown?** → `tasks`.
-6. **Tasks exist, about to code, want a safety check?** → `analyze`.
-7. **Green light to build?** → `implement` (it embeds TDD and calls `parallel`/`worktrees` when useful).
-8. **Code written, claiming it works?** → `verify`, then `review`, then `ship`.
-9. **Something is broken mid-flight?** → `debug`, then resume where you were.
+1. **No `02-DOCS/wiki/sdd/config.yaml` and this is non-trivial?** → `sdd-init`.
+2. **No constitution yet AND this project will grow?** → `constitution` once, then come back to the chain.
+3. **Ambiguous / architectural / risky change before spec?** → optional proposal artifact via `specify`.
+4. **A new idea, fuzzy, no spec on disk?** → `specify`.
+5. **A spec exists but feels risky / has open questions?** → `clarify`.
+6. **A clarified spec, no technical plan?** → `plan`.
+7. **A plan with no task breakdown?** → `tasks`.
+8. **Tasks exist, about to code, want a safety check?** → `analyze`.
+9. **Green light to build?** → `implement` (it embeds strict TDD from config and calls `parallel`/`worktrees` when useful).
+10. **Code written, claiming it works?** → `verify`, then `review`, then `ship`/archive.
+11. **Something is broken mid-flight?** → `debug`, then resume where you were.
 
 If you genuinely cannot tell which phase you are in, ask the user one question: *"Do we have a written spec for this yet?"* The answer puts you before or after `specify`, and the rest follows.
 
@@ -93,9 +109,15 @@ Every phase writes under `02-DOCS/wiki/sdd/` so the feature's reasoning outlives
 
 ```text
 02-DOCS/wiki/sdd/
+├── config.yaml              ← repo runtime calibration from sdd-init
 ├── constitution.md          ← project non-negotiables (once)
+├── proposals/<slug>.md      ← optional pre-execution briefing
 ├── specs/<slug>.md          ← one spec per feature
 ├── plans/<slug>.md          ← one plan per feature (tasks live inside)
+├── progress/<slug>.md       ← append-only apply progress
+├── verifications/<slug>-YYYY-MM-DD.md
+├── archive/<slug>/          ← final report, state, verify/review/ship records
+├── sessions/<date>-<slug>.md
 └── decisions.md             ← append-only log of decisions taken while building
 ```
 
@@ -112,6 +134,50 @@ Index these from the root `CLAUDE.md` `## Knowledge map` under an `sdd/` topic, 
 
 `sdd` and its phases are **process, not stack**. Concrete tooling — test runners, lint/type/build, framework idioms — belongs to the stack skills. `plan` defers stack specifics, `implement` borrows the stack skill's testing approach, and `verify` runs the stack skill's checks. Route to the stack that matches the work: `../fastapi/SKILL.md`, `../nextjs/SKILL.md`, `../go/SKILL.md`, `../postgresdb/SKILL.md`, `../flutter/SKILL.md`. Visual/UX work routes to `../design/SKILL.md` and copy to `../marketing/SKILL.md`.
 
+## Skill registry and compact skill rules
+
+The registry is the cheap index:
+
+```text
+.rsc/skill-registry.json
+.rsc/skill-registry.md
+```
+
+Use it to choose the few relevant skill paths for the current phase/stack. Do not load the whole catalog. Before dispatching subagents, digest selected skills into 4-5 compact rules and include them in the brief. Each phase reports `skill_resolution`: which skills were used, which were missing, fallback behavior, and the compact rules handed to subagents.
+
+## Standard result envelope
+
+Every SDD phase ends with the same parseable block so the dispatcher can chain phases without interpreting a novel:
+
+```json result-envelope
+{
+  "status": "complete|blocked|failed",
+  "executive_summary": "one short paragraph",
+  "artifact": "path/to/artifact-or-none",
+  "next_recommended": "sdd-init|specify|clarify|plan|tasks|analyze|implement|verify|review|ship",
+  "risk": "low|medium|high",
+  "skill_resolution": {
+    "used": [],
+    "missing": [],
+    "fallback": [],
+    "compact_rules": []
+  },
+  "evidence": []
+}
+```
+
+If a phase cannot produce the envelope because the user stopped it mid-flight, write a session summary instead.
+
+## Session summary / compaction recovery
+
+When a session is long, about to pause, or context is at risk, write:
+
+```text
+02-DOCS/wiki/sdd/sessions/<date>-<slug>.md
+```
+
+Include current phase, active artifacts, last verdict, completed tasks, next steps, risks, useful commands, and the current `skill_resolution`. This lets the next agent resume from artifacts instead of scrollback.
+
 ## Anti-patterns → STOP
 
 | Rationalization | Reality / fix |
@@ -121,13 +187,17 @@ Index these from the root `CLAUDE.md` `## Knowledge map` under an `sdd/` topic, 
 | "Clarify and analyze are bureaucracy, skip them." | Skipped gates are where drift hides. Run them; only pass through if the change is genuinely trivial and you say so. |
 | "Profile says L0, so I'll skip the gates to be terse." | L0 changes verbosity, not the method. Fewer words, same gates. |
 | "I'll keep the plan in chat, it's faster." | Chat is not durable. Write it under `02-DOCS/wiki/sdd/` or the next session is blind. |
+| "I'll skip `sdd-init`; I remember the test command." | The runtime contract belongs in `config.yaml`, not memory. |
+| "I'll load every skill into the subagent." | That contaminates context. Use registry -> selected paths -> compact rules. |
+| "The phase wrote a nice summary, so no envelope needed." | The envelope is the phase contract. Add it. |
 | "Run constitution again for this feature." | Constitution is once per project. If it exists, read it as guardrails and move on. |
 | "Ship now, I'll add Co-Authored-By: Claude." | `ship` enforces Eric-only authorship. No Claude co-author, no generated-with footer. |
 | "Invoke the `release` phase." | There is no such phase. Never invent a sibling — the chain is the chain. |
 
 ## Start here
 
-- **New project, nothing on disk yet** → `../constitution/SKILL.md` to set the non-negotiables once, then `../specify/SKILL.md`.
-- **Existing project, new feature** → `../specify/SKILL.md`.
+- **New project, nothing on disk yet** → `../sdd-init/SKILL.md` for runtime calibration, `../constitution/SKILL.md` for non-negotiables, then `../specify/SKILL.md`.
+- **Existing project, no SDD config** → `../sdd-init/SKILL.md`, then route by phase.
+- **Existing project, new feature** → `../specify/SKILL.md` (or proposal first if risky/architectural).
 
 Then follow the arrows: each phase ends by pointing at the next, all the way to `ship`.

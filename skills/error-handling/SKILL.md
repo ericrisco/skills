@@ -158,8 +158,9 @@ Retries alone make a struggling dependency worse. Contain it.
     failure → Open again.
   - Critical services trip tighter (~30%); tolerant ones up to ~70%.
 - **Instruments (current):** Opossum (Node — defaults timeout 3000ms /
-  errorThresholdPercentage 50 / resetTimeout 30000ms), Polly 8.6.5 (.NET fluent
-  pipelines), Resilience4j 2.2.0 (Java). The config matrix is in
+  errorThresholdPercentage 50 / resetTimeout 30000ms), Polly 8.6.6 (.NET fluent
+  pipelines), Resilience4j 2.3.0 (Java 17+ `2.x` line; a `3.x` line targets Java
+  21). The config matrix is in
   [`references/retry-and-resilience.md`](references/retry-and-resilience.md).
 - **Fallback / graceful degradation** — when the breaker is Open, serve a stale
   cache, a safe default, or an honest "this feature is temporarily unavailable".

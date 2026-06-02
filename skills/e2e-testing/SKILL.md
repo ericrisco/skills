@@ -14,8 +14,9 @@ merge. The whole game is one tension: e2e tests catch integration bugs nothing e
 are the slowest, flakiest layer you own. Every rule below exists to buy back determinism.
 
 Pin `@playwright/test` and provision browsers with `npx playwright install --with-deps`. Current
-line is **Playwright v1.58.x**. The `_react` / `_vue` selector engines and the `:light` Shadow-DOM
-suffix were **removed in 2026** — do not reach for them, they are gone.
+line is **Playwright v1.60.x** (v1.60.0 shipped 2026-05-11). The `_react` / `_vue` selector engines
+and the `:light` Shadow-DOM suffix were **removed in v1.58.0** — at any version you should be pinning
+they are long gone, so do not reach for them.
 
 ## What good looks like
 

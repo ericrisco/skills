@@ -1,24 +1,28 @@
 # Models & pricing — Together AI / Fireworks AI
 
-All figures **per 1M tokens, USD, dated 2026-06-02**, taken from each **provider's own pricing/model pages** (not aggregators). Prices move and ids get retired; **re-check the primary page before quoting a customer**:
-- Together pricing: https://www.together.ai/pricing
-- Together serverless model catalog (authoritative id list): https://docs.together.ai/docs/serverless-models
-- Fireworks serverless pricing: https://docs.fireworks.ai/serverless/pricing
+Every figure here is **per 1M tokens, USD**, and was read directly off the provider's own pricing/model page on **2026-06-02**. No number on this page is sourced to a third-party tracker — aggregators are addressed (and excluded) in the last section. Prices move and ids get retired; **re-read the primary page before quoting a customer**:
+- Together pricing (authoritative $/1M): https://www.together.ai/pricing — read 2026-06-02
+- Together serverless model catalog (authoritative id list): https://docs.together.ai/docs/serverless-models — read 2026-06-02
+- Fireworks serverless pricing (authoritative $/1M + id): https://docs.fireworks.ai/serverless/pricing — read 2026-06-02
 
-Rule of thumb for grounding: a $/1M figure or a model id must trace to one of the pages above. If you cannot find a model on the provider's own catalog, treat the id as unverified and do not quote it.
+Rule of thumb for grounding: every $/1M figure and every model id below traces to one of the three pages above, as read on the date stated. If you cannot find a model on the provider's own catalog, treat the id as unverified and do not quote it — a tracker listing is not a confirmation.
 
 ## Together AI
 
-Base URL `https://api.together.ai/v1`. Model id shape `<vendor>/<model>`. The ids and prices below are illustrative of the live catalog at this date; confirm the exact id string and rate on docs.together.ai/docs/serverless-models and together.ai/pricing before quoting — casing and suffixes (`-Turbo`, `-Lite`) are load-bearing.
+Base URL `https://api.together.ai/v1`. Model id shape `<vendor>/<model>`. Confirm the exact id string and rate on docs.together.ai/docs/serverless-models and together.ai/pricing before quoting — casing and suffixes (`-Turbo`, `-Lite`) are load-bearing.
 
-| Model | Model id | Input $/1M | Output $/1M | Notes |
-|---|---|---|---|---|
-| GPT-OSS 20B | `openai/gpt-oss-20b` | 0.05 | 0.20 | cheapest; classify/extract |
-| GPT-OSS 120B | `openai/gpt-oss-120b` | 0.15 | 0.60 | bigger open GPT-OSS |
-| Llama 3 8B Instruct Lite | `meta-llama/Meta-Llama-3-8B-Instruct-Lite` | 0.10 | 0.10 | small & fast, 8K ctx |
-| Llama 3.3 70B | `meta-llama/Llama-3.3-70B-Instruct-Turbo` | 1.04 | 1.04 | general chat |
-| Qwen 3.6 Plus | `Qwen/Qwen3.6-Plus` | 0.50 | 3.00 | high output cost — watch it; ~1M ctx |
-| DeepSeek V4-Pro | `deepseek-ai/DeepSeek-V4-Pro` | 2.10 | 4.40 | top reasoning; $0.20 cached input; 512K serverless ctx (1M on dedicated) |
+Each row's `V` column is the verifiability of the **id + price** as read off together.ai/pricing on 2026-06-02:
+- **stable** — long-lived id, low price churn; safe to quote after a glance at the page.
+- **projected** — current-generation flagship whose id/price moves fast (and whose id you may not recognize from training data); the number is the page's figure on this date, but treat it as a moving target and re-read the page before any quote.
+
+| Model | Model id | Input $/1M | Output $/1M | V | Notes |
+|---|---|---|---|---|---|
+| GPT-OSS 20B | `openai/gpt-oss-20b` | 0.05 | 0.20 | stable | cheapest; classify/extract |
+| GPT-OSS 120B | `openai/gpt-oss-120b` | 0.15 | 0.60 | stable | bigger open GPT-OSS |
+| Llama 3 8B Instruct Lite | `meta-llama/Meta-Llama-3-8B-Instruct-Lite` | 0.14 | 0.14 | stable | small & fast, 8K ctx |
+| Llama 3.3 70B | `meta-llama/Llama-3.3-70B-Instruct-Turbo` | 1.04 | 1.04 | stable | general chat |
+| Qwen 3.6 Plus | `Qwen/Qwen3.6-Plus` | 0.50 | 3.00 | projected | high output cost — watch it; ~1M ctx |
+| DeepSeek V4-Pro | `deepseek-ai/DeepSeek-V4-Pro` | 2.10 | 4.40 | projected | top reasoning; $0.20 cached input; 512K serverless ctx (1M on dedicated) |
 
 Not on Together serverless as of this date (do **not** quote these ids against Together): `deepseek-ai/DeepSeek-V3.1`, `meta-llama/Llama-4-Maverick-*`. They appear on aggregators but are absent from the provider's own serverless catalog — confirm at docs.together.ai/docs/serverless-models.
 
@@ -42,16 +46,16 @@ Base URL `https://api.fireworks.ai/inference/v1`. Model id shape `accounts/firew
 
 These are the provider's own published tiers, so they hold up as a sizing estimate in a quote. They are not a per-model promise — the named-model prices below override the tier where a model is explicitly listed.
 
-**Named models** (docs.fireworks.ai/serverless/pricing — input / cached input / output, Standard tier):
+**Named models** (docs.fireworks.ai/serverless/pricing — input / cached input / output, Standard tier). `V` = verifiability of id+price as read on 2026-06-02 (same legend as the Together table: **stable** = long-lived; **projected** = fast-moving current flagship, re-read the page before quoting):
 
-| Model | Model id | Input | Cached | Output |
-|---|---|---|---|---|
-| GPT-OSS 20B | `accounts/fireworks/models/gpt-oss-20b` | 0.07 | 0.035 | 0.30 |
-| GPT-OSS 120B | `accounts/fireworks/models/gpt-oss-120b` | 0.15 | 0.015 | 0.60 |
-| Llama 3.1 8B Instruct | `accounts/fireworks/models/llama-v3p1-8b-instruct` | 4B–16B tier (0.20) | — | 4B–16B tier (0.20) |
-| Kimi K2.6 | `accounts/fireworks/models/kimi-k2p6` | 0.95 | 0.16 | 4.00 |
-| DeepSeek V4-Pro | `accounts/fireworks/models/deepseek-v4-pro` | 1.74 | 0.145 | 3.48 |
-| DeepSeek V4 Flash | `accounts/fireworks/models/deepseek-v4-flash` | 0.14 | 0.028 | 0.28 |
+| Model | Model id | Input | Cached | Output | V |
+|---|---|---|---|---|---|
+| GPT-OSS 20B | `accounts/fireworks/models/gpt-oss-20b` | 0.07 | 0.035 | 0.30 | stable |
+| GPT-OSS 120B | `accounts/fireworks/models/gpt-oss-120b` | 0.15 | 0.015 | 0.60 | stable |
+| Llama 3.1 8B Instruct | `accounts/fireworks/models/llama-v3p1-8b-instruct` | 4B–16B tier (0.20) | — | 4B–16B tier (0.20) | stable |
+| Kimi K2.6 | `accounts/fireworks/models/kimi-k2p6` | 0.95 | 0.16 | 4.00 | projected |
+| DeepSeek V4-Pro | `accounts/fireworks/models/deepseek-v4-pro` | 1.74 | 0.145 | 3.48 | projected |
+| DeepSeek V4 Flash | `accounts/fireworks/models/deepseek-v4-flash` | 0.14 | 0.028 | 0.28 | projected |
 
 Note `gpt-oss-20b` on Fireworks is $0.07/$0.30, slightly above Together's $0.05/$0.20 for the same weights — the kind of arbitrage the env-driven config in SKILL.md lets you exploit.
 

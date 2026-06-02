@@ -106,7 +106,7 @@ while IFS= read -r -d '' file; do
       fi
       ;;
   esac
-done < <(printf '%s' "$sources")
+done < <(find_sources)
 
 if [ "$failed" -ne 0 ]; then
   printf '%sverify failed:%s banned Playwright anti-patterns above.%s\n' "$RED" "$RESET" "$RESET" >&2
