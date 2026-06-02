@@ -145,6 +145,27 @@ A skill ships only when every box is checked or a miss is consciously justified.
 
 Full rubric rationale and the rsc plumbing steps → `references/rsc-conventions.md`.
 
+### Two ship gates: document AND behavior
+
+The rubric above scores the skill as a **document**. That is one of two gates — a skill ships
+only when **both** are green:
+
+1. **Static** — the rubric above / `scripts/skill-rubric.md`, weighted score ≥ 8.5.
+2. **Behavioral** — `scripts/skill-behavior-rubric.md`: run the skill on its `capability`
+   scenarios **with and without** it loaded, blind-grade both outputs, require `absolute ≥ 8.5`
+   **and** `lift ≥ +1.0`. Run it:
+
+   ```bash
+   # 1) execute + grade — invoke the Workflow tool:
+   #      scriptPath: scripts/skill-behavior-eval.workflow.js   args: "<skill-id>"
+   #    save the returned object to /tmp/<skill>-raw.json
+   # 2) score + gate (exit 0 pass / 1 fail):
+   node scripts/skill-behavior-eval.js --score /tmp/<skill>-raw.json
+   ```
+
+   A failing `lift` means the body adds nothing a bare agent didn't already do — fix the body,
+   don't game the checklist.
+
 ## Anti-patterns / rationalizations → STOP
 
 | Rationalization | Reality / fix |
