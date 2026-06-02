@@ -1,0 +1,46 @@
+skill: db-migrations
+
+should_trigger:
+  - prompt: "We need to add a NOT NULL column to a 40M-row users table without taking the app down. How?"
+    why: Core expand-contract — add-nullable, backfill, NOT VALID/VALIDATE, on a live large table.
+  - prompt: "Rename a heavily-written column on a live Postgres table without downtime."
+    why: Dual-name window with dual-write + batched backfill; the canonical sequencing case.
+  - prompt: "Our deploy keeps deadlocking every time the migration adds an index. What are we doing wrong?"
+    why: Non-obvious — symptom names a deadlock, not a migration; the fix is CONCURRENTLY + lock_timeout.
+  - prompt: "How do we backfill 80M rows into a new column without blowing up replication lag?"
+    why: Batched backfill with lag throttle and verify-before-contract; not query logic.
+  - prompt: "Necesito hacer una migración sin downtime para cambiar el tipo de una columna en producción."
+    why: Spanish phrasing for a type change on a live table — new column + backfill expand-contract.
+  - prompt: "Big ALTER on a busy MySQL table — should we use gh-ost or pt-osc?"
+    why: Non-obvious OSC-tool choice; engine-neutral choreography layer owns this decision.
+
+should_not_trigger:
+  - prompt: "This query is slow — can you read the EXPLAIN ANALYZE plan and tell me which index to add?"
+    route_to: postgresdb
+    why: Query plan reading and Postgres indexing strategy are postgresdb internals, not migration sequencing.
+  - prompt: "How do I generate and run a migration with drizzle-kit?"
+    route_to: drizzle-orm
+    why: That is the runner's CLI mechanics; the safety sequence is here but the tool usage lives in drizzle-orm.
+  - prompt: "Set up a PITR restore drill and verify our nightly backups actually restore."
+    route_to: backups
+    why: Creating and verifying backups/restores is backups; a migration only requires one as a precondition.
+  - prompt: "Write a window-function query to rank orders per customer by date."
+    route_to: sql
+    why: Pure query logic (window functions) is sql, not schema-change choreography.
+  - prompt: "Cut over a PlanetScale branch and merge the deploy request."
+    route_to: planetscale
+    why: Vitess online DDL and deploy-request cutover mechanics belong to planetscale.
+
+capability:
+  - scenario: >
+      Plan, end to end, a zero-downtime rename of a heavily-written column users.email →
+      users.email_address on Postgres, across app deploys and migrations.
+    must_include:
+      - "Expand: add email_address as a NULLABLE column, metadata-only, with lock_timeout set first"
+      - "App deploy that dual-writes both email and email_address while still reading email"
+      - "Batched backfill (bounded PK-range chunks, commit per batch) with replica-lag throttle"
+      - "Verify counts and old-vs-new checksum before contracting"
+      - "N/N-1 note: schema must satisfy both the running app and the next app at every step"
+      - "Switch reads to email_address in a separate deploy, then a cooling period"
+      - "Contract: DROP COLUMN email as a separate migration AFTER the cooling period"
+      - "Forward-only stance: rollback is redeploying the prior app, not a down() script"

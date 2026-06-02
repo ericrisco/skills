@@ -1,0 +1,42 @@
+skill: backups
+
+should_trigger:
+  - prompt: "We don't really have backups beyond a cron job nobody has checked. Design something real."
+    why: "Designing a backup-and-restore program from scratch is the core purpose."
+  - prompt: "What RPO and RTO should we be targeting for our main database?"
+    why: "Picking defensible RPO/RTO targets and deriving cadence/topology is section 1 of the skill."
+  - prompt: "Set up point-in-time recovery for our self-hosted Postgres so we can roll back to before a bad delete."
+    why: "PITR strategy (base + WAL replay to a target time) is owned here; engine internals route to postgresdb but the strategy is here."
+  - prompt: "Our backups live on the same server as the database — is that actually fine?"
+    why: "Non-obvious: sounds like infra trivia, but it is a direct 3-2-1 / blast-radius violation this skill exists to catch."
+  - prompt: "Com provo que les còpies de seguretat funcionen de debò abans que passi un desastre?"
+    why: "Catalan for 'how do I prove the backups really work before a disaster' — the tested-restore discipline, the load-bearing part of the skill."
+  - prompt: "Are our backups any good? Audit what we have."
+    why: "Auditing an existing setup against the 3-2-1-1-0 pillars and tested-restore gap is an explicit use case."
+
+should_not_trigger:
+  - prompt: "Write the archive_command and tune autovacuum for our Postgres instance."
+    route_to: postgresdb
+    why: "Engine-specific internals (archive_command, VACUUM tuning) are postgresdb's domain, not cross-engine backup strategy."
+  - prompt: "Plan an expand-contract schema migration with a safe rollback path."
+    route_to: db-migrations
+    why: "Reversible DDL / expand-contract rollout is a schema-migration concern owned by db-migrations, not backup-and-restore."
+  - prompt: "Page me when a backup job fails and build a dashboard of backup status."
+    route_to: monitoring
+    why: "The skill decides WHAT to alert on; wiring the actual alerting/dashboards/paging is monitoring's domain."
+  - prompt: "Rotate the KMS key we use for encryption at rest and manage key access."
+    route_to: secure-coding
+    why: "Key management as a general security control belongs to secure-coding, not backup strategy."
+  - prompt: "Set up cross-region read replicas to reduce read latency for European users."
+    route_to: postgresdb
+    why: "Replication for performance/availability topology is a database concern; a replica is explicitly not a backup."
+
+capability:
+  - scenario: "User says: 'We run a nightly mysqldump to /backups on the same box as the MySQL server, no offsite copy, we've never restored it, and we tell customers our RPO is 1 hour.' Audit it."
+    must_include:
+      - "Flags the single-location violation of 3-2-1 (backup on the same host/blast radius as the source)"
+      - "Flags the absence of an offsite and immutable/Object-Lock copy (3-2-1-1-0 gaps)"
+      - "Flags that the restore has never been tested — the backup is unverified"
+      - "Flags the RPO mismatch: a nightly dump cannot deliver a 1-hour RPO (up to ~24h data loss); mysqldump alone has no PITR"
+      - "Proposes a concrete fix: offsite immutable copy with retention >=90 days, separate credentials, and binlog/PITR to meet the RPO"
+      - "Proposes a scheduled restore-test cadence (monthly file / quarterly app / annual failover) and recording the actual RTO"
