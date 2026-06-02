@@ -1,0 +1,52 @@
+skill: shortform-strategy
+
+should_trigger:
+  - prompt: "Starting a new TikTok account for my bakery — what should we post and how often?"
+    why: New-account positioning + cadence plan before posting anything; the core job.
+  - prompt: "Our Reels reach has been dropping even though we post every single day."
+    why: Non-obvious cadence-dilution symptom with no strategy keyword — diagnosing positioning vs cadence vs format is exactly this skill.
+  - prompt: "Is it worth jumping on this trending sound or has it already peaked?"
+    why: The ride-or-skip trend/sound call (niche-relevance + <24h age gate).
+  - prompt: "We want a recurring weekly series on our Reels to bring people back."
+    why: Series design for return viewers (~2.8× lift); cadence + numbering + Trial Reels pilot.
+  - prompt: "Muntar l'estratègia del compte de Reels: posicionament i cadència."
+    why: Catalan; account-level positioning + cadence — the strategy layer, not one asset.
+  - prompt: "Monthly review of our TikTok — what worked last month and what do we change?"
+    why: The learning-loop review ritual — read the ledger, name the pattern, make one dated decision.
+  - prompt: "Should we lean Reels or carousels on our small Instagram account?"
+    why: Format-mix decision (growth vs sales/community) at the account level.
+
+should_not_trigger:
+  - prompt: "Write me a 30-second Reel script with 5 hook variants."
+    route_to: video-shorts
+    why: Single-asset scripting and hook variants, not account strategy.
+  - prompt: "Give me 20 video ideas for my fitness TikTok."
+    route_to: shortform-ideation
+    why: Idea/angle backlog generation, not positioning/cadence/series.
+  - prompt: "Design the cover frame and on-screen title for this Reel."
+    route_to: shortform-packaging
+    why: Packaging of one piece (cover/title/first-frame), not the account OS.
+  - prompt: "Cut this footage and burn in captions synced to the beat."
+    route_to: shortform-editing
+    why: The edit — cuts, captions, sound sync — not strategy.
+  - prompt: "Build a posting calendar across LinkedIn, X and Threads with char limits."
+    route_to: social-publisher
+    why: Cross-platform scheduling/calendar with char limits, not the shortform account strategy.
+  - prompt: "Define our brand voice and tone of voice."
+    route_to: brand-voice
+    why: Durable tone the account speaks in, not what/when it posts.
+
+capability:
+  - scenario: >
+      A flat faceless productivity TikTok+Reels account, posting daily across
+      mixed niches, running no series, and tracking only likes and views.
+      Produce a strategy.
+    must_include:
+      - "Reads 02-DOCS/wiki/shortform + 02-DOCS/raw/shortform first (Step 0), then writes the strategy/decision/ledger back."
+      - "Diagnoses positioning: mixed niches = no lane; narrows to one one-promise sentence."
+      - "Corrects cadence to 3–5 (TikTok) / 4–7 (Reels) and flags the daily-posting dilution / ceiling."
+      - "Sets completion % and sends/saves as the KPI, explicitly over likes/views."
+      - "Gives a ride-or-skip trend/sound rule (niche-relevance + <24h + on-positioning gate)."
+      - "Proposes a named, numbered, scheduled recurring series; suggests piloting via Trial Reels."
+      - "Writes at least one dated decision record (date, decision, rests-on metric, revisit-on)."
+      - "Cites the format mix (Reels for growth / carousels for community) and the 7–30s vs 30–90s length bands."

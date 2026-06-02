@@ -1,0 +1,61 @@
+skill: shortform-editing
+
+# This skill is the edit-bay technician: it CUTS real footage into a posted-ready
+# vertical short — silence removal, karaoke burned captions from word timestamps,
+# beat-synced cuts, platform-correct export. It does NOT write the script/hook
+# (video-shorts), build a Remotion codebase (remotion-video), schedule posts
+# (social-publisher), make thumbnails (youtube-thumbnails), or master podcast audio
+# (podcast).
+
+should_trigger:
+  - prompt: "Remove the dead air and silences from this talking-head clip automatically."
+    why: "Core silence-removal job — the skill's two-pass silencedetect → cut-both-streams move."
+
+  - prompt: "Burn TikTok-style word-by-word captions onto this short from my Whisper transcript."
+    why: "Core caption job — karaoke .ass from word-level timestamps."
+
+  - prompt: "Cut this footage to the beat of the song so the cuts land on the drops."
+    why: "Beat sync — build a beat grid and snap cut points to it."
+
+  - prompt: "Export this Reel with the right TikTok and Shorts specs."
+    why: "Export job — 1080x1920 H.264 master plus per-platform bitrate."
+
+  - prompt: "My burned-in captions are out of sync and getting hidden behind the TikTok buttons — fix the timing and placement."
+    why: "Non-obvious — the user names a symptom, not the skill; the fix is word-timestamp re-timing plus moving captions out of the bottom UI safe zone, both signature moves."
+
+  - prompt: "Quítale los silencios a este vídeo y ponle subtítulos quemados estilo TikTok."
+    why: "Spanish for 'remove the silences and add burned TikTok-style captions' — language coverage plus the two core jobs."
+
+  - prompt: "Munta'm aquest clip vertical amb talls ràpids sincronitzats amb la música."
+    why: "Catalan for 'edit this vertical clip with fast cuts synced to the music' — language coverage plus beat-synced cutting."
+
+should_not_trigger:
+  - prompt: "Write me a 30-second hook and script for a Reel about cold brew."
+    route_to: video-shorts
+    why: "Words and a plan, no footage — the script/hook is authored, not cut."
+
+  - prompt: "Build a Remotion React project with a TransitionSeries and composition code I can render in CI."
+    route_to: remotion-video
+    why: "A React composition codebase, not a one-off cut on real footage."
+
+  - prompt: "When and where should I post this short across platforms?"
+    route_to: social-publisher
+    why: "Distribution and cadence, not the cut/encode."
+
+  - prompt: "Make me a thumbnail / cover frame for this short."
+    route_to: youtube-thumbnails
+    why: "A still packaging visual, not video editing."
+
+  - prompt: "Master and chapter my podcast episode audio for the RSS feed."
+    route_to: podcast
+    why: "Long-form audio mastering and feed work, not a vertical video cut."
+
+capability:
+  - scenario: "Given a raw 9:16 talking-head clip plus a music track, produce an edited, posted-ready vertical MP4 with karaoke captions, and verify it."
+    must_include:
+      - "Word-level transcription via WhisperX (or faster-whisper word_timestamps), not segment-only timestamps"
+      - "Two-pass silence handling: silencedetect to find ranges, then a select/aselect (or trim+concat) filter that cuts video AND audio together — NOT silenceremove alone"
+      - "A beat grid (librosa/aubio/CapCut markers) with cut points snapped to the nearest beat, and the note that talking-head clarity can outrank rhythm"
+      - "Karaoke .ass captions with per-word \\k timing from the word timestamps, placed in the vertical middle band / central ~80% (not the bottom 15-20% UI zone)"
+      - "Export to 1080x1920 H.264 (yuv420p, +faststart) at 30 or 60 fps with AAC 48 kHz audio, per-platform bitrate or the safe universal master"
+      - "ffprobe verification of resolution, codecs, and frame rate on the output file"

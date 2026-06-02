@@ -1,0 +1,43 @@
+skill: instagram-api
+
+should_trigger:
+  - prompt: "Publish this Reel from a video URL to our IG professional account via the API"
+    why: Core publish flow — the 3-step container dance on the Graph API.
+  - prompt: "Pull reach and average watch time for these Instagram media IDs"
+    why: Core insights read using the valid Reels metric set.
+  - prompt: "My /insights call started returning an error when I ask for metric=plays"
+    why: Non-obvious — the deprecated-metric trap; plays was retired 2025-04-21, swap to views.
+  - prompt: "How many posts do we have left in the 24-hour Instagram publish window?"
+    why: content_publishing_limit check before a batch; the 50/24h cap.
+  - prompt: "Ingesta el rendimiento de los Reels en el wiki de shortform"
+    why: Spanish — ingest IG performance into 02-DOCS/wiki/shortform, the checkable artifact.
+  - prompt: "My media container is stuck IN_PROGRESS and never publishes"
+    why: Non-obvious — status_code polling and the EXPIRED/ERROR branch, IG-specific.
+
+should_not_trigger:
+  - prompt: "Post this same clip to TikTok via their Content Posting API"
+    route_to: tiktok-api
+    why: TikTok publishing is a different platform connector.
+  - prompt: "Build me a weekly multi-platform posting calendar across IG, TikTok and YouTube"
+    route_to: social-publisher
+    why: Cadence and cross-channel scheduling, not IG API mechanics.
+  - prompt: "Upload this video to YouTube and get its view stats"
+    route_to: youtube-api
+    why: YouTube Data API uploads and stats live in the YouTube connector.
+  - prompt: "Write the hook and on-screen captions for this Reel"
+    route_to: video-shorts
+    why: Editing and scripting the asset, not posting it.
+
+capability:
+  - scenario: >
+      Given a public video_url, a caption, and an IG_USER_ID, produce the end-to-end
+      publish-then-measure flow plus a wiki artifact under 02-DOCS/wiki/shortform/.
+    must_include:
+      - "container create with media_type=REELS and the public video_url"
+      - "poll status_code until FINISHED (with ERROR/EXPIRED handling and a ~5min ceiling)"
+      - "media_publish using creation_id, persisting the returned published media id"
+      - "insights pull using only valid metrics (reach, views, ig_reels_video_view_total_time, saved, shares, total_interactions)"
+      - "no deprecated metrics requested (no plays / impressions / clips_replays_count)"
+      - "content_publishing_limit check before batch publishing"
+      - "GRAPH_VERSION pinned to v25.0 in every call"
+      - "artifact written to 02-DOCS/wiki/shortform/ig-reel-<media_id>.md with front-matter (media_id, permalink, published_at, graph_version, pulled_at, metrics)"
