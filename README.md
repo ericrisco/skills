@@ -20,7 +20,7 @@ channel"* — **231 skills across 21 domains**, every one researched against liv
 2025-2026 sources and **adversarially scored ≥ 8.5/10** before it shipped.
 
 ```bash
-npx rsc            # plain-language wizard — no jargon, installs what your project needs
+npx @ericrisco/rsc            # plain-language wizard — no jargon, installs what your project needs
 ```
 
 </div>
@@ -53,7 +53,13 @@ over: you start with a tiny floor and grow one piece at a time.
 ## Install
 
 ```bash
-npx rsc            # no install step — runs the latest published catalog
+npx @ericrisco/rsc            # no install step — runs the latest published catalog
+```
+
+Prefer the short `rsc` command? Install once, globally:
+
+```bash
+npm install -g @ericrisco/rsc   # then just: rsc
 ```
 
 Run it inside any project and describe what you want. Working on the catalog
@@ -153,7 +159,7 @@ The front door and the workspace brain.
 > always-on compass that keeps a non-technical human oriented after every step.
 
 ### 📐 Spec-Driven Development
-Take a fuzzy intent to a shipped, verified change — phase by phase. `npx rsc install --profile core`.
+Take a fuzzy intent to a shipped, verified change — phase by phase. `npx @ericrisco/rsc install --profile core`.
 
 [sdd](skills/sdd/) · [constitution](skills/constitution/) · [specify](skills/specify/) · [clarify](skills/clarify/) · [plan](skills/plan/) · [tasks](skills/tasks/) · [analyze](skills/analyze/) · [implement](skills/implement/) · [verify](skills/verify/) · [review](skills/review/) · [ship](skills/ship/) · [debug](skills/debug/) · [worktrees](skills/worktrees/) · [parallel](skills/parallel/)
 
