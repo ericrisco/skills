@@ -1,0 +1,38 @@
+skill: angular
+
+should_trigger:
+  - prompt: "Migrate this Angular app from NgModules to standalone components."
+    why: "Standalone migration is central modern Angular work."
+  - prompt: "Why is my Angular view not updating in zoneless mode?"
+    why: "Zoneless change detection and signals are Angular-specific."
+  - prompt: "Replace *ngFor with @for and track expressions."
+    why: "Built-in control flow migration belongs to Angular."
+  - prompt: "Use input() signals instead of decorator @Input in this component."
+    why: "Signal inputs are Angular-specific."
+  - prompt: "Monta una app Angular con componente standalone y signals."
+    why: "Spanish Angular standalone/signals request triggers this skill."
+
+should_not_trigger:
+  - prompt: "Fix a React hook state bug."
+    route_to: "react"
+    why: "React hooks are not Angular."
+  - prompt: "Implement a Next.js server component."
+    route_to: "nextjs"
+    why: "Next.js App Router/RSC is a separate stack."
+  - prompt: "Explain TypeScript conditional types."
+    route_to: "typescript"
+    why: "Pure TypeScript without Angular belongs to TypeScript."
+  - prompt: "Build a NestJS backend module."
+    route_to: "nestjs"
+    why: "NestJS is backend DI; Angular is frontend framework."
+
+capability:
+  - scenario: "A brownfield Angular app uses NgModules, decorator inputs and Zone.js; the user wants a safe modern migration."
+    must_include:
+      - "Detects Angular version and brownfield vs greenfield before changing architecture."
+      - "Migrates incrementally to standalone components rather than rewriting everything."
+      - "Uses signals/input() and built-in @if/@for/@defer control flow where appropriate."
+      - "Explains zoneless change detection and avoids detectChanges() as a default patch."
+      - "Keeps providers in app.config.ts/provide* APIs for modern bootstrap."
+      - "Uses RxJS interop deliberately with toSignal/toObservable when needed."
+      - "Routes pure TypeScript or backend NestJS questions to those skills."

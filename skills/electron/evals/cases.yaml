@@ -1,0 +1,38 @@
+skill: electron
+
+should_trigger:
+  - prompt: "Build a desktop app for Mac and Windows from this web UI with Electron."
+    why: "Cross-platform desktop shell from web UI is core Electron."
+  - prompt: "Let my Electron renderer read a file safely."
+    why: "Safe OS capability exposure through preload/IPC belongs here."
+  - prompt: "Audit my Electron security: nodeIntegration, sandbox, CSP and preload."
+    why: "Electron security baseline is a central responsibility."
+  - prompt: "Package my Electron app with code signing and auto-update."
+    why: "Packaging, signing and auto-update are Electron shipping concerns."
+  - prompt: "Mi preload expone ipcRenderer y el renderer puede require('fs')."
+    why: "Spanish Electron preload/renderer security hole triggers this skill."
+
+should_not_trigger:
+  - prompt: "Build a smaller Rust-backed desktop shell with native webview."
+    route_to: "tauri"
+    why: "Tauri is explicitly not Electron."
+  - prompt: "Fix this React component state bug in the renderer UI."
+    route_to: "react"
+    why: "Renderer UI framework bugs are not Electron shell concerns."
+  - prompt: "Write a Node CLI script."
+    route_to: "nodejs"
+    why: "Pure Node.js scripting has no Electron process model."
+  - prompt: "Set up GitHub Actions matrix for releases."
+    route_to: "github-actions"
+    why: "CI workflow mechanics are a separate skill, though Electron may inform requirements."
+
+capability:
+  - scenario: "A user has an Electron renderer with nodeIntegration true and wants file access plus auto-update."
+    must_include:
+      - "Explains main/renderer/preload process boundaries and treats renderer as untrusted."
+      - "Keeps nodeIntegration false, contextIsolation true and sandbox true."
+      - "Exposes a narrow typed API through contextBridge in preload."
+      - "Routes privileged file operations through validated IPC to the main process."
+      - "Avoids exposing raw ipcRenderer or fs to the renderer."
+      - "Mentions packaging/signing/auto-update requirements separately from app code."
+      - "Flags supported Electron major/security patch posture."

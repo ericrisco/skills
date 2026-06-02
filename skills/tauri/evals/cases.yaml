@@ -1,0 +1,46 @@
+skill: tauri
+
+should_trigger:
+  - prompt: "Scaffold a new Tauri 2 desktop app with a React frontend"
+    why: Core greenfield scaffold (create-tauri-app + src-tauri/ wiring) — the starting-shape table this skill owns.
+  - prompt: "Expose a Rust function to my frontend and call it from JS with invoke"
+    why: The commands/IPC contract — #[tauri::command], generate_handler!, camelCase/snake_case mapping.
+  - prompt: "Stream download progress from Rust to the WebView as the bytes come in"
+    why: Non-obvious — the right answer is a Channel<T>, not emit/listen events; the word "Tauri" never appears.
+  - prompt: "Lock down my Tauri app so the frontend can only read its own config directory"
+    why: The capabilities -> permissions -> scoped fs glob ($APPCONFIG) security model.
+  - prompt: "Vull fer una app d'escriptori lleugera amb Rust en lloc d'Electron"
+    why: Catalan phrasing plus the Tauri-vs-Electron boundary (small Rust+OS-WebView shell) this skill is framed around.
+  - prompt: "My Tauri command froze the whole UI while it was reading a big file"
+    why: Symptom phrasing for the blocking-the-IPC-thread anti-pattern; fix is async/spawn.
+  - prompt: "Set up the Tauri updater so my signed releases can auto-update"
+    why: Updater plugin + signing keypair, part of the bundling/distribution surface.
+
+should_not_trigger:
+  - prompt: "Build a desktop app in Electron that uses Node fs in the main process"
+    route_to: electron
+    why: Needs Node APIs in a main process and bundled Chromium — Electron's domain, explicitly the boundary case.
+  - prompt: "Set up an Expo React Native mobile app with the dev client"
+    route_to: expo
+    why: Mobile-first RN stack; Tauri's mobile is a v2 add-on to a desktop web app, not Expo tooling.
+  - prompt: "Explain Rust async lifetimes and why my future isn't Send"
+    route_to: rust
+    why: A language question about async/Send, not the desktop shell, IPC bridge, or bundler.
+  - prompt: "Style my React component grid to fill the desktop window"
+    route_to: react
+    why: Web-UI styling inside the window; the frontend framework, not the Tauri shell.
+  - prompt: "Build a single Kotlin/Compose codebase that runs on Android and desktop"
+    route_to: compose-multiplatform
+    why: Native Kotlin/Compose multiplatform, not a Rust core + web WebView.
+
+capability:
+  - scenario: "Add a `read_config` command that returns Result<String, String>, register it so the frontend can invoke it, restrict the fs scope to the app config directory, and explain the difference between a capability and a permission."
+    must_include:
+      - "#[tauri::command] annotation on the function"
+      - "Result<String, String> return (fallible -> rejected JS promise, no unwrap/panic)"
+      - "Command registered in tauri::generate_handler![...] inside invoke_handler"
+      - "A capabilities/*.json file under src-tauri/capabilities/"
+      - "fs scope glob restricted to the app config dir (e.g. $APPCONFIG/*), not the whole FS"
+      - "Default-deny note: a window with no matching capability has zero IPC access"
+      - "Explains capability = grouping of windows that grants permissions; permission = a named command set whose scope bounds the data it touches"
+      - "Frontend invoke('read_config', { ... }) call with camelCase args"

@@ -1,0 +1,41 @@
+skill: svelte
+
+should_trigger:
+  - prompt: "When should I use $derived instead of $effect in my Svelte component?"
+    why: "Core runes decision — computed value vs side effect — the skill's center of gravity."
+  - prompt: "Migrate this Svelte 4 component using export let and $: to Svelte 5 runes."
+    why: "Svelte 4 to 5 migration needs the export let to $props and $: to $derived/$effect map."
+  - prompt: "My +page.server.ts load returns data but the page tries to read a secret on the client — how do I split this correctly?"
+    why: "Universal vs server load contract; a secret leaking into universal load is the canonical SvelteKit data mistake."
+  - prompt: "Add a login form action in SvelteKit with use:enhance that still works without JavaScript."
+    why: "Form actions with progressive enhancement, the default mutation pattern in SvelteKit."
+  - prompt: "I export a $state count from a .js file and it stops being reactive when other components import it."
+    why: "Non-obvious — must be a .svelte.js module exporting a stable container, not a reassigned let."
+  - prompt: "Per què el meu $state no es reactiu quan muto un array dins un component Svelte?"
+    why: "Catalan, non-English; reactivity gotcha around $state proxies and deep mutation."
+  - prompt: "I'm getting a hydration mismatch warning in my SvelteKit app after SSR — where do I start?"
+    why: "Non-obvious symptom phrasing; hydration mismatch is an SSR/CSR plus load-data debugging task this skill owns."
+
+should_not_trigger:
+  - prompt: "Set up React Server Components with server actions in my Next.js app."
+    route_to: "nextjs"
+    why: "Different framework, reactivity model, and data-loading contract; runes and RSC must not be crossed."
+  - prompt: "Write a generic TypeScript mapped type and conditional type for a deep-partial utility, no framework involved."
+    route_to: "typescript"
+    why: "Pure TypeScript typing with no Svelte or Kit dimension."
+  - prompt: "Configure Vercel project environment variables and the edge runtime for my deployment."
+    route_to: "vercel"
+    why: "Platform/deploy config. This skill picks the adapter; the platform skill owns env and edge."
+  - prompt: "Bind a Cloudflare KV and D1 namespace in wrangler.toml for my Worker."
+    route_to: "cloudflare"
+    why: "Platform binding config, not SvelteKit code."
+
+capability:
+  - scenario: "Build a SvelteKit /dashboard route: a server load that fetches the current user, a form action to update the display name, and a runes-based child component that shows a derived greeting from the name."
+    must_include:
+      - "+page.server.ts exporting both a typed load (PageServerLoad) and actions (Actions)."
+      - "PageData / ActionData typing imported from './$types'."
+      - "Current user read server-side (locals or DB) — no secret or DB client in a universal +page.ts."
+      - "<form method=\"POST\"> with use:enhance from '$app/forms'."
+      - "Form action returns fail(...) on invalid input and uses redirect(...) for navigation, both from '@sveltejs/kit'."
+      - "Child component uses let { ... } = $props() and a $derived greeting, not $effect."

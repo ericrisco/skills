@@ -1,0 +1,40 @@
+skill: phoenix
+
+should_trigger:
+  - prompt: "Build a LiveView CRUD page for products with a list, create form and delete."
+    why: Core LiveView use — mount/handle_event, streams, forms, verified routes.
+  - prompt: "How should I structure the Accounts context so my controllers stay thin?"
+    why: Context boundary — the central Phoenix mental model (web is a thin caller).
+  - prompt: "Set up passwordless / magic-link login with phx.gen.auth."
+    why: Phoenix 1.8 magic-link auth default plus the scope wiring it scaffolds.
+  - prompt: "My LiveView re-renders the entire message list every time one row is added — how do I fix it?"
+    why: Non-obvious symptom whose real fix is streams (off-socket collections); names no Phoenix API directly.
+  - prompt: "Every post in my loop fires a separate query for its author — how do I stop the N+1?"
+    why: Web-app data layer; Ecto preload. The symptom, not the API name, is the trigger.
+  - prompt: "Crea un context Comandes i un LiveView per gestionar-les amb accés per usuari."
+    why: Catalan trigger — context + LiveView + scope-based per-user access.
+
+should_not_trigger:
+  - prompt: "Design a supervision tree and restart strategy for a pool of workers."
+    route_to: elixir
+    why: Pure OTP/runtime — no web, Ecto or LiveView layer.
+  - prompt: "Add a GIN index and tune this slow Postgres query plan."
+    route_to: postgresdb
+    why: Raw SQL/index design below the Ecto line, framework-independent.
+  - prompt: "Containerize the release and deploy it to Fly.io."
+    route_to: fly-io
+    why: Shipping/runtime of the release, not Phoenix application code.
+  - prompt: "Build the REST API in Django with DRF serializers."
+    route_to: django
+    why: A different web framework, explicitly named — not Phoenix.
+
+capability:
+  - scenario: "Implement a Catalog context managing a Product schema plus a LiveView index, scoped to the current user's org, with a create form and tests."
+    must_include:
+      - "Context functions are the public API; the LiveView/controller never calls Repo or builds a query directly"
+      - "Ecto.Changeset casts and validates (required fields, price > 0) at the boundary"
+      - "The scope (current user/org) is threaded into every context function and applied inside the query (where org_id ==), not in a post-fetch if"
+      - "LiveView uses stream/stream_insert for the product list, not a full-list assign"
+      - "Form uses to_form/2 and renders changeset errors on {:error, changeset}"
+      - "Verified routes (~p sigil) used for links/redirects, not hardcoded path strings"
+      - "Phoenix.LiveViewTest with live/2 and render_submit/render_click; context logic tested with DataCase"

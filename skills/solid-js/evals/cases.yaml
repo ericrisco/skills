@@ -1,0 +1,38 @@
+skill: solid-js
+
+should_trigger:
+  - prompt: "My SolidJS signal is not updating the UI."
+    why: "Signal reads/writes and UI tracking are core SolidJS."
+  - prompt: "Should I use <For> or <Index> for this Solid list?"
+    why: "Solid list control flow choice belongs here."
+  - prompt: "createEffect is looping forever in my Solid component."
+    why: "Solid effects and dependency tracking are specific to this skill."
+  - prompt: "Why does my Solid component body only run once?"
+    why: "Solid's run-once component model is the central mental model."
+  - prompt: "Mi prop no se actualiza al desestructurar en Solid."
+    why: "Spanish props destructuring/reactivity trap triggers SolidJS."
+
+should_not_trigger:
+  - prompt: "Fix this React hook dependency array."
+    route_to: "react"
+    why: "React hook/re-render model is not Solid."
+  - prompt: "Implement a Next.js server action."
+    route_to: "nextjs"
+    why: "Next.js App Router/RSC belongs to nextjs."
+  - prompt: "Migrate this Svelte 4 component to Svelte 5 runes."
+    route_to: "svelte"
+    why: "Svelte runes are a different compiler/reactivity model."
+  - prompt: "Deploy this frontend to Vercel."
+    route_to: "vercel"
+    why: "Deployment target specifics belong to Vercel/deployment."
+
+capability:
+  - scenario: "A SolidJS component destructures props, uses count instead of count(), and has a createEffect that derives state."
+    must_include:
+      - "Explains that Solid component functions run once and tracked getter reads drive updates."
+      - "Reads signals with count() and writes with the setter/updater form."
+      - "Avoids destructuring reactive props in a way that freezes values."
+      - "Uses plain derived functions or createMemo for derived values instead of effect-set-state."
+      - "Chooses <For> vs <Index> based on item identity/stability."
+      - "Keeps React mental-model advice out of Solid code."
+      - "Flags Solid 2.0 beta vs stable 1.9 API differences when relevant."

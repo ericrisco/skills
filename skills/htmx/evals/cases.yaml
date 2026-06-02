@@ -1,0 +1,38 @@
+skill: htmx
+
+should_trigger:
+  - prompt: "Swap a server-rendered partial into a div on click with htmx."
+    why: "Verb/target/swap-driven htmx interaction is canonical."
+  - prompt: "Return an HTML fragment on HX-Request and a full page otherwise."
+    why: "Branching full page vs fragment is core htmx server contract."
+  - prompt: "Update the cart count and drawer from one htmx response."
+    why: "Out-of-band swaps for multi-region updates belong here."
+  - prompt: "Build a live search box without React using server-rendered HTML."
+    why: "Active search via hx-trigger and server fragments is htmx."
+  - prompt: "Intercambiar un fragmento HTML del servidor sin montar una SPA."
+    why: "Spanish hypermedia/no-SPA wording triggers htmx."
+
+should_not_trigger:
+  - prompt: "Build a client-side SPA with routes and global state."
+    route_to: "react"
+    why: "Client-state-heavy SPA work is not htmx."
+  - prompt: "Structure this FastAPI router and dependency injection."
+    route_to: "fastapi"
+    why: "Server framework internals are separate from htmx fragment contracts."
+  - prompt: "Audit generic XSS and CSP for this app."
+    route_to: "secure-coding"
+    why: "Generic security review belongs to secure-coding."
+  - prompt: "Write browser E2E tests for this flow."
+    route_to: "testing-web"
+    why: "Test mechanics belong to testing skills; htmx defines the interaction contract."
+
+capability:
+  - scenario: "A server-rendered app needs live search, inline edit, and cart counter updates without a SPA."
+    must_include:
+      - "Returns HTML fragments for UI requests, not JSON."
+      - "Uses hx-get/post/put/delete with explicit hx-target and hx-swap where defaults are wrong."
+      - "Branches on HX-Request so direct navigation still returns a full page."
+      - "Uses hx-trigger modifiers for debounce/reveal/polling instead of custom JavaScript."
+      - "Uses hx-swap-oob for multi-region updates from one response."
+      - "Keeps server as source of truth for application state."
+      - "Routes server framework, security and accessibility details to matching skills when needed."

@@ -1,0 +1,40 @@
+skill: compose-multiplatform
+
+should_trigger:
+  - prompt: "Set up a Kotlin Multiplatform project that shares one Compose UI across Android and iOS."
+    why: Core use — shared commonMain @Composables across platforms, the center of the skill.
+  - prompt: "My `expect fun` compiles fine but the iOS build complains there's no `actual` — how do I fix it?"
+    why: Non-obvious — orphaned expect/actual is a CMP build trap surfacing only on the iOS target.
+  - prompt: "How do I embed a native MapKit/SwiftUI view inside my shared Compose screen using UIKitView?"
+    why: Non-obvious native interop — the iOS UIKitView factory / injected-interface pattern.
+  - prompt: "Compartir la UI entre Android i iOS amb Kotlin, una sola base de codi."
+    why: Catalan phrasing for sharing UI across Android/iOS with Kotlin — the core CMP use.
+  - prompt: "Where should the platform-specific date formatter live — commonMain or androidMain/iosMain?"
+    why: Source-set placement decision — the 'where does this code go' table is the skill's daily question.
+  - prompt: "Add a desktop target to my Compose Multiplatform app and package it with jpackage."
+    why: Desktop breadth — application {} window + packageDistributionForCurrentOS, JDK 17+ floor.
+
+should_not_trigger:
+  - prompt: "Build a native Android-only app with Jetpack Compose and publish it to the Play Store."
+    route_to: kotlin-android
+    why: Single-platform native Android — no shared multiplatform module, Play Store specifics.
+  - prompt: "I'm writing a SwiftUI app in Xcode and need help with App Store code signing."
+    route_to: swift-ios
+    why: Single-platform native iOS — SwiftUI/Xcode/signing, not shared Kotlin Compose.
+  - prompt: "Build a cross-platform mobile UI with Flutter widgets and the flutter CLI."
+    route_to: flutter
+    why: Dart/Flutter cross-platform, not Kotlin/Compose Multiplatform.
+  - prompt: "Create a cross-platform desktop app with a Rust core and a web-tech UI."
+    route_to: tauri
+    why: Rust desktop shell with web UI, not a Kotlin/CMP shared tree.
+
+capability:
+  - scenario: "Scaffold a shared-UI KMP project (a `shared` module plus Android and iOS app hosts), add an `expect`/`actual` `platformName()`, share one @Composable greeting screen across platforms, and embed a native map via `UIKitView` injected through a common interface."
+    must_include:
+      - "shared module whose commonMain holds the shared @Composable greeting screen"
+      - "Compose Multiplatform plugin (org.jetbrains.compose) and Kotlin 2.1.0+ in the build (2.2.x recommended; K2 floor)"
+      - "expect fun platformName() in commonMain with an actual in BOTH androidMain and iosMain"
+      - "no platform import (android.*, platform.UIKit) leaking into commonMain"
+      - "native view embedded via UIKitView fed by an injected common interface, not a raw expect @Composable"
+      - "host wiring named: ComposeUIViewController for iOS and setContent for Android"
+      - "notes iOS is Stable since CMP 1.8.0 and Web is only Beta (1.9), not production"

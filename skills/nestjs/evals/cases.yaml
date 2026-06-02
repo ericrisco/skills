@@ -1,0 +1,38 @@
+skill: nestjs
+
+should_trigger:
+  - prompt: "Create a NestJS module with a controller, provider and repository provider."
+    why: "Feature modules/controllers/providers are core NestJS mechanics."
+  - prompt: "Should this auth guard be APP_GUARD or @UseGuards on the controller?"
+    why: "Guard binding scope is a Nest-specific cross-cutting decision."
+  - prompt: "My request-scoped provider is undefined inside a Nest guard."
+    why: "DI scope and lifecycle issues belong to NestJS."
+  - prompt: "Mock a repository provider with overrideProvider in a Nest test."
+    why: "TestingModule and overrideProvider are Nest-specific testing APIs."
+  - prompt: "Monta un modulo de Nest con JWT guard y pipes de validacion."
+    why: "Spanish Nest module plus guards/pipes triggers this skill."
+
+should_not_trigger:
+  - prompt: "Build a bare Express route with no DI container."
+    route_to: "nodejs"
+    why: "Bare Express without Nest modules/providers is Node.js, not NestJS."
+  - prompt: "Design REST status codes and idempotency for this API."
+    route_to: "api-design"
+    why: "Framework-agnostic API design belongs elsewhere."
+  - prompt: "Design the Postgres schema for orders."
+    route_to: "postgresdb"
+    why: "Database schema design is not a Nest DI/module concern."
+  - prompt: "Fix a generic TypeScript conditional type."
+    route_to: "typescript"
+    why: "Pure TypeScript typing belongs to the TypeScript skill."
+
+capability:
+  - scenario: "A user asks to add a NestJS Orders module with a service, controller, injected repository, validation pipe and tests."
+    must_include:
+      - "Defines a feature module boundary and keeps AppModule thin."
+      - "Wires providers through Nest DI rather than manually new-ing dependencies."
+      - "Chooses provider form (useClass/useValue/useFactory/useExisting) by intent."
+      - "Places guards/pipes/interceptors at the right scope and respects request lifecycle order."
+      - "Uses Test.createTestingModule and overrideProvider for unit tests."
+      - "Routes schema/query design to database skills when needed."
+      - "Avoids circular dependencies or uses forwardRef only as a last resort."
