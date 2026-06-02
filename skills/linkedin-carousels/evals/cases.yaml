@@ -1,0 +1,62 @@
+skill: linkedin-carousels
+
+# Prompts that MUST load `linkedin-carousels`. The skill owns the SLIDES of a
+# swipeable LinkedIn document post: the cover hook, the narrative arc, one idea
+# per slide with real hierarchy, a CTA closer, and the PDF export spec. It does
+# NOT own the account plan (linkedin-strategy), the text feed post
+# (linkedin-content), the API upload (linkedin-api), or a 16:9 talk deck
+# (presentations).
+should_trigger:
+  - prompt: "Turn this blog post into a LinkedIn carousel — I want the slides laid out."
+    why: "Core job: transform a source into a slide-by-slide swipeable document post."
+
+  - prompt: "My carousel cover slide gets no swipes. Fix the hook."
+    why: "Non-obvious — a symptom, no word 'design'. Cover-hook repair is the highest-leverage thing the skill owns (the swipe-to-slide-2 bet)."
+
+  - prompt: "Design a swipeable PDF document post about onboarding: cover + 6 points + CTA."
+    why: "Explicit slide build with cover/interior/CTA structure — the exact deliverable."
+
+  - prompt: "What size should I export my LinkedIn carousel PDF at so it isn't cropped on mobile?"
+    why: "Non-obvious — sounds like a tooling question, but canvas/safe-area/PDF export is squarely in this skill's design spec."
+
+  - prompt: "My slides are crammed with bullets and there's no story — restructure one idea per slide with an arc."
+    why: "Structure + hierarchy repair: the one-idea-per-slide rule and narrative arc are core."
+
+  - prompt: "Convierte este post en un carrusel de LinkedIn amb portada i CTA."
+    why: "Spanish/Catalan phrasing for the core job — design a carousel with a cover and CTA."
+
+# NEAR-MISS prompts that must NOT load `linkedin-carousels`. Each routes to the
+# real sibling that owns it. The recurring trap: anything that touches LinkedIn
+# but is the account plan, the feed copy, the API, or a spoken-to deck.
+should_not_trigger:
+  - prompt: "Write me a LinkedIn text post with a strong hook line about remote work."
+    route_to: linkedin-content
+    why: "A single block of feed copy with no slides is the text/single-image post — owned by linkedin-content, not a multi-slide document."
+
+  - prompt: "Plan my LinkedIn content for the quarter — which formats and how often to post."
+    route_to: linkedin-strategy
+    why: "Account-level format/cadence/niche planning is the strategy, not the design of one deck."
+
+  - prompt: "Design a 16:9 deck for my conference talk with a speaker track."
+    route_to: presentations
+    why: "A spoken-to talk deck (landscape, speaker support) is presentations; a carousel is a portrait phone-read document, opposite reading context."
+
+  - prompt: "Schedule and auto-publish this carousel to LinkedIn via the API."
+    route_to: linkedin-api
+    why: "Programmatic upload/scheduling is linkedin-api; this skill stops at the designed PDF spec."
+
+  - prompt: "Define our brand colors and fonts for all our content."
+    route_to: brand-identity
+    why: "The reusable color/type/logo system is brand-identity; the carousel consumes that kit, it does not author it."
+
+# CAPABILITY: prove the skill changes the output, not just routing.
+capability:
+  - scenario: "Turn the topic 'why most onboarding flows lose users in week one' into a designed LinkedIn carousel, producing the full slide-by-slide spec plus the export spec."
+    must_include:
+      - "A cover slide with a curiosity/benefit headline (a stake/payoff, not a topic label), one dominant element, white space, and an explicit swipe cue — engineered to win the swipe-to-slide-2 bounce."
+      - "A named narrative arc (e.g. problem -> reveal -> payoff) with each interior slide mapped to it and ending on a small open loop that pulls to the next slide."
+      - "One focused idea per interior slide — a single headline line, not a multi-point bullet dump."
+      - "Total slide count in the 6-12 band (~8), with the length justified by the arc resolving, not by a quota."
+      - "A CTA closer slide that restates the payoff and makes one explicit ask tied to it (save/comment), not a bare 'follow me'."
+      - "A design/export spec: portrait 1080x1350 (or 1080x1080 fallback), ~880x880 safe area with ~80 px padding, >=28 px type floor, export to PDF (1 slide = 1 page, < 10 MB), and a phone-preview / font-substitution check."
+      - "A one-line feed caption starter whose first line restates the cover hook, with the handoff to linkedin-content for full caption tuning noted."

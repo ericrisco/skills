@@ -1,0 +1,62 @@
+skill: linkedin-content
+
+# Prompts that MUST load `linkedin-content`. The skill owns THE WORDS of one
+# LinkedIn feed post — text, document/carousel copy (cover + slides + caption),
+# or a native-video script + caption — written to earn dwell and comments. It
+# does NOT plan what/when to post (linkedin-strategy), design the carousel
+# pixels (linkedin-carousels), write DMs/connection notes (linkedin-outreach),
+# or publish via API (linkedin-api).
+should_trigger:
+  - prompt: "Write a LinkedIn post about how we cut onboarding from 3 weeks to 3 days."
+    why: "Core job — turn a raw before→after story into a finished text post with hook, arc, and comment-CTA."
+
+  - prompt: "My hook is weak — rewrite the first three lines so people actually click 'see more'."
+    why: "Non-obvious: the user names the symptom (first three lines / see more), not the skill. The ~150-char hook rule and the Bad→Good hook table answer it directly."
+
+  - prompt: "Turn this into a LinkedIn document/carousel — give me the cover line and the slide copy."
+    why: "Document-post TEXT (cover + per-slide copy + caption) is owned here; only the slide layout/export belongs to linkedin-carousels."
+
+  - prompt: "Write a 45-second native-video script and the caption that goes with it."
+    why: "Native-video format (30–90s beats + caption) is one of the three formats this skill writes."
+
+  - prompt: "Give me a CTA that gets comments, not 'thoughts?'."
+    why: "Non-obvious phrasing — the comment-earning CTA + the dead-CTA banlist exist for exactly this; comments weigh ~15x likes."
+
+  - prompt: "fes-me un post de LinkedIn amb ganxo sobre el llançament"
+    why: "Catalan trigger — same skill regardless of language; the hook rules and arc apply."
+
+  - prompt: "Should the link go in the post or in the first comment?"
+    why: "Non-obvious: the body-link ~60% reach hit AND the now-dead first-comment workaround are a load-bearing fact this skill owns."
+
+should_not_trigger:
+  - prompt: "Plan my LinkedIn content calendar and pillars for next month."
+    route_to: linkedin-strategy
+    why: "What/when/cadence is strategy; this skill only writes the words of one post inside that plan."
+
+  - prompt: "Design the actual carousel slides — layout and visuals — and export the PDF."
+    route_to: linkedin-carousels
+    why: "Pixels, not copy. linkedin-content writes the slide TEXT; the visual deck and export are linkedin-carousels."
+
+  - prompt: "Write connection requests and a DM follow-up sequence for these prospects."
+    route_to: linkedin-outreach
+    why: "Outbound 1:1 messages, not a public feed post — different playbook entirely."
+
+  - prompt: "Programmatically schedule and publish this post via the LinkedIn API."
+    route_to: linkedin-api
+    why: "Shipping/automation, not writing; the API integration is linkedin-api."
+
+  - prompt: "Define our durable LinkedIn brand tone and the words we never use."
+    route_to: brand-voice
+    why: "The reusable voice the copy must obey is brand-voice; this skill consumes that voice to write one post, it doesn't define it."
+
+capability:
+  - scenario: "Given a rough story — 'we lost our biggest client and here's what I learned about retention' — produce a finished, ready-to-paste LinkedIn text post."
+    must_include:
+      - "A hook in the first ~150 characters with specificity or tension and NO greeting / no 'excited to share'."
+      - "The hook's first line reads complete on its own (won't truncate mid-clause on mobile)."
+      - "A clear hook → turn → payoff → CTA arc."
+      - "Total length lands ~1,300–1,900 characters (or a justified shorter length, not padded)."
+      - "Mobile line breaks: 1–2 sentence paragraphs with blank lines between blocks — no wall of text."
+      - "A comment-earning CTA that asks what only the reader can answer — never 'thoughts?' / 'agree?'."
+      - "No link in the body, and no 'link in first comment' suggestion."
+      - "A note about working the golden hour (reply fast, seed a question in the first 60–90 min)."

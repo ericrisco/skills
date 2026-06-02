@@ -1,0 +1,3 @@
+# Evals — linkedin-api
+
+These cases are routing and capability specs, not live integration tests. `should_trigger` and `should_not_trigger` are checked by the eval harness against this skill's description and body — does the skill fire on its own asks and stay quiet on copy/strategy/outreach/generic-connector asks that belong to a sibling. The `capability` case is a rubric: run the scenario against the skill and confirm the produced plan or code mentions every line in `must_include`. No live LinkedIn API calls happen here — there is no network, no token, and no real org page; the headers, version, and wiki-file shape are verified as text, and the artifact contract is enforced separately by `scripts/verify.sh`.

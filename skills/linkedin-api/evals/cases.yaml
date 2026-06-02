@@ -1,0 +1,41 @@
+skill: linkedin-api
+
+should_trigger:
+  - prompt: "Connect our Next.js app to the LinkedIn Posts API and publish to our company page."
+    why: "Core connector ask — versioned /rest/posts, org author URN, the two required headers. The transport job this skill owns."
+  - prompt: "We keep getting unauthorized scope w_organization_social when users connect their org page."
+    why: "Non-obvious: the message is not a typo, it means the Community Management / MDP product is not yet approved. This skill maps the symptom to the product-approval fix."
+  - prompt: "Pull last month's impressions and engagement for our LinkedIn org posts and save them somewhere we can reference."
+    why: "Analytics read (organizationalEntityShareStatistics) plus the wiki ingest deliverable under 02-DOCS/wiki/linkedin/."
+  - prompt: "Migrate our /v2/ugcPosts publishing to the new versioned endpoint."
+    why: "Non-obvious migration: ugcPosts is deprecated; move to /rest/posts with Linkedin-Version + X-Restli-Protocol-Version."
+  - prompt: "Conectar la API de LinkedIn y traer las impresiones de los posts."
+    why: "Spanish; OAuth + share statistics pull — squarely the transport surface this skill owns."
+  - prompt: "Our publish returns 403 ACCESS_DENIED even though the app has w_organization_social — what's wrong?"
+    why: "Non-obvious: scope authorizes the app, page role authorizes the person; missing ADMINISTRATOR/CONTENT_ADMIN/DSC role causes the 403."
+
+should_not_trigger:
+  - prompt: "Write me a punchy LinkedIn post about our launch."
+    route_to: linkedin-content
+    why: "Copy and hooks for one post — content meaning, not bytes over HTTP."
+  - prompt: "Plan our LinkedIn posting cadence and pillars for Q3."
+    route_to: linkedin-strategy
+    why: "The plan — what to post and when — not the wire."
+  - prompt: "Set up an automated DM sequence to new connections."
+    route_to: linkedin-outreach
+    why: "The 1:1 layer; this skill is organic publishing and analytics, not messaging."
+  - prompt: "Build a generic OAuth2 connector scaffold for a REST API I picked."
+    route_to: api-connector-builder
+    why: "Arbitrary-provider connector with no LinkedIn specifics; this skill is deep on LinkedIn's endpoints/scopes/URNs."
+
+capability:
+  - scenario: "Take an app from zero to a logged result: complete 3-legged OAuth, resolve the org author URN, publish a document post (Documents API upload -> document URN -> Posts API), pull organizationalEntityShareStatistics, and write 02-DOCS/wiki/linkedin/<post-id>.md with the metric front-matter."
+    must_include:
+      - "sends both required headers: Linkedin-Version and X-Restli-Protocol-Version: 2.0.0"
+      - "pins version 202605 (not the sunset 202505)"
+      - "sets lifecycleState: PUBLISHED in the post body"
+      - "reads the new post URN from the x-restli-id response header"
+      - "uploads the document via the Documents API to get urn:li:document: then references it in content.media.id"
+      - "notes share statistics are organic-only over a rolling 12-month window"
+      - "writes the wiki file with post_urn, captured_at, impressions, and engagement keys"
+      - "reads token and client_secret from env, never committed to the repo"
