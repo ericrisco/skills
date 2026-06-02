@@ -1,6 +1,9 @@
 ---
 name: harness
 description: "Use when you want to control, govern or maintain the harness of a workspace — software OR a non-code base (a company, an ops desk, a personal knowledge vault). The harness is the CONTROL PLANE: the `01-TOOLS/` operational tooling layer + the `02-DOCS/` Karpathy chaos→knowledge engine + the root Knowledge map. Triggers: 'control the harness', 'gestiona el arnés', 'manage 01-TOOLS and 02-DOCS', 'audit my workspace', 'audita mi proyecto', 'procesa el inbox', 'sal a pasear', migrating numbered `XX-*` folders into the canonical structure, detecting external provider integrations (Stripe, Mailjet, Hetzner, Firebase, OAuth, Postgres…) and scaffolding connection-ready tools, generating root `CLAUDE.md`/`AGENTS.md`, or consolidating scattered docs into a living wiki. `/rsc-core:init` is the bootstrap front door; THIS skill is the ongoing control. Brownfield-first; greenfield is the degenerate case."
+tags: [harness, company, ops, docs, wiki, connect, tools, knowledge]
+recommends: [init]
+profiles: [minimal, core, full]
 ---
 
 # Harness — the workspace control plane

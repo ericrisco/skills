@@ -1,6 +1,9 @@
 ---
 name: specify
 description: "Use when a feature, change, or product idea is still fuzzy and needs to become a written spec BEFORE any planning or code — turn a one-line intent into a WHAT/WHY specification (problem, goals, users, scope, behaviour, acceptance criteria) with zero implementation detail. Triggers: 'write a spec for…', 'spec this out', 'especifica esta feature', 'I want to add X but haven't thought it through', 'capture requirements for…', 'what should this feature do', 'draft a PRD', 'define the feature before we build', kicking off an SDD feature after the constitution exists, or any moment someone jumps to HOW before WHAT is agreed. Asks ONE focused question at a time only where it cannot infer, then writes 02-DOCS/wiki/sdd/specs/<slug>.md and marks open points to clarify. NOT the technical plan (that's `plan`), NOT the de-risking ambiguity sweep (that's `clarify`), NOT project-wide principles (that's `constitution`)."
+tags: [sdd, spec, requirements]
+recommends: [clarify, plan]
+profiles: [core, full]
 origin: risco
 ---
 

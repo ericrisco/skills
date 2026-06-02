@@ -1,6 +1,8 @@
 ---
 name: presentations
 description: "Use when building a presentation deck — a pitch deck, sales deck, product/keynote talk, investor deck, board/QBR review, or a leave-behind one-pager — and you need a stunning, on-brand result exported to PDF and/or an editable PPTX. Covers two production pipelines: design-led Markdown decks (Marp/Slidev themed from the project's design tokens, exported to PDF + PPTX) and native editable PowerPoint via python-pptx (masters, layouts, native charts, tables, speaker notes). Grounds copy in the brand study and visuals in the design tokens; defers the WORDS to `marketing` and the visual system to `design`. Triggers: 'make a deck', 'build a pitch/sales/investor deck', 'slides for my talk', 'turn this doc into slides', 'export to PowerPoint/PPTX', 'Marp', 'Slidev', 'python-pptx', 'keynote deck', 'one-pager'. NOT a video skill (motion is used with restraint, not as the medium)."
+tags: [presentations, pptx, slides, deck]
+recommends: [marketing]
 origin: risco
 ---
 

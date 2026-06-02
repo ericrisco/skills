@@ -1,6 +1,9 @@
 ---
 name: parallel
 description: "Use when you have two or more genuinely independent pieces of work and want to fan them out across subagents instead of doing them one after another — disjoint scope, no shared files or state, no ordering dependency, then gather and reconcile the results. Triggers: 'do these in parallel', 'fan this out', 'split this across subagents', 'run these at the same time', 'these tasks are independent, parallelize them', 'dispatch agents for each module', 'hazlo en paralelo', 'reparte esto en subagentes', 'a la vez'. The on-demand SDD helper that implement calls when its task list has disjoint clusters; it owns the partition→dispatch→gather→reconcile discipline. NOT for sequential or data-dependent steps (serialize those), NOT the TDD loop itself (that stays inside implement), NOT git isolation (that's worktrees)."
+tags: [parallel, subagents, fanout]
+recommends: []
+profiles: [core, full]
 origin: risco
 ---
 

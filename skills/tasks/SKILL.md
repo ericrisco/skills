@@ -1,6 +1,9 @@
 ---
 name: tasks
 description: "Use when you have an approved implementation plan and need to break it into an ordered, independently-verifiable task list before any code is written — the SDD `tasks` phase (GitHub Spec Kit lineage: constitution → specify → clarify → plan → tasks → analyze → implement). Turns a plan into numbered tasks, each with an explicit done-check (the literal command or observation that proves it complete), dependencies, and a parallel-safe marker. Triggers: 'break the plan into tasks', 'make a task list', 'task breakdown', 'descompón el plan en tareas', 'lista de tareas', 'what are the steps to build this', 'turn the plan into a checklist', 'sequence the work', 'which tasks can run in parallel', 'give each task a done-check'. Appends the task list into the plan artifact under 02-DOCS/wiki/sdd/plans/<slug>.md. NOT writing the plan itself (that is `plan`), NOT the consistency gate over the artifacts (that is `analyze`), NOT executing the tasks (that is `implement`)."
+tags: [sdd, tasks, breakdown]
+recommends: [analyze, implement]
+profiles: [core, full]
 origin: risco
 ---
 

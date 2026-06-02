@@ -1,6 +1,8 @@
 ---
 name: go
 description: "Use when writing, reviewing, testing, securing, or shipping Go code or HTTP services - Go idioms (simplicity, useful zero value, accept-interfaces/return-structs, functional options, embedding), error wrapping with %w and errors.Is/As, goroutines/channels/context/errgroup concurrency, net/http with Go 1.22 routing, log/slog structured logging, graceful shutdown, cmd/-internal/-pkg/ layout, table-driven tests with httptest/-race/fuzz, and govulncheck/SQL-parametrization security. Triggers - \"write a Go service/handler\", \"review this Go code\", \"add tests\", \"fix a goroutine leak\", \"is this idiomatic Go\", .go files, go.mod, net/http, slog, chi, errgroup."
+tags: [go, golang, http, backend, service]
+recommends: [postgresdb, secure-coding, deployment]
 origin: risco
 ---
 

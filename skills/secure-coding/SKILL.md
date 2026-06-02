@@ -1,6 +1,8 @@
 ---
 name: secure-coding
 description: "Use when threat-modeling a feature, reviewing code or a diff for security, hardening authentication/authorization, handling secrets, configuring CORS/CSP/security headers, or fixing OWASP-class vulnerabilities (broken access control, injection, SSRF, auth failures, supply-chain) in FastAPI/Python, Go, Next.js, or Flutter. Triggers: 'security review', 'threat model this', 'is this safe', 'harden auth', 'rotate secrets', 'fix this vuln', 'OWASP', 'why is this endpoint exposed', before merging an endpoint that touches auth/payments/PII/uploads."
+tags: [security, owasp, stride, auth, review]
+recommends: [deployment]
 origin: risco
 ---
 

@@ -1,6 +1,9 @@
 ---
 name: ship
 description: "Use when the work is complete and verified and it is time to CLOSE the development branch — the final phase of the rsc SDD chain, after review approves the diff. Triggers: 'ship it', 'close the branch', 'open the PR', 'merge this', 'merge into main', 'create the pull request', 'how do I land this work', 'finish this feature', 'haz el merge', 'abre el PR', 'cierra la rama', 'súbelo a main', 'clean up the branch', 'I'm done, what now'. Presents exactly three landing options (direct merge / pull request / park-or-discard) matched to the workflow, runs the pre-ship safety checklist (review verdict, clean tree, rebased, no secrets), and writes the commit and PR. HARD RULE: git authorship is ALWAYS Eric — never Claude. No Co-Authored-By Claude, no 'generated with' footer in any commit or PR body. NOT running lint/type/test (that is verify), NOT reading the diff adversarially (that is review), NOT the deploy/release mechanics to a server (that is deployment). Honors the harness accompaniment dial."
+tags: [sdd, ship, release, pr]
+recommends: []
+profiles: [core, full]
 origin: risco
 ---
 

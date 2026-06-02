@@ -1,6 +1,9 @@
 ---
 name: review
 description: "Use when giving OR receiving an adversarial code review in the rsc SDD chain — after implement/verify and before ship. Triggers: 'review this PR', 'review my diff', 'revisa este código', 'critique this change', 'be my reviewer', 'tear this apart', 'what's wrong with this code', plus the receiving side: 'the reviewer said X', 'address this review comment', 'they want me to change Y', 'do I have to do what the review says', 'PR feedback', 'someone left comments on my PR'. Covers the full loop: producing a rigorous, evidence-backed review keyed to the spec/plan/constitution under 02-DOCS/wiki/sdd/, AND processing incoming feedback with technical rigor — verify each finding against the code before agreeing, push back on the wrong ones, fix the real ones. NOT running lint/type/test gates (that's the verify phase) and NOT merging/closing the branch (that's ship). No performative agreement; points to ship when the diff survives review."
+tags: [sdd, review, code-review]
+recommends: [ship]
+profiles: [core, full]
 origin: risco
 ---
 

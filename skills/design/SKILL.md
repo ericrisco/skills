@@ -1,6 +1,8 @@
 ---
 name: design
 description: "Use when designing a modern UI, building/writing a high-converting landing page or web page, refreshing a hero, choosing type/color/spacing/motion, or making an interface feel premium instead of generic/AI-templated. Brand-grounded: reads the project's 02-DOCS brand study first and STOPS to interview the user if it is missing or incomplete. Research-first: studies award-winning current work (Awwwards, Godly, Land-book, Refactoring UI, Linear/Stripe/Vercel/Resend-tier) and pulls current 2026 trends with citations before prescribing. Ships Tailwind v4 + Next.js 15 + React 19 patterns with correctly-stated WCAG 2.2 AA and Core Web Vitals (LCP/INP/CLS) as hard design constraints; ties to 'marketing' for the words and 'nextjs' for the build. Triggers: 'design a landing page', 'build a web page', 'make this look premium', 'pick a color palette', 'this UI feels generic', 'bento section', 'design review', 'modern UI'."
+tags: [design, ux, ui, landing, conversion]
+recommends: [nextjs, marketing]
 origin: risco
 ---
 

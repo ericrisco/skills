@@ -1,6 +1,9 @@
 ---
 name: clarify
 description: "Use when a spec exists and you need to de-risk it BEFORE planning — hunt the ambiguities, unstated assumptions, edge cases, and underspecified areas, ask the user the high-leverage questions, then bake the answers back into the spec. The fourth phase of the rsc SDD chain (constitution → specify → clarify → plan → tasks → analyze → implement → verify → review → ship). Triggers: 'clarify the spec', 'what's ambiguous here', 'poke holes in this spec', 'is this spec ready to plan', 'aclara el spec', 'qué falta en este spec', 'review the requirements before we build', 'de-risk before planning', 'what questions should I answer first', 'this spec feels vague', a spec under 02-DOCS/wiki/sdd/specs/ heading into planning, or a plan that keeps stalling on unknowns. Reads the spec + constitution + harness profile; writes resolved answers back into the same spec file. NOT spec authoring (specify) and NOT the technical plan (plan)."
+tags: [sdd, clarify, questions]
+recommends: [plan]
+profiles: [core, full]
 origin: risco
 ---
 

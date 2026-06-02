@@ -1,6 +1,8 @@
 ---
 name: nextjs
 description: "Use when building, reviewing, testing, securing, or optimizing a Next.js App Router app (Next.js 15/16, React Server Components, \"use client\"/\"use server\", server actions, route handlers, layouts, streaming/Suspense, the App Router caching model, TypeScript, Auth.js, Vitest/Playwright, CSP/security headers). Triggers on `app/` directory work, `next.config.ts`, `proxy.ts`/`middleware.ts`, server actions, route handlers, `use cache`, `useActionState`, RSC boundary questions, hydration errors, and Next.js perf/Core Web Vitals."
+tags: [nextjs, react, frontend, web, seo, ssr]
+recommends: [design, secure-coding, deployment]
 origin: risco
 ---
 

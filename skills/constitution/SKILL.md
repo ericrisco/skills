@@ -1,6 +1,9 @@
 ---
 name: constitution
 description: "Use when capturing or revising a project's non-negotiable principles — its stack canon, quality bars, naming/structure conventions, branching/commit rules, testing thresholds, security and accessibility floors, the things every later phase must obey. This is the FIRST rsc-sdd phase, run once per project (then amended). Writes/updates 02-DOCS/wiki/sdd/constitution.md and links it from the root CLAUDE.md Knowledge map; reconciles with conventions the harness already holds under 02-DOCS/wiki/stack/*. Triggers: 'set the project principles', 'define our engineering standards', 'establecer las reglas del proyecto', 'project constitution', 'what are our non-negotiables', 'lock the stack canon', 'quality bar', 'coding standards doc', 'amend the constitution', 'ratify principle', 'definition of done for the repo'. NOT a feature spec (that's specify) and NOT an implementation plan (that's plan)."
+tags: [sdd, constitution, principles]
+recommends: [specify]
+profiles: [core, full]
 origin: risco
 ---
 

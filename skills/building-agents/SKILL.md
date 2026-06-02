@@ -1,6 +1,8 @@
 ---
 name: building-agents
 description: "Use when designing or building an LLM agent, tool-using system, RAG pipeline, eval harness, or MCP server in this repo — across any provider (OpenAI, Anthropic, Google Gemini, or OSS via OpenAI-compatible endpoints / litellm). Triggers: 'build an agent', 'add tool calling / function calling', 'structured JSON output', 'RAG / retrieval / embeddings / rerank', 'agent loop / ReAct / orchestrator-worker / multi-agent', 'LLM eval / golden set / LLM-as-judge / regression gate', 'prompt caching / model routing / token budget / cost control', 'trace / observability for LLM calls', 'build an MCP server', or 'make our LLM code provider-agnostic / swap models'. FastAPI/Python, Next.js, Go, Flutter, Postgres stacks."
+tags: [agents, llm, mcp, rag, evals, ai]
+recommends: [secure-coding, deployment]
 origin: risco
 ---
 

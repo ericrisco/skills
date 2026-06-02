@@ -1,6 +1,9 @@
 ---
 name: sdd
 description: "Use when you want a disciplined, spec-driven path from a feature idea to shipped, verified software — the rsc-sdd dispatcher / front door. It states the SDD method, reads the accompaniment dial from 02-DOCS, and routes to the right phase skill: constitution -> specify -> clarify -> plan -> tasks -> analyze -> implement -> verify -> review -> ship, with debug / worktrees / parallel callable on demand. Use it to START a feature, when unsure which SDD phase you are in, or to govern the whole flow. Triggers: 'spec-driven development', 'sdd', 'build this feature properly', 'start a new feature', 'I have an idea, take it to production', 'which phase am I in', 'run the sdd flow', 'desarrollo dirigido por especificación', 'monta esta feature bien', 'de la idea a producción'. NOT itself a single phase (it dispatches), NOT the workspace harness (/rsc-core:harness), NOT a stack build skill."
+tags: [sdd, spec, workflow, plan]
+recommends: [constitution, specify]
+profiles: [core, full]
 origin: risco
 ---
 

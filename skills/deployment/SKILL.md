@@ -1,6 +1,8 @@
 ---
 name: deployment
 description: "Use when containerizing an app, writing a Dockerfile, setting up GitHub Actions CI/CD, choosing a deploy target, or deploying to Coolify, Vercel, or a Hetzner VPS — multi-stage builds (FastAPI/uv, Go/distroless, Next.js standalone, Flutter web, Postgres), BuildKit build secrets, image scanning (trivy/hadolint), OIDC to registries (no long-lived secrets), least-privilege GITHUB_TOKEN, zero-downtime/rolling deploys, env/secrets flow GitHub→Coolify, healthchecks, rollback, and a hosting decision matrix (Vercel vs Hetzner+Coolify vs a third option). Trigger phrases: 'dockerize', 'write a Dockerfile', 'CI pipeline', 'GitHub Actions', 'deploy', 'ship it', 'where should I host this', 'Coolify', 'Vercel', 'Hetzner', 'VPS', 'docker-compose for local dev'."
+tags: [deploy, docker, ci, github-actions, coolify]
+recommends: [secure-coding]
 origin: risco
 ---
 
