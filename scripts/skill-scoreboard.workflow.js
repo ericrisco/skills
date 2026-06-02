@@ -6,7 +6,19 @@ export const meta = {
   ],
 }
 
-const ids = Array.isArray(args) ? args : (args && Array.isArray(args.skills) ? args.skills : [])
+function parseIds(a) {
+  if (Array.isArray(a)) return a
+  if (a && Array.isArray(a.skills)) return a.skills
+  if (typeof a === 'string') {
+    const s = a.trim()
+    if (s.startsWith('[')) {
+      try { const p = JSON.parse(s); if (Array.isArray(p)) return p } catch (_) { /* fall through */ }
+    }
+    return s.split(/[\s,]+/).filter(Boolean)
+  }
+  return []
+}
+const ids = parseIds(args)
 if (ids.length === 0) throw new Error('skill-scoreboard: pass an array of skill ids as args, e.g. ["debug","grants"]')
 
 phase('Score')
