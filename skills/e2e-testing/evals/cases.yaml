@@ -1,0 +1,64 @@
+skill: e2e-testing
+
+# Prompts that MUST load e2e-testing. This skill owns driving a real browser
+# through user journeys with Playwright and keeping those tests deterministic:
+# durable locators, web-first assertions, storageState auth, retries/trace, and
+# the flakiness playbook. Flakiness is the non-obvious core — half the reason
+# e2e exists as a discipline is that the tests rot into reruns otherwise.
+should_trigger:
+  - prompt: "Write a Playwright test for the login then checkout flow."
+    why: "A multi-step journey across auth and pages in a real browser is the canonical e2e case; the skill drives the locator/assertion/auth choices."
+
+  - prompt: "My e2e tests pass locally but flake on CI — how do I make them deterministic?"
+    why: "Non-obvious core: flakiness is the central failure mode of e2e, and the skill carries the named-pattern playbook (route-after-goto, networkidle, read-once, storageState leak)."
+
+  - prompt: "How do I set up storageState so I don't log in through the UI on every test?"
+    why: "Auth via a setup project that writes session JSON and dependent projects loading it is exactly the storageState recipe this skill owns."
+
+  - prompt: "Should I use getByRole or a CSS selector for this submit button?"
+    why: "Locator strategy — the role>label/text>testId>CSS ladder and the 2026 removal of _react/_vue — is core e2e judgment."
+
+  - prompt: "Els tests d'extrem a extrem fallen aleatòriament al pipeline, com els estabilitzo?"
+    why: "Catalan for 'the end-to-end tests fail randomly in the pipeline' — flaky CI e2e, the skill's central concern."
+
+  - prompt: "How do I shard my Playwright suite across CI machines and merge the reports?"
+    why: "Scale-out via --shard with blob reports merged by merge-reports is the CI section of this skill."
+
+  - prompt: "Strict mode says my locator resolved to 2 elements — how do I fix it the right way?"
+    why: "Non-obvious: the fix is tightening the locator, not .first(); recognizing strict mode as a caught ambiguity is e2e locator discipline."
+
+# NEAR-MISS prompts that must NOT load e2e-testing. Each routes to a sibling that
+# exists in the catalog. The trap: not every test or browser-shaped task is a
+# real-browser user journey kept deterministic.
+should_not_trigger:
+  - prompt: "Write a Vitest component test for my Button component."
+    route_to: testing-web
+    why: "An in-process component/unit test rendered without a real browser round-trip belongs to testing-web; driving a browser here would be slow and pointless."
+
+  - prompt: "Add pytest tests for my FastAPI orders service."
+    route_to: testing-py
+    why: "Python backend unit/integration testing is testing-py; there is no browser journey to drive."
+
+  - prompt: "Audit this page for WCAG accessibility violations and fix the ARIA issues."
+    route_to: accessibility
+    why: "When the deliverable is the a11y audit itself, it is accessibility; e2e may call axe inside a test but auditing is not its job."
+
+  - prompt: "Set up the GitHub Actions runner matrix and dependency caching for the whole repo."
+    route_to: github-actions
+    why: "Owning the pipeline — runners, caching, matrices — is github-actions; e2e only contributes a test job."
+
+# One end-to-end scenario graded WITH vs WITHOUT the skill. A skill-guided answer
+# builds for determinism from the start (user-facing locators, web-first
+# assertions, storageState setup project, trace-on-retry, no sleeps); an
+# ungrounded answer reaches for CSS/XPath, read-once asserts, waitForTimeout,
+# and reruns to mask the flake.
+capability:
+  - scenario: "An authenticated checkout e2e suite flakes intermittently in CI but passes locally. Stabilize it: write a representative test, the playwright.config.ts, the auth setup, and the CI job."
+    must_include:
+      - "User-facing locators (getByRole/getByLabel/getByTestId) for the journey; no XPath, no :nth-child chains, no removed _react/_vue/:light engines."
+      - "Web-first assertions (await expect(locator).toHaveText/toBeVisible/toHaveURL) — never expect(await locator.textContent())."
+      - "Auth via a setup project writing session JSON, dependent projects loading it with storageState and dependencies:['setup'], one file per role, .auth/ gitignored and regenerated per CI run."
+      - "playwright.config.ts with retries: process.env.CI ? 2 : 0 and use:{ trace: 'on-first-retry' }, baseURL, and a projects array including the setup project."
+      - "No waitForTimeout anywhere; waits on locator assertions, waitForURL, or waitForResponse subscribed BEFORE the action, and route mocks registered before goto."
+      - "CI job runs npx playwright install --with-deps, runs the suite (optionally --shard with blob report + merge-reports), and uploads trace + HTML report as artifacts."
+      - "Treats the flake as a cause to diagnose (open the trace first, measure as a rate) rather than papering over it with retries or sleeps."

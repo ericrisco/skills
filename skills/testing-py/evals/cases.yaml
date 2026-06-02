@@ -1,0 +1,44 @@
+skill: testing-py
+
+should_trigger:
+  - prompt: "Write a pytest suite for this payment parser, with fixtures and a coverage gate."
+    why: "Core duty: authoring a real pytest suite with fixtures and meaningful coverage."
+  - prompt: "My mock passes but the real function is broken — why doesn't the test catch it?"
+    why: "Non-obvious: the false-green symptom of patch-at-the-wrong-place and missing autospec, without the user naming either."
+  - prompt: "Coverage says 95% but we keep shipping bugs in the error path."
+    why: "Branch-coverage gap — line coverage lies about the unhit except/else arm; this skill's posture is --cov-branch."
+  - prompt: "Add property-based tests for our base64 encoder/decoder."
+    why: "Hypothesis roundtrip property over an input space a fixed matrix can't cover."
+  - prompt: "Mis tests comparten estado entre ejecuciones y fallan aleatoriamente."
+    why: "Spanish + non-obvious: fixture scope / autouse state-leak diagnosis described by symptom, not tool."
+  - prompt: "Com mockejo la crida HTTP a Stripe en aquest mòdul de Python?"
+    why: "Catalan: mocking a boundary in a Python module — patch-where-used + autospec the client."
+
+should_not_trigger:
+  - prompt: "Write Playwright tests for the checkout flow across three pages."
+    route_to: "e2e-testing"
+    why: "Real browser, multi-page user flow — that is end-to-end, not pytest unit/integration."
+  - prompt: "Add Vitest tests for my React hook with React Testing Library."
+    route_to: "testing-web"
+    why: "JS/TS unit tests in the frontend toolchain, not Python/pytest."
+  - prompt: "Write table-driven tests for my Go service using testify."
+    route_to: "testing-go"
+    why: "Non-Python: Go's testing package and testify are owned by testing-go."
+  - prompt: "Refactor this Python module to be more idiomatic and add type hints."
+    route_to: "python"
+    why: "Language idiom and typing, not test technique; python carries the baseline."
+  - prompt: "Review my PR for correctness bugs across the diff."
+    route_to: "code-review"
+    why: "General correctness review of a diff, not authoring or fixing a test suite."
+
+capability:
+  - scenario: "A module does `from httpx import Client` and calls `Client().get(url)`, raising on a
+      non-200 status. Write a unit test that mocks the HTTP call correctly, plus a coverage command
+      that proves the untested error branch is caught. Include at least one error-path test."
+    must_include:
+      - "patches the name in the module under test (the use site, e.g. mymod.Client), NOT httpx.Client globally — or injects the client as a dependency"
+      - "uses autospec=True / create_autospec so a wrong signature or typo'd method fails the test"
+      - "the coverage command includes --cov-branch (or the config sets branch = true)"
+      - "asserts on the return value / observable behavior, not on mock private internals like _mock_calls"
+      - "mentions a strict posture: --strict-markers and/or --strict-config (or the pytest 9 strict_* aliases)"
+      - "at least one negative/error-path test (e.g. raises on non-200), not only the happy path"

@@ -1,0 +1,47 @@
+skill: performance
+
+should_trigger:
+  - prompt: "My LCP is 4.2s on mobile in Search Console — how do I fix it?"
+    why: "Direct Core Web Vitals failure at the field level; the canonical reason to reach for performance and attribute LCP to a subpart."
+  - prompt: "First Load JS is 800KB — what's making the bundle so big?"
+    why: "Bundle-size analysis; the body's analyze-before-cut loop with the treemap is exactly this."
+  - prompt: "Typing in this search box feels laggy and our INP is failing."
+    why: "INP / long-task; non-obvious because it reads as a UI complaint, but it's the >50ms task model."
+  - prompt: "The page content jumps around while it loads and it's annoying."
+    why: "CLS described by symptom without naming the metric — performance reserves space to fix it."
+  - prompt: "We import all of lodash just to use debounce — is that why the bundle is huge?"
+    why: "Non-obvious tree-shaking / whole-library trap; a named anti-pattern in the body."
+  - prompt: "A 'use client' at the top of our route is shipping the whole server tree to the browser — how do we cut First Load JS?"
+    why: "Non-obvious RSC boundary discipline; performance owns the measure-cut loop, framework idioms defer to nextjs."
+  - prompt: "La pàgina carrega molt lenta i no passa els Core Web Vitals, per on començo?"
+    why: "Catalan — slow load failing CWV, the heart of the skill (measure field p75 first)."
+  - prompt: "El bundle pesa demasiado, hay que analizarlo antes de tocar nada."
+    why: "Spanish — analyze-before-cutting the bundle, the skill's prime directive applied to bundle size."
+
+should_not_trigger:
+  - prompt: "Will the site survive the launch traffic spike on Monday?"
+    route_to: scaling
+    why: "Concurrency / capacity survival for many requests at once, not single-request speed."
+  - prompt: "This query does a sequential scan in production — how do I index it?"
+    route_to: postgresdb
+    why: "Query plan / index fix itself; performance only attributes 'TTFB is the bottleneck' and names the query."
+  - prompt: "Our cache stampedes the origin on every deploy — make it single-flight."
+    route_to: redis
+    why: "Cache correctness / race-freedom; performance decides what to cache, redis makes it race-free."
+  - prompt: "What's the idiomatic way to structure data fetching in the App Router?"
+    route_to: nextjs
+    why: "Framework-canonical data pattern, not the cross-cutting measure-fix-remeasure loop."
+  - prompt: "When should I reach for useReducer vs useState in this component?"
+    route_to: react
+    why: "Idiomatic React state design, not a profiled render-cost problem with a measured target."
+
+capability:
+  - scenario: "A product page has a field LCP of 3.8s and First Load JS of 600KB on mobile. Make it fast."
+    must_include:
+      - "Measures first — reads field CWV at the 75th percentile (CrUX/RUM) for the real problem, then a Lighthouse/DevTools lab trace for the why, before changing code."
+      - "Attributes LCP to a specific subpart (TTFB / load delay / load duration / render delay) and names the dominant one in one sentence before fixing."
+      - "Names a concrete LCP fix tied to that subpart — e.g. preload + fetchpriority=high / next-image priority / stop lazy-loading the hero — not a generic 'optimize images'."
+      - "Analyzes the bundle with a named tool (@next/bundle-analyzer or source-map-explorer) and reads the treemap before cutting anything."
+      - "Proposes a concrete bundle cut — replace/remove a heavy dep, dynamic import() for non-critical UI, or fix a whole-library import — in payoff order."
+      - "Does NOT blanket-memoize React components (notes React 19 compiler auto-memoizes) and does not guess fixes without the profile."
+      - "Re-measures against the numeric targets (LCP ≤ 2.5s field p75 and a bundle budget) and stops at 'good' rather than gold-plating."

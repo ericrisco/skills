@@ -1,0 +1,44 @@
+skill: testing-go
+
+should_trigger:
+  - prompt: "Turn these three near-identical test functions into a table-driven test with subtests."
+    why: Core table-driven refactor — the canonical reason this skill exists.
+  - prompt: "Benchmark this hashing function and tell me if my change actually made it faster."
+    why: Benchmarks + benchstat comparison; non-obvious that this is testing-go and not the general go skill.
+  - prompt: "My parallel subtests are flaky and sometimes pick up the wrong test case data."
+    why: Loop-variable / parallel-isolation symptom; the fix (Go 1.22 scope, drop tt := tt) is testing-go knowledge, and the phrasing names a symptom, not the tool.
+  - prompt: "Necesito testear código con goroutines y timeouts sin que el test tarde 5 segundos."
+    why: Spanish; deterministic concurrency/time testing via testing/synctest and a fake clock.
+  - prompt: "How do I get cross-package coverage and an HTML report out of go test?"
+    why: Coverage profile workflow (-coverpkg, -coverprofile, go tool cover -html).
+  - prompt: "Mock the payment client interface so this Go service test doesn't hit the network."
+    why: Test doubles for Go — routes here (fake/httptest), not to go; non-obvious because user said "mock".
+  - prompt: "Add a fuzz test for my Go URL parser so it doesn't panic on garbage input."
+    why: Fuzzing parsers/untrusted input with FuzzXxx — squarely testing-go.
+
+should_not_trigger:
+  - prompt: "How should I structure error handling and generics in this Go package?"
+    route_to: go
+    why: Language design and idioms, not test code.
+  - prompt: "Write pytest fixtures and parametrize for my Python API."
+    route_to: testing-py
+    why: Wrong ecosystem — Python test tooling.
+  - prompt: "Add Playwright tests for the checkout flow across multiple pages."
+    route_to: e2e-testing
+    why: Browser-driven multi-page user journey, past the process boundary.
+  - prompt: "Set up Vitest and Testing Library for my React component."
+    route_to: testing-web
+    why: Frontend/component unit tests, different runtime.
+  - prompt: "Review this Go diff for bugs before I merge it."
+    route_to: review
+    why: General code review of a diff, not authoring test code.
+
+capability:
+  - scenario: "Given a Go RateLimiter that uses a time.Ticker and exposes fetch(ctx context.Context) (Resp, error) calling an HTTP backend, write a test suite for it."
+    must_include:
+      - Table-driven cases with named subtests run via t.Run(tc.name, ...)
+      - Uses testing/synctest (or an injected fake clock) for the ticker/timeout path, with no real time.Sleep to synchronize
+      - t.Parallel() where safe, and does NOT add a gratuitous tt := tt copy (notes Go 1.22 per-iteration loop scope)
+      - A hand-written interface fake or net/http/httptest server for the HTTP dependency, not a mock framework by default
+      - Runs with -race for the concurrent path and shows a go test -coverprofile / cross-package coverage command
+      - A benchmark using for b.Loop() with b.ReportAllocs() rather than a b.N loop

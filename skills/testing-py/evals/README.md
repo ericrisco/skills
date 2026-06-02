@@ -1,0 +1,5 @@
+# Evals — testing-py
+
+`cases.yaml` is the behavioral spec for this skill. `should_trigger` lists prompts the skill must own (pytest authoring, the false-green mock symptom, branch-coverage gaps, Hypothesis properties, fixture state leaks, plus Spanish and Catalan phrasings). `should_not_trigger` lists nearby prompts that must route to a real sibling (`e2e-testing`, `testing-web`, `testing-go`, `python`, `code-review`) so the boundary stays sharp. `capability` is a single end-to-end scenario with a `must_include` rubric covering the load-bearing claims: patch-at-the-use-site, autospec, branch coverage, behavior-not-internals assertions, the strict posture, and an error-path test.
+
+There is no automated runner here. To evaluate manually, give a fresh agent each `should_trigger` / `should_not_trigger` prompt and confirm it engages or routes as the `why`/`route_to` says; then run the `capability` scenario and grade the output against every `must_include` line. To check the shipped gate, run `scripts/verify.sh path/to/tests` — it is read-only, exits 0 on a clean or empty tree, and prints `file:line` for any banned pattern.
