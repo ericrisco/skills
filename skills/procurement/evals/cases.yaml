@@ -1,0 +1,49 @@
+skill: procurement
+
+should_trigger:
+  - prompt: "Help me choose between three vendors for our packaging supply."
+    why: Core supplier-selection ask — the weighted comparison and award decision this skill owns.
+  - prompt: "Write an RFQ to send to suppliers for 5,000 units."
+    why: Sourcing-request generation; an RFQ with disclosed criteria and a deadline is a primary artifact.
+  - prompt: "Which of these two quotes is actually cheaper over three years?"
+    why: Non-obvious — reads like simple arithmetic but is the TCO / sticker-price trap; the cheaper unit often loses.
+  - prompt: "Should I pay this supplier invoice early to get the 2/10 net 30 discount?"
+    why: Non-obvious — looks like an AP payment question but is the early-payment-discount procurement math (~37.2% annualized).
+  - prompt: "We buy a critical component from only one supplier — how worried should I be?"
+    why: Single/sole-source concentration risk and the backup-plan requirement.
+  - prompt: "Negociar mejores condiciones de pago con nuestro proveedor."
+    why: Spanish trigger — payment-terms negotiation, trading a concession for extended terms.
+  - prompt: "Compara aquests proveïdors i munta una scorecard ponderada per decidir."
+    why: Catalan trigger — weighted-scorecard supplier comparison.
+
+should_not_trigger:
+  - prompt: "Draft and redline the purchase agreement so we can sign it."
+    route_to: contracts
+    why: Binding legal instrument with liability/IP clauses and signature — not the buy decision.
+  - prompt: "What price should we charge our customers for this product?"
+    route_to: pricing
+    why: Our outbound price and margins, not selecting or negotiating with a supplier.
+  - prompt: "How many units do we have left and when do we hit the reorder point?"
+    route_to: inventory
+    why: Stock levels and reorder math once goods are on hand, not the buy decision.
+  - prompt: "Find the cheapest carrier to ship this pallet to Madrid."
+    route_to: logistics-ops
+    why: Freight and carrier choice after we've decided to buy, not supplier selection.
+  - prompt: "Record and pay this supplier bill in our books."
+    route_to: bookkeeping
+    why: Recording the AP entry and paying the bill, not choosing the supplier or the terms.
+
+capability:
+  - scenario: >
+      An operator has three supplier quotes for a recurring input (5,000 units/yr).
+      Quotes differ on unit price, freight, lead time, payment terms, support
+      cost, and minimum order quantity, and the operator currently buys almost
+      everything from one of the three. Ask the skill to recommend a supplier and
+      the terms to negotiate.
+    must_include:
+      - segments the buy on the Kraljic 2x2 (impact x supply risk) before picking a tactic
+      - builds a weighted scorecard with criteria weights summing to 100 and predefined criteria
+      - computes total cost of ownership (freight, support, downtime, lead-time impact) rather than ranking on unit price
+      - evaluates payment terms with the annualized early-payment-discount math (e.g. 2/10 net 30 ≈ 37.2%) where relevant
+      - flags the concentration / single-source risk and asks for or states a written backup plan
+      - hands signing off to contracts and stock tracking off to inventory rather than doing them here

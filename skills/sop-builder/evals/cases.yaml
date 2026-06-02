@@ -1,0 +1,48 @@
+skill: sop-builder
+
+should_trigger:
+  - prompt: "Can you help me write an SOP for how we publish the weekly newsletter?"
+    why: Direct ask for the core artifact — a standard operating procedure for a recurring task.
+  - prompt: "Every time Maria goes on holiday the refund process breaks because nobody else knows how she does it."
+    why: Non-obvious. The bus-factor symptom of a process living in one head, with no SOP keyword present.
+  - prompt: "I recorded a Loom of me doing the month-end close — turn it into a written procedure."
+    why: The recording-as-source capture path; recording-to-SOP is a named fast path.
+  - prompt: "Documenta este proceso paso a paso para que cualquiera del equipo lo pueda hacer."
+    why: Spanish trigger — document this process step by step so anyone on the team can run it.
+  - prompt: "Our team does the client handoff differently every time and the results are inconsistent — standardize it."
+    why: Standardization-from-inconsistency symptom, no SOP keyword; the core when-to-use.
+  - prompt: "This SOP is two years old, nobody follows it, and it has no exception handling — fix it."
+    why: The audit/rewrite path — a stale SOP past the 18-month staleness line, missing its branches.
+
+should_not_trigger:
+  - prompt: "Write up what we decided in today's standup and the action items."
+    route_to: meeting-notes
+    why: Recording a moment's decisions and actions, not documenting a repeatable procedure.
+  - prompt: "Build the project plan with milestones and owners for the Q3 launch."
+    route_to: project-ops
+    why: A one-time effort with an end date and milestones, not a recurring routine.
+  - prompt: "Write the help-center article explaining how customers reset their password."
+    route_to: technical-writing
+    why: External reader and product surface — a help doc, not an internal operating procedure.
+  - prompt: "Now automate this documented process with a webhook and a script."
+    route_to: automation-flows
+    why: Building the automation from steps, not capturing and writing the procedure.
+  - prompt: "Set up the new hire's first-week onboarding checklist and accounts."
+    route_to: people-ops
+    why: One specific employee's onboarding tracker, not the reusable procedure they follow.
+
+capability:
+  - scenario: >
+      Given a messy transcript of someone describing how they triage and respond to
+      inbound sales leads — containing two hidden decision points (lead size routing,
+      and a "spam/not-a-real-lead" filter) and one exception (CRM is down) — produce
+      a usable SOP.
+    must_include:
+      - Picks the SOP altitude (who/what/when), not a keystroke-level work instruction.
+      - Names exactly one accountable owner and sets a next-review date.
+      - Chooses a format that matches the branching flow (decision table or flowchart with inline if/then), not a flat numbered list.
+      - Surfaces and writes BOTH decision branches explicitly (lead-size routing and the spam filter).
+      - Writes the exception with a named escalation target and a stop/proceed condition (CRM down).
+      - Writes steps in active voice with one action each and a named actor.
+      - Includes a change-log / version stub.
+      - Does NOT invent steps absent from the source transcript; flags gaps instead of backfilling.

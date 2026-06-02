@@ -1,0 +1,49 @@
+skill: invoicing
+
+should_trigger:
+  - prompt: "Send an invoice to Acme for the 12 hours of consulting we did this month."
+    why: Core case — cut and send a billing document for delivered work.
+  - prompt: "Emite una factura para este cliente con el IVA desglosado."
+    why: Spanish phrasing for issuing an invoice with a per-rate VAT breakdown.
+  - prompt: "This invoice is 3 weeks overdue — what should I send to chase it?"
+    why: Dunning — running the get-paid escalation on an overdue invoice.
+  - prompt: "Our invoice numbers jump from 0042 to 0044 — is that a problem?"
+    why: Non-obvious — the legality of gap-free sequential numbering, not an obvious 'invoice' phrasing.
+  - prompt: "Do we need to switch to structured e-invoices for our French B2B clients next year?"
+    why: Jurisdiction gate — e-invoicing mandate readiness (France phased from Sep 2026).
+  - prompt: "Crear un presupuesto for a prospect before we start the project."
+    why: Quote/estimate path in Spanish (presupuesto) — a pre-debt document this skill issues.
+  - prompt: "I need to issue a credit note for the invoice I already sent last week."
+    why: Corrective/credit-note flow against a finalized invoice.
+
+should_not_trigger:
+  - prompt: "Record this paid invoice in our accounts and reconcile the bank line."
+    route_to: bookkeeping
+    why: Recording money against the books, not issuing or collecting it.
+  - prompt: "Wire up the Stripe webhook so invoice.paid updates our database."
+    route_to: webhooks
+    why: Integration plumbing / event handling, not the billing document.
+  - prompt: "What hourly rate should we charge this new client?"
+    route_to: pricing
+    why: Setting the price, not billing an amount already agreed.
+  - prompt: "Draft the statement of work and engagement terms for this project."
+    route_to: contracts
+    why: The agreement the invoice bills against, not the invoice.
+  - prompt: "Write the proposal that pitches this project to win the deal."
+    route_to: proposals
+    why: Pre-sale persuasion before money is owed, not the bill.
+  - prompt: "Get the client to e-sign the agreement before we begin."
+    route_to: e-signature
+    why: Capturing a signature, not issuing a billing document.
+
+capability:
+  - scenario: "Issue a legally-valid VAT invoice for a Spain-based B2B sale and set up a dunning sequence."
+    must_include:
+      - A unique, gap-free sequential invoice number
+      - Supplier VAT id and customer VAT id (B2B)
+      - Per-rate VAT breakdown (net base + rate + VAT amount) and a total
+      - Issue date and a due date with payment terms (default 30 days B2B/B2G)
+      - Flags the Spain Verifactu QR / Crea y Crece structured-format obligation and its timeline
+      - A day-based dunning cadence (e.g. D+1 / D+7 / D+15 / D+30)
+      - Cites the statutory late-payment lever — ECB reference rate + 8 percentage points and the fixed EUR 40 recovery cost
+      - Does NOT attempt to record the invoice in the books — defers that to bookkeeping

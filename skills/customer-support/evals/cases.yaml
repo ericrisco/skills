@@ -1,0 +1,61 @@
+skill: customer-support
+
+# Prompts that MUST load `customer-support`. The skill handles a LIVE ticket:
+# triage (priority + intent) -> SLA clock -> draft on-voice reply -> de-escalate
+# -> escalate with a handoff packet. It never writes the KB article, the
+# onboarding flow, the retention program, or the auto-answer bot.
+should_trigger:
+  - prompt: "A customer just emailed saying our app is down and they're losing money — how should I handle this ticket?"
+    why: "Core P1 path: triage to critical, acknowledge fast inside the FRT window, then escalate to engineering with a handoff packet."
+
+  - prompt: "Give me a set of canned replies for the most common support questions."
+    why: "The macro skeleton library is a named deliverable — ready replies the agent finishes, not verbatim templates."
+
+  - prompt: "This user is threatening to cancel and leave a bad review — draft a reply."
+    why: "Non-obvious: the word 'support' never appears, but a churn-risk de-escalation reply on a single live ticket is exactly this skill (not the retention program)."
+
+  - prompt: "Redacta una respuesta para un cliente enfadado que lleva 3 días sin contestación."
+    why: "Spanish for 'draft a reply for an angry customer who's gone 3 days without a response' — de-escalation plus an SLA breach, both owned here."
+
+  - prompt: "What first-response and resolution times should we promise for high vs low priority tickets?"
+    why: "Setting tiered FRT and resolution SLA targets by priority is a named use; the P1–P4 matrix is the artifact."
+
+  - prompt: "Tracta aquest ticket de suport i decideix si l'escalo a un humà."
+    why: "Catalan for 'triage this support ticket and decide whether to escalate it to a human' — triage plus the escalation call, the spine of the skill."
+
+# NEAR-MISS prompts that must NOT load `customer-support`. Each routes to the
+# sibling that owns it. Trap: anything that BUILDS the asset around the ticket
+# (the doc, the bot, the program, the voice guide) instead of handling the ticket.
+should_not_trigger:
+  - prompt: "Write the help-center article explaining how to reset a password."
+    route_to: "technical-writing"
+    why: "Authoring the KB doc is technical-writing; customer-support only consumes the KB to answer a ticket and links the article."
+
+  - prompt: "Set up the welcome flow for customers who just signed up."
+    route_to: "client-onboarding"
+    why: "New-customer activation and welcome sequence is client-onboarding, not an inbound support ticket."
+
+  - prompt: "Build a chatbot that auto-answers support questions from our docs."
+    route_to: "chatbot"
+    why: "Building the autonomous auto-answer bot is chatbot (+ rag); this skill defines the human/assisted playbook, not the bot."
+
+  - prompt: "Define our brand's tone of voice guidelines."
+    route_to: "brand-voice"
+    why: "Authoring the reusable voice spec is brand-voice; customer-support only applies that voice to a reply."
+
+  - prompt: "Design a win-back email campaign for customers who churned last quarter."
+    route_to: "retention"
+    why: "A renewal/win-back program is retention; customer-support handles only the single churn-risk ticket in the moment."
+
+# CAPABILITY: graded against the rubric, not routing. The reply must be triaged
+# AND answered, not just classified.
+capability:
+  - scenario: "A P1 ticket: an enterprise VIP customer emails that CSV export has been throwing 500 errors since 9am, it's blocking their month-end close, they are angry and have said they'll cancel. Triage and draft how you'd handle it."
+    must_include:
+      - "Assigns P1 (critical) priority and names a first-response target in the 15–30 min range"
+      - "Acknowledges fast and sets an update time BEFORE promising a resolution or ETA"
+      - "De-escalates: acknowledges the frustration, first-person ownership, no banned phrase like 'calm down' or naked 'per our policy'"
+      - "Does NOT invent a fix, root cause, or ETA it cannot verify — offers the next update time instead"
+      - "Flags escalation to tier-2/engineering and includes a handoff packet (summary + steps tried + customer sentiment + collected variables)"
+      - "Names a metric to watch for this ticket (CSAT or FCR), not NPS"
+      - "Reply has no leftover {{placeholder}} and includes at least one personalized line specific to this ticket"

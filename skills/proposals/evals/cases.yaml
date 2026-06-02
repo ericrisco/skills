@@ -1,0 +1,53 @@
+skill: proposals
+
+should_trigger:
+  - prompt: "Write a commercial proposal for the Acme website redesign."
+    why: Core job — the persuasive, scoped, priced document a buyer reads to commit.
+  - prompt: "Draft a statement of work for the 8-week data-migration engagement."
+    why: The SOW is this skill's second artifact (scope, exclusions, acceptance criteria, terms).
+  - prompt: "Add Good/Better/Best tiers to this offer so the middle one wins."
+    why: Tiered presentation and anchoring — the three-tier pattern that lifts close rate ~23%.
+  - prompt: "Esta propuesta no cierra, ¿por qué? Haz que cierre."
+    why: Non-obvious + Spanish — diagnosing a non-closing proposal is a proposals job (exec summary, tiers, close), not pipeline tracking.
+  - prompt: "Scope this so the client can't keep adding work for free."
+    why: Non-obvious — the request is really for explicit exclusions + a change-order clause, the scope-creep defense.
+  - prompt: "Turn these discovery-call notes into a proposal."
+    why: Discovery-to-proposal is the canonical intake-to-artifact flow.
+  - prompt: "Necessito redactar l'abast del projecte i la proposta comercial per al client."
+    why: Catalan — SOW (abast) + commercial proposal, squarely this skill.
+
+should_not_trigger:
+  - prompt: "Draft the MSA and add liability and IP-assignment clauses."
+    route_to: contracts
+    why: Binding, enforceable legal terms — not the persuasive scoped doc.
+  - prompt: "What should we charge for this engagement and what's our margin?"
+    route_to: pricing
+    why: Deciding the number and the model, not presenting it in a proposal.
+  - prompt: "Build the slide deck to pitch this to their board."
+    route_to: pitch-deck
+    why: Visual narrative for a room, not a scoped/termed document.
+  - prompt: "The deal closed — send the invoice."
+    route_to: invoicing
+    why: Billing after the win, downstream of the proposal.
+  - prompt: "Set up follow-up reminders and move this deal to the negotiation stage."
+    route_to: sales-pipeline
+    why: Tracking and cadence, not authoring the document.
+  - prompt: "Write a cold email to get a first meeting with this prospect."
+    route_to: cold-outreach
+    why: First-touch messaging — there's no discovered need to scope yet.
+
+capability:
+  - scenario: >
+      Given short discovery notes — buyer problem ("support drowning in ~200
+      password/order-status tickets a week"), a rough budget band (~$30–60k), and a
+      6-week window — produce a complete proposal plus the SOW that annexes it.
+    must_include:
+      - Personalized executive summary structured problem -> solution -> outcome -> investment, using the buyer's own words, not a feature dump.
+      - Three outcome-named pricing tiers with the middle marked recommended.
+      - A scope section with an explicit EXCLUSIONS subsection naming what is out.
+      - Deliverables each with acceptance criteria a third party can judge pass/fail.
+      - A change-order clause requiring written approval with updated cost and dates.
+      - A payment schedule tied to milestones, not the calendar.
+      - A mutual-action-plan close with dated next steps, one concrete CTA, and a validity window.
+      - No weasel words (etc., as needed, and more, TBD, unbounded ongoing).
+      - No smuggled binding-legal clauses, with a note that those route to contracts and the MSA governs.

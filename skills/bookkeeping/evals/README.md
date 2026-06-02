@@ -1,0 +1,5 @@
+# Evals — bookkeeping
+
+These cases check that the skill activates on ledger-hygiene work (chart of accounts, categorizing a bank feed, double-entry posting, reconciliation, cash-vs-accrual) and stays out of the way for invoicing, pricing, forecasting, finance interpretation, and Stripe API work.
+
+How to run: there is no automated runner here — `cases.yaml` is read by the catalog's shared eval harness, or reviewed by hand. For each `should_trigger` prompt, confirm this skill would fire; for each `should_not_trigger`, confirm the request routes to the named sibling instead. For the `capability` case, run the scenario against the skill and grade the response against every line in `must_include` — all must be satisfied (correct five-category COA, debits=credits on every entry, owner draw as equity, loan principal as liability reduction, customer prepayment as unearned-revenue liability, and a reconcile-to-bank reminder). This is a process/judgment skill, so the capability rubric is the rigor mechanism — there is no `verify.sh`.

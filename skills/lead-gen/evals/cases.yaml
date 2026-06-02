@@ -1,0 +1,43 @@
+skill: lead-gen
+
+should_trigger:
+  - prompt: "Build me a list of 200 mid-market fintech CTOs in the EU we could sell to."
+    why: "Core list-building — named accounts/contacts against an ICP."
+  - prompt: "We have 500 inbound signups; which ones do we call first?"
+    why: "Prioritization is lead scoring — non-obvious because it reads like CRM/ops, but the deliverable is a tiered, ranked list."
+  - prompt: "Help me tighten our ICP, our reps keep chasing the wrong companies."
+    why: "ICP definition is phase 1 of this skill."
+  - prompt: "Is this cold prospect list legal to email under GDPR before we send?"
+    why: "The compliance gate (GDPR LIA, no scraped basis) is part of making a list ship-ready — non-obvious that lead-gen owns it, not a generic legal skill."
+  - prompt: "Necesito una lista de clientes potenciales para nuestro SaaS de logística."
+    why: "Spanish core trigger — build a target list of prospects."
+  - prompt: "A qui de la nostra base truquem primer, tenim 300 comptes sense prioritzar?"
+    why: "Catalan trigger — scoring/tiering an unprioritized account list."
+
+should_not_trigger:
+  - prompt: "Write the cold email sequence for these prospects."
+    route_to: cold-outreach
+    why: "Writing the message and cadence is cold-outreach; lead-gen stops at the scored list."
+  - prompt: "Move this lead to 'negotiation' and update the forecast."
+    route_to: sales-pipeline
+    why: "Tracking a lead through stages and forecasting is sales-pipeline, after first contact."
+  - prompt: "How big is the EU logistics-SaaS market and what segments exist?"
+    route_to: market-research
+    why: "Market sizing/segmentation with no named list is market-research."
+  - prompt: "Build a scraper to pull every company from this directory site."
+    route_to: data-scraper
+    why: "Building the extraction tool is data-scraper; lead-gen consumes sourced data, it does not build scrapers."
+  - prompt: "Set up SPF/DKIM and warm up our domain before we email the list."
+    route_to: email-deliverability
+    why: "DNS/auth and warm-up are email-deliverability, upstream of sending."
+
+capability:
+  - scenario: "Given an ICP and a raw 50-row enrichment export, produce a scored, tiered, compliance-cleared handoff list."
+    must_include:
+      - "A falsifiable ICP with at least one negative/disqualify criterion."
+      - "A composite score with fit/intent/engagement subscores summing to a 0–100 total."
+      - "A/B/C tiering tied to the score bands (A 90–100, B 75–89, C 60–74) with SLAs."
+      - "A per-row data-source/provenance field."
+      - "The 'intent without fit is noise' rule applied (low-fit rows not tiered A on intent)."
+      - "A compliance note (GDPR lawful basis OR CAN-SPAM opt-out/address) before handoff."
+      - "An explicit handoff statement to cold-outreach (A/B tiers) and sales-pipeline (accepted leads)."

@@ -1,0 +1,44 @@
+skill: pricing
+
+should_trigger:
+  - prompt: "What should I charge for my new SaaS plan?"
+    why: Core list-price decision — the central job of this skill.
+  - prompt: "Help me design good/better/best tiers for my tool."
+    why: Packaging and tier design, the GBB shape this skill owns.
+  - prompt: "Our reps keep discounting and we lose money — set a floor."
+    why: Non-obvious — sounds like sales ops, but it is margin protection (discount floor = list−floor), which is a pricing decision, not a pipeline one.
+  - prompt: "Cómo pongo precio a mi servicio de consultoría?"
+    why: Spanish, services pricing — same decision (number + shape) for a service offer.
+  - prompt: "Our AI feature's compute cost jumped, we need to reprice."
+    why: Non-obvious COGS-driven reprice — the AI-margin caveat (50-60% vs 80-90%) makes the cost floor load-bearing here.
+  - prompt: "Should we go per-seat or usage-based?"
+    why: Pricing-model choice, an explicit step in the spine.
+  - prompt: "Quin preu poso al meu nou pla i com el empaqueto?"
+    why: Catalan — list price plus packaging, the two outputs of this skill.
+
+should_not_trigger:
+  - prompt: "Send the customer their invoice for last month."
+    route_to: invoicing
+    why: Charging the money and formatting the bill, not deciding the number.
+  - prompt: "Create the products and prices in Stripe."
+    route_to: stripe
+    why: Implementing prices in a billing system, not setting them.
+  - prompt: "Is our price profitable after CAC and payback?"
+    route_to: unit-economics
+    why: Validating the number across the acquisition funnel, not setting the number.
+  - prompt: "Write the priced proposal for Acme Corp."
+    route_to: proposals
+    why: A document for one named buyer, not the price-card decision.
+  - prompt: "Forecast next year's revenue at this price."
+    route_to: forecasting
+    why: Projecting revenue from a price, not choosing the price.
+
+capability:
+  - scenario: "Operator has a service with $40 fully-loaded delivery cost, wants a 60% gross margin, three tiers, and a discount floor so reps cannot give away the business."
+    must_include:
+      - "Computes price FROM margin, not markup: price = cost / (1 - 0.60) = $40 / 0.40 = $100 (so >= $100 for the base 60%-margin tier), not $40 x 1.60 = $64."
+      - "If the operator says '60% markup', flags the markup/margin conflation and shows it yields only a 37.5% margin ($40 x 1.60 = $64; (64-40)/64 = 0.375)."
+      - "Produces 3 distinct tiers that differ on features, limits, AND price, hung on a named value metric."
+      - "Sets a discount floor at or above the $40 COGS and states max discount % = (list − floor) / list."
+      - "Names a checkable price-card artifact (price-card.csv/.md/.yaml) and points to scripts/verify.sh."
+      - "Routes implementation to stripe and billing/invoicing to invoicing rather than doing them here."

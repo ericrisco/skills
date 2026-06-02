@@ -1,0 +1,41 @@
+skill: hiring
+
+should_trigger:
+  - prompt: "Write a job description for a senior backend engineer."
+    why: Core post-writing — must-haves vs nice-to-haves, inclusive language, pay band.
+  - prompt: "I've got 80 CVs for this role, help me screen them down."
+    why: Screening the pile against a consistent job-related rubric.
+  - prompt: "Build an interview scorecard for a product manager loop."
+    why: Anchored scorecard — 3–6 competencies, 5-point scale, evidence field.
+  - prompt: "Four of us interviewed the candidate and we still can't agree — help."
+    why: Non-obvious — the answer is independent scores + calibration, not a fifth interview.
+  - prompt: "Is it legal to use an AI tool to auto-reject résumés?"
+    why: Non-obvious — triggers the NYC LL144 / EU AI Act guardrail inside the hiring flow.
+  - prompt: "Necesito una scorecard para entrevistas y redacta la oferta de empleo."
+    why: Spanish — scorecard + job post, both core hiring outputs.
+
+should_not_trigger:
+  - prompt: "Onboard our new hire — set up payroll and their first-week plan."
+    route_to: people-ops
+    why: After the offer is accepted; hiring stops at the decision.
+  - prompt: "Source 50 passive candidates with a LinkedIn outreach sequence."
+    route_to: cold-outreach
+    why: Outbound sourcing; hiring screens inbound, it does not run the outreach sequence.
+  - prompt: "Draft the offer letter and employment contract terms."
+    route_to: contracts
+    why: Hiring produces the decision; contracts drafts the binding agreement.
+  - prompt: "Run our annual algorithmic bias audit and AI-Act compliance program."
+    route_to: compliance
+    why: The legal program itself, not the hiring-flow guardrail hiring follows.
+
+capability:
+  - scenario: "We're hiring a first marketing hire. Give me the job post and the interview scorecard."
+    must_include:
+      - Splits must-haves from nice-to-haves and keeps must-haves short (≤6).
+      - Flags or avoids gender-coded language in the post.
+      - States a pay band / pay transparency in the post.
+      - Scorecard has 3–6 competencies, a 5-point anchored scale, and a required evidence field.
+      - Scorecard has one overall Hire / On-Hold / No-Hire recommendation.
+      - States score-independently-and-submit-before-debrief.
+      - Evaluates job-related criteria only; does not use "culture fit" as a competency.
+      - Does NOT drift into onboarding / payroll (that is people-ops).

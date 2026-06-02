@@ -1,0 +1,46 @@
+skill: meeting-notes
+
+should_trigger:
+  - prompt: "We just wrapped the planning call — turn my rough notes into a clean recap with next steps."
+    why: Core path — raw notes to a structured record with action items.
+  - prompt: "Pull the action items out of this meeting transcript and tell me who owns what by when."
+    why: Core path — action-item extraction with owner + concrete due date.
+  - prompt: "The Otter transcript is a mess and it mixed up who said what — clean it into something I can send the team."
+    why: Non-obvious — AI-transcript cleanup + speaker verification, never uses the word "notes".
+  - prompt: "Resume la reunión de hoy y saca los próximos pasos con responsable y fecha límite."
+    why: Spanish — summarize the meeting and produce next steps with owner and due date.
+  - prompt: "Take last week's open items and today's discussion and give me a follow-up recap to send tomorrow."
+    why: Carry-over of open items plus the 24–48h distribution window.
+  - prompt: "Fes una acta de la reunió de producte i marca qui es compromet a què."
+    why: Catalan — meeting minutes with commitments attributed to owners.
+
+should_not_trigger:
+  - prompt: "Write up the architecture decision to adopt Postgres over DynamoDB, with the alternatives we weighed and how we'd revisit it."
+    route_to: decision-records
+    why: Durable ADR with full alternatives and review cadence, not a meeting recap.
+  - prompt: "Document the step-by-step process for onboarding a new vendor so anyone can repeat it."
+    route_to: sop-builder
+    why: A reusable repeatable procedure, not a point-in-time meeting record.
+  - prompt: "Set up next week's recurring sync and find a slot that works for everyone."
+    route_to: calendar-scheduling
+    why: Scheduling and finding a slot, not recording what happened.
+  - prompt: "Track all the open tasks from our meetings on a board and chase them across the sprint."
+    route_to: project-ops
+    why: Task lifecycle on a board, not the meeting record that emits the tasks.
+
+capability:
+  - scenario: >
+      Given a messy ~30-line raw transcript of a product sync that contains two
+      real decisions, three commitments (one with no date stated), a tangent
+      about lunch, and one line likely misattributed to the wrong speaker,
+      produce a meeting record.
+    must_include:
+      - A one-screen TL;DR an absent person could act on.
+      - A Decisions section: each decision + a one-line why + a reversibility tag (reversible / partially-reversible / irreversible).
+      - Action items each as verb-first task + a named owner + a concrete due date.
+      - Flags the commitment with no stated date as "needs confirmation" rather than inventing a date.
+      - Filters out the lunch tangent (curated record, not a transcript dump).
+      - Flags the likely-misattributed line for verification rather than asserting it as fact.
+      - An Open questions section for the unresolved items.
+      - Notes a 24–48h draft + invite-corrections + finalize step.
+      - Does NOT invent owners or dates, and does NOT ship the suspect quote as verified.

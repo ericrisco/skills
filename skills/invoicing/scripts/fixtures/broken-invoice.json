@@ -1,0 +1,13 @@
+{
+  "number": "2024-006",
+  "issue_date": "2024-03-04",
+  "due_date": "",
+  "supplier": { "name": "Risco Studio SL" },
+  "customer": { "name": "Acme GmbH" },
+  "line_items": [],
+  "vat_breakdown": [
+    { "rate": 21, "net": 50000 }
+  ],
+  "total": 60500,
+  "sequence": ["2024-004", "2024-006"]
+}
