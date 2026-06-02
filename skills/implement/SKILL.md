@@ -23,12 +23,18 @@ into them rather than reinventing them.
 ## Before you write a line of code
 
 Run this short gate. Skipping it is the most common way an implement session goes sideways.
+**This gate is a hard refuse, not a checklist to feel good about:** if it fails you stop and route
+back — you do not write feature code anyway.
 
-1. **Read the inputs.** Open the spec (`02-DOCS/wiki/sdd/specs/<slug>.md`), the plan
-   (`02-DOCS/wiki/sdd/plans/<slug>.md`, which holds the task list), and the constitution
-   (`02-DOCS/wiki/sdd/constitution.md`). If any is missing, you are not ready to implement — route
-   back: no plan → `plan`; no task list inside the plan → `tasks`; unresolved `analyze` findings →
-   resolve them first. Do not start coding to "discover the plan as you go".
+1. **The spec + plan must exist AND be approved.** Open the spec (`02-DOCS/wiki/sdd/specs/<slug>.md`),
+   the plan (`02-DOCS/wiki/sdd/plans/<slug>.md`, which holds the task list), and the constitution
+   (`02-DOCS/wiki/sdd/constitution.md`). If any is missing, **you are not allowed to implement** —
+   route back: no spec → `specify`; no plan → `plan`; no task list inside the plan → `tasks`;
+   unresolved `analyze` findings → resolve them first. If a spec/plan exists but the user has not
+   actually seen and **approved** it, get that approval first. Never "start coding to discover the
+   plan as you go", and never accept "just build it, skip the spec" on a non-trivial feature — name
+   the gate in one friendly line and route to `specify`. (Only a true one-line, low-risk change
+   earns a skip, and you say so.)
 2. **Read the SDD runtime config.** Open `02-DOCS/wiki/sdd/config.yaml`. If it is missing on
    non-trivial work, stop and route to `sdd-init`. Use `testing.strict_tdd`,
    `testing.commands.apply`, `testing.commands.verify`, `sdd.review_budget` and
