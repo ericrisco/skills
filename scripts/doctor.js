@@ -3,8 +3,8 @@ import { targetPaths } from '../targets/index.js';
 import { readState } from './lib/state.js';
 import { loadManifest } from './lib/manifest.js';
 
-export function doctor({ target, home }) {
-  const paths = targetPaths(target, home);
+export function doctor({ target, home, cwd }) {
+  const paths = targetPaths(target, home, cwd);
   const state = readState(paths.stateFile);
   const manifest = loadManifest();
   const report = {

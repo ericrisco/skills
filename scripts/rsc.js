@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import { loadManifest, skillsForProfile } from './lib/manifest.js';
-import { detectTarget } from '../targets/index.js';
+import { detectTarget, TARGETS } from '../targets/index.js';
 import { detectRepo } from './detect-repo.js';
 import { rank } from './consult.js';
 import { expandRecommends, toOutcomes, hasOutcome } from './lib/recommend.js';
@@ -45,18 +45,26 @@ async function manualSelect() {
   return [...chosen];
 }
 
+// Ask which assistants to install into. The detected one is pre-labelled but
+// nothing is auto-applied — the user always confirms the set (one or many).
+async function selectAgents() {
+  const detected = detectTarget();
+  const items = TARGETS.map((t) => ({
+    id: t.id,
+    label: `${t.label}  (${t.hint})${t.id === detected ? '   ⟵ detected here' : ''}`,
+  }));
+  const chosen = await pickFrom('Which assistants do you want to install for? (space to toggle, a = all)', items);
+  return chosen.length ? chosen : [detected];
+}
+
 // After installing, remind the user how to actually start — per IDE — and that
 // rsc keeps recommending skills as they work. The harness/SDD *init* runs INSIDE
 // the assistant (with the user present), never blindly from this CLI.
-function printNextSteps(target, ids) {
+function printNextSteps(targets, ids) {
   const hasHarness = ids.includes('harness');
   const hasSdd = ids.includes('sdd') || ids.includes('sdd-init');
-  const openLine = {
-    claude: 'Open **Claude Code** in this project folder.',
-    cursor: 'Open **Cursor** in this project folder.',
-    codex: 'Open **Codex CLI** (it reads AGENTS.md) in this project folder.',
-    gemini: 'Open **Gemini CLI** in this project folder.',
-  }[target] || 'Open your assistant in this project folder.';
+  const label = (id) => TARGETS.find((t) => t.id === id)?.label || id;
+  const openLine = `Open this project in: ${targets.map((t) => `**${label(t)}**`).join(' · ')}`;
 
   say('\n────────────────────────────────────────────────────────');
   say('👉 When you start working (these steps happen in your assistant, not here):');
@@ -82,7 +90,7 @@ function printNextSteps(target, ids) {
 async function wizard() {
   const m = loadManifest();
   await banner();
-  say('  the skill catalog for your assistant (Claude Code · Cursor · Codex · Gemini)\n');
+  say('  the skill catalog for your assistant (Claude Code · Codex · Cursor · Gemini · Antigravity)\n');
   const choice = await select('What do you want to do?', [
     { key: 'base', label: 'Base install — the essentials (orient + suggest + harness + init)' },
     { key: 'sdd', label: 'Base + Spec-Driven Development — the specify → plan → implement → ship flow' },
@@ -102,33 +110,50 @@ async function wizard() {
     return;
   }
 
-  const target = detectTarget();
-  say(`\nI'll install ${ids.length} skills into ${target}:`);
+  const targets = await selectAgents();
+  say(`\nI'll install ${ids.length} skills for: ${targets.join(', ')}`);
   say('   ' + ids.join(', '));
+  say('   (real files live once in .rsc/skills/ — each assistant just links to them)');
   if (!(await confirm('Install it?'))) {
     say('No problem. Anytime: npx @ericrisco/rsc');
     return;
   }
-  await applyInstall({ skillIds: ids, target });
-  say(`\n✅ Installed ${ids.length} skills into ${target}.`);
-  printNextSteps(target, ids);
+  for (const target of targets) {
+    await applyInstall({ skillIds: ids, target });
+    say(`   ✅ ${target}`);
+  }
+  say(`\n✅ Installed ${ids.length} skills for ${targets.length} assistant(s).`);
+  printNextSteps(targets, ids);
 }
 
 async function main() {
-  const target = flag('target') || detectTarget();
+  // --target accepts one id or a comma list (e.g. --target claude,codex). No flag → detect.
+  const f = flag('target');
+  const targets = typeof f === 'string'
+    ? f.split(',').map((s) => s.trim()).filter(Boolean)
+    : [detectTarget()];
+  const target = targets[0];
   switch (cmd) {
     case undefined:
       return wizard();
-    case 'add':
-      await applyInstall({ skillIds: [...new Set(['orient', 'suggest', ...argv.slice(1)])], target });
-      return void say(`✅ Installed: ${argv.slice(1).join(', ')}`);
+    case 'add': {
+      // Positional args = skill ids; skip flags and any flag value (the token after a --flag).
+      const requested = [];
+      for (let i = 1; i < argv.length; i++) {
+        if (argv[i].startsWith('--')) { i++; continue; }
+        requested.push(argv[i]);
+      }
+      const ids = [...new Set(['orient', 'suggest', ...requested])];
+      for (const t of targets) await applyInstall({ skillIds: ids, target: t });
+      return void say(`✅ Installed for ${targets.join(', ')}: ${requested.join(', ')}`);
+    }
     case 'install': {
       const profile = flag('profile') || 'minimal';
       const without = argv.filter((a, i) => argv[i - 1] === '--without');
       let ids = skillsForProfile(loadManifest(), profile);
       ids = [...new Set(['orient', 'suggest', ...ids])].filter((id) => !without.includes(id));
-      await applyInstall({ skillIds: ids, target });
-      return void say(`✅ Profile '${profile}' installed into ${target} (${ids.length} skills)`);
+      for (const t of targets) await applyInstall({ skillIds: ids, target: t });
+      return void say(`✅ Profile '${profile}' installed for ${targets.join(', ')} (${ids.length} skills)`);
     }
     case 'consult': {
       const ids = await recommendIds(argv.slice(1).join(' '));

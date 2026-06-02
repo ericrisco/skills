@@ -19,8 +19,11 @@ jobs:
         run: npm test
       - name: eval-lint
         run: bash scripts/eval-lint.sh
-      - name: cleanup gate (no marketplace residue in the live catalog)
+      - name: cleanup gate (no old marketplace-distribution residue)
+        # Unambiguous fingerprints of the retired plugin-marketplace model only.
+        # NOT bare "marketplace"/"npx skills" — those are legit words in skill
+        # content (terms-conditions, shopify, remotion-video, …).
         run: |
-          ! grep -rIn -E "marketplace|/plugin install|sync-bundles|npx skills" . \
+          ! grep -rIn -E "sync-bundles|\.claude-plugin/marketplace|/plugin install [^\"' ]*@rsc-skills" . \
             --exclude-dir=node_modules --exclude-dir=.git \
             --exclude-dir=docs --exclude-dir=skill-build --exclude-dir=.github

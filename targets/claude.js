@@ -1,10 +1,9 @@
-import { cpSync, readFileSync, writeFileSync, existsSync, mkdirSync } from 'node:fs';
+import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'node:fs';
 import { dirname } from 'node:path';
+import { linkOrCopy } from './index.js';
 
 export function writeSkill(id, fromDir, toPath) {
-  mkdirSync(dirname(toPath), { recursive: true });
-  cpSync(fromDir, toPath, { recursive: true });
-  return [toPath];
+  return linkOrCopy(fromDir, toPath);
 }
 
 export function wireHook(paths) {

@@ -1,7 +1,7 @@
 import { targetPaths } from '../targets/index.js';
 
-export function planInstall({ skillIds, target, home }) {
-  const t = targetPaths(target, home);
+export function planInstall({ skillIds, target, home, cwd }) {
+  const t = targetPaths(target, home, cwd);
   const plan = [];
   for (const id of skillIds) {
     plan.push({ kind: 'skill', id, from: `skills/${id}`, to: t.skillDir(id) });
