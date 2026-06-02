@@ -21,10 +21,12 @@ function parseIds(a) {
 const ids = parseIds(args)
 if (ids.length === 0) throw new Error('skill-scoreboard: pass an array of skill ids as args, e.g. ["debug","grants"]')
 
+const EVAL = { scriptPath: 'scripts/skill-behavior-eval.workflow.js' }
+
 phase('Score')
 const rows = await parallel(
   ids.map((id) => () =>
-    workflow('skill-behavior-eval', id)
+    workflow(EVAL, id)
       .then((raw) => ({ id, raw }))
       .catch((e) => ({ id, raw: { skillId: id, scenarios: [], error: String(e && e.message || e) } })),
   ),

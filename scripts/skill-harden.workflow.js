@@ -11,6 +11,7 @@ export const meta = {
 const skillId = (typeof args === 'string' ? args : (args && args.skillId)) || ''
 if (!skillId) throw new Error('skill-harden: pass the skill id as args, e.g. "debug"')
 const noCommit = typeof args === 'object' && args && args.noCommit === true
+const EVAL = { scriptPath: 'scripts/skill-behavior-eval.workflow.js' }
 
 const MAX_ROUNDS = 2
 
@@ -70,7 +71,7 @@ let committed = null
 
 while (true) {
   phase('Evaluate')
-  const raw = await workflow('skill-behavior-eval', skillId)
+  const raw = await workflow(EVAL, skillId)
   if (raw && raw.error === 'no-capability-scenarios') {
     return { skillId, error: 'no-capability-scenarios', history, committed: null }
   }
@@ -127,7 +128,7 @@ while (true) {
         `does NOT enumerate its own requirements. Return {scenario, mustInclude:[3-6 outcome-level checks]}.`,
         { label: `holdout-gen:r${round}`, phase: 'Diagnose & Fix', schema: HOLDOUT_SCHEMA },
       )
-      const holdoutRaw = await workflow('skill-behavior-eval', { skillId, scenarios: [holdout] })
+      const holdoutRaw = await workflow(EVAL, { skillId, scenarios: [holdout] })
       await scoreRaw(holdoutRaw, `${round}-holdout`) // recorded in transcript; informs the next loop's eval
     }
   }
