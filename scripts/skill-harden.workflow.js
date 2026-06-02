@@ -8,9 +8,19 @@ export const meta = {
   ],
 }
 
-const skillId = (typeof args === 'string' ? args : (args && args.skillId)) || ''
-if (!skillId) throw new Error('skill-harden: pass the skill id as args, e.g. "debug"')
-const noCommit = typeof args === 'object' && args && args.noCommit === true
+// args may arrive as an object {skillId, noCommit} or as a string "debug" / "debug noCommit".
+function parseArgs(a) {
+  if (typeof a === 'object' && a) return { skillId: a.skillId || '', noCommit: a.noCommit === true }
+  if (typeof a === 'string') {
+    const toks = a.trim().split(/[\s,]+/).filter(Boolean)
+    const id = toks.find((t) => !/^(no[-_]?commit|--no-commit)$/i.test(t)) || ''
+    const nc = toks.some((t) => /^(no[-_]?commit|--no-commit)$/i.test(t))
+    return { skillId: id, noCommit: nc }
+  }
+  return { skillId: '', noCommit: false }
+}
+const { skillId, noCommit } = parseArgs(args)
+if (!skillId) throw new Error('skill-harden: pass the skill id as args, e.g. "debug" or "debug noCommit"')
 const EVAL = { scriptPath: 'scripts/skill-behavior-eval.workflow.js' }
 
 const MAX_ROUNDS = 2
