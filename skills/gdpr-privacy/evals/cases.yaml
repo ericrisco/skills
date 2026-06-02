@@ -1,0 +1,47 @@
+skill: gdpr-privacy
+
+should_trigger:
+  - prompt: "Write a GDPR-compliant privacy policy for our B2B SaaS."
+    why: Core artifact — the Art. 13/14 disclosure written to match the product's processing.
+  - prompt: "Is our cookie banner compliant? Reject is two clicks but accept is one."
+    why: Live enforcement front — reject-as-easy-as-accept (CNIL Google/Shein fines), the exact rule.
+  - prompt: "Should product onboarding emails use consent or legitimate interest? Write the LIA."
+    why: Non-obvious lawful-basis call plus the required three-part Legitimate Interests Assessment.
+  - prompt: "This processor sent their DPA — what should I push back on?"
+    why: Art. 28 review — checking the mandatory processor clauses are present.
+  - prompt: "We're about to send customer data to a US analytics vendor — what transfer mechanism do we need?"
+    why: Non-obvious — SCC module choice + transfer impact assessment for an EEA-out transfer.
+  - prompt: "Someone emailed asking us to delete all their data — what's our deadline and process?"
+    why: DSAR/erasure flow and the one-month statutory clock with exceptions.
+  - prompt: "Redacta nuestra política de privacidad conforme al RGPD."
+    why: Spanish trigger — drafting the privacy policy under GDPR.
+  - prompt: "Revisa el banner de cookies del web perquè el rebuig sigui tan fàcil com acceptar."
+    why: Catalan trigger — cookie-banner review with the reject-parity rule.
+
+should_not_trigger:
+  - prompt: "Define our internal data retention schedule and data-classification tiers."
+    route_to: data-policy
+    why: Inward-facing governance the org sets for itself, not a published GDPR artifact.
+  - prompt: "Write the Terms of Service / user agreement for our app."
+    route_to: terms-conditions
+    why: The contract with the user, not the privacy disclosure.
+  - prompt: "Negotiate the liability cap and indemnity in this vendor's master agreement."
+    route_to: contracts
+    why: The commercial paper around the deal, not the DPA's privacy substance.
+  - prompt: "Get us SOC 2 Type II ready — what controls and audit evidence do we need?"
+    route_to: compliance
+    why: Standards/audit posture, not a GDPR data-subject artifact.
+  - prompt: "Implement field-level encryption and fix the auth on our API."
+    route_to: secure-coding
+    why: Art. 32 code-level controls are engineering, not the privacy disclosure layer.
+
+capability:
+  - scenario: "We run an EU-based SaaS. We just added product-analytics tracking, send onboarding plus marketing emails, and use a US-hosted analytics vendor and a US email provider. We have no privacy policy, a cookie banner with only an 'Accept all' button, and we just got an email asking us to delete an account. Get us compliant — tell us what to fix and produce the artifacts."
+    must_include:
+      - Starts from a processing inventory / ROPA, not a generic template
+      - Assigns a lawful basis per purpose (analytics vs onboarding email vs marketing email) and writes or flags an LIA where legitimate interest is used
+      - Fixes the cookie banner — equal-weight Reject-all, block non-essential cookies until consent, notes per-member-state variance and that it's the ePrivacy Directive (not the withdrawn Regulation)
+      - Identifies the US transfers and prescribes 2021 SCCs (correct module) plus a transfer impact note, or DPF if the importer is certified
+      - Handles the deletion request within the one-month clock with proportionate identity verification and erasure exceptions
+      - Produces an Art. 13/14-complete privacy policy that matches the inventory with no boilerplate-lie
+      - Emits the privacy-counsel / DPO-review boundary and notes the Digital Omnibus is a proposal, not current law

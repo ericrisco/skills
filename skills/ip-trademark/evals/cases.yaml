@@ -1,0 +1,47 @@
+skill: ip-trademark
+
+should_trigger:
+  - prompt: "Can we use the name 'Northwind' for our SaaS? How do I check it's free?"
+    why: Brand-name clearance — the core trademark search question before adopting a name.
+  - prompt: "When am I allowed to put the ® on our logo?"
+    why: Symbol-use rule; ® only after registration, ™ before. Direct trademark-notice trigger.
+  - prompt: "We paid a freelancer to design our logo. Do we actually own it?"
+    why: Non-obvious contractor-ownership trap — default is the creator owns; payment is not transfer.
+  - prompt: "Is our AI-generated mascot copyrightable?"
+    why: 2025 AI-authorship limit — fully AI output is not copyrightable; case-by-case for human contribution.
+  - prompt: "¿De quién es el copyright del logo que nos hizo el diseñador?"
+    why: Spanish phrasing of the ownership-default question; must still route here.
+  - prompt: "Should I register the trademark in the US, the EU, or both?"
+    why: Jurisdiction / territoriality decision with per-class fees ($350 US, €850 EU).
+  - prompt: "Someone is selling shirts with our slogan and our content — what can we actually do?"
+    why: Non-obvious — surfaces the §412 timely-registration gate and remedy reality before infringement talk.
+
+should_not_trigger:
+  - prompt: "Draft the IP-assignment clause for our contractor agreement."
+    route_to: contracts
+    why: Clause language and signed-paper risk allocation belong to contracts, not rights strategy.
+  - prompt: "Design our logo and pick the color palette."
+    route_to: brand-identity
+    why: Creating the brand asset, not protecting it.
+  - prompt: "Write our website Terms of Service."
+    route_to: terms-conditions
+    why: Site policy drafting, not IP rights triage.
+  - prompt: "Write a privacy policy for how we store user data."
+    route_to: gdpr-privacy
+    why: Personal-data handling, not intellectual property.
+  - prompt: "Set up our overall regulatory compliance program."
+    route_to: compliance
+    why: General legal-obligations program, not IP-specific rights.
+
+capability:
+  - scenario: >
+      An operator paid a freelancer for a logo and a landing page, launched
+      under a name they never searched, and slapped a ® on the logo. They ask
+      whether they are protected and what to fix.
+    must_include:
+      - Flags the ® misuse and says to use ™ (or ℠) until a registration actually issues.
+      - States the contractor owns the copyright by default absent a signed written assignment, and recommends getting that assignment.
+      - Recommends a clearance search (USPTO / EUIPO) per jurisdiction before relying on the name.
+      - Mentions class and jurisdiction for any registration, with $350/class (US) or €850 one class (EU).
+      - Flags that any AI-generated portions may not be copyrightable / protectable.
+      - Ends with the get-an-IP-attorney boundary and routes clause drafting to contracts.
