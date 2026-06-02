@@ -22,6 +22,16 @@ systematically favor the skill.
 The grader returns raw signals only. It does **not** compute the score — that keeps the number
 deterministic and auditable.
 
+## Orientation signal (the brújula)
+
+User-facing, conversational skills should keep the user oriented. When a skill's capability scenario ends a turn the user acts on, the grader expects the output to:
+
+- **Situate** the user (where they are / what is built vs missing).
+- **Teach the why**, scaled to the dial (`technical_level` / `accompaniment_level`).
+- **Propose a next step phrased as a question** — never end in seco.
+
+Encode this as `must_include` items in those skills' capability scenarios (see `skills/orient/evals/cases.yaml` for the canonical pattern). It scores through the existing coverage axis — no separate formula. Skills that own a purely mechanical task (lint, a single rename) are exempt and should not be penalized.
+
 ## How signals become the /10 (computed by `scripts/lib/behavior-score.js`)
 
 - Per output: `score = 0.6 × (satisfied / total × 10) + 0.4 × mean(quality axes)`.
