@@ -1,6 +1,8 @@
 ---
 name: postgresdb
 description: Use when designing or reviewing a PostgreSQL schema (types, constraints, normalization), writing or optimizing SQL, choosing or adding indexes, reading EXPLAIN/ANALYZE, planning a migration (expand-contract, concurrent index, batched backfill), or operating/securing Postgres (roles, RLS, PgBouncer pooling, VACUUM/autovacuum, pg_stat_statements, declarative partitioning, backups/PITR). Triggers - "slow query", "add an index", "EXPLAIN", "design this table", "zero-downtime migration", "row level security", "connection pool", "N+1", "JSONB", "full-text search", "pgvector". PostgreSQL 16; ORM-agnostic (SQLAlchemy/Alembic, Prisma, golang-migrate, raw SQL).
+tags: [postgres, sql, database, migrations]
+recommends: [secure-coding]
 origin: risco
 ---
 

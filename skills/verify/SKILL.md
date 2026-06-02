@@ -1,6 +1,9 @@
 ---
 name: verify
 description: "Use when implementation is finished and someone is about to say it's done, shipped, working, or ready to merge in the rsc-sdd flow — the post-implementation GATE that demands evidence before any 'done' claim. Triggers: 'verify this feature', 'is it done?', 'run the checks', 'lint/type/test before merge', 'did the acceptance criteria pass', 'confirm the tasks are complete', 'gate before review', 'audit the change', 'are we green', 'prove it works'. Runs the relevant stack skill's scripts/verify.sh (lint, type-check, tests, coverage, dependency/vuln audit), then walks every task done-check and every spec acceptance criterion, attaching the actual command output as evidence. Writes the verification record under 02-DOCS/wiki/sdd/ and points to the review phase. NOT writing tests or features (that is implement), NOT adversarial code reading (that is review), NOT root-cause diagnosis of a failing test (that is debug). Honors the harness accompaniment dial."
+tags: [sdd, verify, test]
+recommends: [review]
+profiles: [core, full]
 origin: risco
 ---
 

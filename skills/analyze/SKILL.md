@@ -1,6 +1,9 @@
 ---
 name: analyze
 description: "Use when the spec, plan and task list are written and you want a last consistency check BEFORE any code is touched — the pre-implementation GATE of the rsc-sdd chain. It cross-reads constitution vs spec vs plan vs tasks and reports gaps, contradictions, duplication, ambiguity and scope drift, mapping every artifact to the requirements it claims to satisfy. Report-only: it never edits artifacts and never writes code; the user decides each resolution. Triggers: 'analyze', 'analiza la spec antes de implementar', 'cross-check constitution spec plan tasks', 'consistency gate', 'are spec and plan aligned', 'did we miss any requirement', 'scope drift check', 'gap analysis before coding', 'is the plan complete', 'sanity-check before implement', 'coverage of requirements'. NOT clarifying a single spec (that is `clarify`), NOT writing the plan or tasks, NOT running tests/lint (that is `verify`), NOT root-causing a bug (that is `debug`)."
+tags: [sdd, analyze, consistency]
+recommends: [implement]
+profiles: [core, full]
 origin: risco
 ---
 

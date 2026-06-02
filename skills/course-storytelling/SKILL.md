@@ -1,6 +1,8 @@
 ---
 name: course-storytelling
 description: "Use when you have course / lesson / module content and you need the teaching to LAND — so grounded, named, and emotionally resonant that the student loves the teacher. Ingests slides/transcripts/notes/outline, extracts the concepts AND the existing narrative spine, finds the abstract/jargon-heavy/ungrounded gaps, then reframes each concept with Russell Brunson's Expert Secrets methodology (Epiphany Bridge, the three false beliefs, the Big Domino, named mental models, story-selling, grounding analogies, future-pacing). Profiles the LEARNER and AUDIENCE first (hard gate). Outputs a per-concept 'landing recipe' and a reworked narrative spine. Triggers: 'make this lesson land', 'teach this concept', 'storytelling for my course', 'expert secrets', 'epiphany bridge', 'mental models for teaching', 'this lesson is too abstract', 'my students aren't getting it', 'name this concept'. NOT slide visuals (that's `presentations`/`design`) and NOT a content-audit/review pass (run review-content first, bring findings here)."
+tags: [course, teaching, storytelling, content]
+recommends: [presentations]
 origin: risco
 ---
 

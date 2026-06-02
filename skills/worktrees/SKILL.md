@@ -1,6 +1,9 @@
 ---
 name: worktrees
 description: "Use when feature work needs an isolated workspace before code is touched — branch or git worktree off the default branch so the main checkout stays clean while a plan is executed. Triggers: 'isolate this work', 'I don't want to touch main', 'set up a worktree', 'work on a branch for this', 'spin up an isolated checkout', 'start the feature without dirtying my tree', 'create a worktree for the plan', 'I'm on main and need to implement', 'keep the working tree clean', 'parallel checkout for this branch'. The on-demand SDD step that runs right before implement: it confirms a clean, isolated workspace exists (native EnterWorktree first, git worktree fallback), records nothing to runtime, and hands back to implement. NOT the task breakdown (tasks), NOT writing code (implement), NOT branch cleanup/merge after the work (that's the ship phase). Honors the harness accompaniment dial."
+tags: [git, worktree, isolation]
+recommends: []
+profiles: [core, full]
 origin: risco
 ---
 

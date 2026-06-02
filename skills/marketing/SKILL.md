@@ -1,6 +1,8 @@
 ---
 name: marketing
 description: "Use when writing the WORDS for a landing page, marketing site, or launch — value proposition, hero/headline, section-by-section landing copy, microcopy, CTAs, email and launch sequences, channel-adapted messaging (X/LinkedIn/newsletter), SEO-aware copy structure, and SEO/GEO optimization (technical SEO, JSON-LD schema, and getting cited by AI engines like ChatGPT/Perplexity/Gemini/Claude). Grounds every output in the project's brand study under 02-DOCS; if that study is missing or incomplete, it STOPS and interviews the user first. Triggers: 'write the landing copy', 'write the hero', 'value proposition', 'rewrite this CTA', 'write the launch emails', 'turn features into benefits', 'adapt this for LinkedIn/X', 'this copy sounds like AI', 'marketing copy', 'seo', 'geo', 'ai search', 'schema', 'json-ld', 'get cited by ChatGPT', 'rank on Google', 'keyword research', 'meta description', 'AI Overview'. NOT the pixels (that's `design`) and NOT the build (that's `nextjs`)."
+tags: [marketing, copywriting, landing, content]
+recommends: [presentations, design]
 origin: risco
 ---
 

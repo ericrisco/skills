@@ -1,6 +1,9 @@
 ---
 name: plan
 description: "Use when turning an approved, clarified spec into a technical implementation plan — the SDD phase between clarify and tasks. Covers architecture and component boundaries, the public interfaces/contracts, data model and data flow, the testing strategy, sequencing, and the risk register. Triggers: 'plan this feature', 'how should we build this', 'design the architecture', 'write the implementation plan', 'plan.md', 'what's the data flow', 'how do we test this', 'what are the risks', 'we have the spec, now what'. Reads the spec under 02-DOCS/wiki/sdd/specs/ and the constitution; writes 02-DOCS/wiki/sdd/plans/<slug>.md; defers concrete stack mechanics (framework APIs, ORM, test tooling) to the relevant stack skill. NOT requirements capture (that's specify), NOT ambiguity removal (that's clarify), NOT the task breakdown (that's tasks). Honors the harness accompaniment dial."
+tags: [sdd, plan, design]
+recommends: [tasks]
+profiles: [core, full]
 origin: risco
 ---
 

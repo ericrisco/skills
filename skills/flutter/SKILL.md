@@ -1,6 +1,8 @@
 ---
 name: flutter
 description: "Use when building, structuring, testing or optimizing a Flutter app (Dart 3, Riverpod 3 / Bloc, go_router, Material 3, freezed, widget & golden tests). Triggers: creating a Flutter feature, choosing state management, wiring navigation/auth guards, modeling async/error state, JSON/dio data layer, killing widget rebuilds/jank, or writing widget/golden/integration tests. Stack: Flutter 3.44 / Dart 3.12."
+tags: [flutter, dart, mobile, app, ios, android]
+recommends: [design, deployment]
 origin: risco
 ---
 

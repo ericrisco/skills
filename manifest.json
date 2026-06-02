@@ -1,0 +1,470 @@
+{
+  "version": "0.1.0",
+  "counts": {
+    "skills": 29
+  },
+  "skills": [
+    {
+      "id": "analyze",
+      "description": "Use when the spec, plan and task list are written and you want a last consistency check BEFORE any code is touched — the pre-implementation GATE of the rsc-sdd chain. It cross-reads constitution vs spec vs plan vs tasks and reports gaps, contradictions, duplication, ambiguity and scope drift, mapping every artifact to the requirements it claims to satisfy. Report-only: it never edits artifacts and never writes code; the user decides each resolution. Triggers: 'analyze', 'analiza la spec antes de implementar', 'cross-check constitution spec plan tasks', 'consistency gate', 'are spec and plan aligned', 'did we miss any requirement', 'scope drift check', 'gap analysis before coding', 'is the plan complete', 'sanity-check before implement', 'coverage of requirements'. NOT clarifying a single spec (that is `clarify`), NOT writing the plan or tasks, NOT running tests/lint (that is `verify`), NOT root-causing a bug (that is `debug`).",
+      "tags": [
+        "sdd",
+        "analyze",
+        "consistency"
+      ],
+      "recommends": [
+        "implement"
+      ],
+      "profiles": [
+        "core",
+        "full"
+      ]
+    },
+    {
+      "id": "author-skill",
+      "description": "Use when authoring a NEW skill or editing an existing one for the rsc catalog — writing or fixing a SKILL.md, crafting a trigger-rich third-person description that fires on the right prompts, deciding what goes in references/ vs the body, writing evals/cases.yaml + evals/README.md, or wiring a skill into the bundles. Triggers: 'write a skill', 'author a skill', 'create a new skill', 'escribe una skill', 'haz una skill nueva', 'edit this skill', 'improve this skill', 'my skill never triggers', 'my skill always fires', 'fix the description', 'the frontmatter is invalid', 'write evals for this skill', 'add this skill to a bundle', 'audit this skill against the rubric', 'progressive disclosure', 'SKILL.md too long'. Knows the rsc conventions: hybrid layout, /rsc-*: namespacing, scripts/sync-bundles.sh, the Knowledge map, real-copy bundles. NOT building runtime features (that is the SDD chain) and NOT general docs.",
+      "tags": [
+        "skill",
+        "authoring",
+        "meta"
+      ],
+      "recommends": [],
+      "profiles": []
+    },
+    {
+      "id": "building-agents",
+      "description": "Use when designing or building an LLM agent, tool-using system, RAG pipeline, eval harness, or MCP server in this repo — across any provider (OpenAI, Anthropic, Google Gemini, or OSS via OpenAI-compatible endpoints / litellm). Triggers: 'build an agent', 'add tool calling / function calling', 'structured JSON output', 'RAG / retrieval / embeddings / rerank', 'agent loop / ReAct / orchestrator-worker / multi-agent', 'LLM eval / golden set / LLM-as-judge / regression gate', 'prompt caching / model routing / token budget / cost control', 'trace / observability for LLM calls', 'build an MCP server', or 'make our LLM code provider-agnostic / swap models'. FastAPI/Python, Next.js, Go, Flutter, Postgres stacks.",
+      "tags": [
+        "agents",
+        "llm",
+        "mcp",
+        "rag",
+        "evals",
+        "ai"
+      ],
+      "recommends": [
+        "secure-coding",
+        "deployment"
+      ],
+      "profiles": []
+    },
+    {
+      "id": "clarify",
+      "description": "Use when a spec exists and you need to de-risk it BEFORE planning — hunt the ambiguities, unstated assumptions, edge cases, and underspecified areas, ask the user the high-leverage questions, then bake the answers back into the spec. The fourth phase of the rsc SDD chain (constitution → specify → clarify → plan → tasks → analyze → implement → verify → review → ship). Triggers: 'clarify the spec', 'what's ambiguous here', 'poke holes in this spec', 'is this spec ready to plan', 'aclara el spec', 'qué falta en este spec', 'review the requirements before we build', 'de-risk before planning', 'what questions should I answer first', 'this spec feels vague', a spec under 02-DOCS/wiki/sdd/specs/ heading into planning, or a plan that keeps stalling on unknowns. Reads the spec + constitution + harness profile; writes resolved answers back into the same spec file. NOT spec authoring (specify) and NOT the technical plan (plan).",
+      "tags": [
+        "sdd",
+        "clarify",
+        "questions"
+      ],
+      "recommends": [
+        "plan"
+      ],
+      "profiles": [
+        "core",
+        "full"
+      ]
+    },
+    {
+      "id": "constitution",
+      "description": "Use when capturing or revising a project's non-negotiable principles — its stack canon, quality bars, naming/structure conventions, branching/commit rules, testing thresholds, security and accessibility floors, the things every later phase must obey. This is the FIRST rsc-sdd phase, run once per project (then amended). Writes/updates 02-DOCS/wiki/sdd/constitution.md and links it from the root CLAUDE.md Knowledge map; reconciles with conventions the harness already holds under 02-DOCS/wiki/stack/*. Triggers: 'set the project principles', 'define our engineering standards', 'establecer las reglas del proyecto', 'project constitution', 'what are our non-negotiables', 'lock the stack canon', 'quality bar', 'coding standards doc', 'amend the constitution', 'ratify principle', 'definition of done for the repo'. NOT a feature spec (that's specify) and NOT an implementation plan (that's plan).",
+      "tags": [
+        "sdd",
+        "constitution",
+        "principles"
+      ],
+      "recommends": [
+        "specify"
+      ],
+      "profiles": [
+        "core",
+        "full"
+      ]
+    },
+    {
+      "id": "course-storytelling",
+      "description": "Use when you have course / lesson / module content and you need the teaching to LAND — so grounded, named, and emotionally resonant that the student loves the teacher. Ingests slides/transcripts/notes/outline, extracts the concepts AND the existing narrative spine, finds the abstract/jargon-heavy/ungrounded gaps, then reframes each concept with Russell Brunson's Expert Secrets methodology (Epiphany Bridge, the three false beliefs, the Big Domino, named mental models, story-selling, grounding analogies, future-pacing). Profiles the LEARNER and AUDIENCE first (hard gate). Outputs a per-concept 'landing recipe' and a reworked narrative spine. Triggers: 'make this lesson land', 'teach this concept', 'storytelling for my course', 'expert secrets', 'epiphany bridge', 'mental models for teaching', 'this lesson is too abstract', 'my students aren't getting it', 'name this concept'. NOT slide visuals (that's `presentations`/`design`) and NOT a content-audit/review pass (run review-content first, bring findings here).",
+      "tags": [
+        "course",
+        "teaching",
+        "storytelling",
+        "content"
+      ],
+      "recommends": [
+        "presentations"
+      ],
+      "profiles": []
+    },
+    {
+      "id": "debug",
+      "description": "Use when something is broken and the impulse is to start patching — a bug, a failing or flaky test, a crash, an exception, a wrong result, a regression, or behavior nobody can explain — and you want the root cause found BEFORE any fix is proposed. The on-demand rsc-sdd diagnosis discipline: reproduce → isolate → hypothesize → fix → verify, callable from inside implement (or any phase) the moment a check fails for a reason you don't understand. Triggers: 'debug this', 'why is this failing', 'this test is flaky', 'find the root cause', 'it works locally but not in CI', 'this used to work', 'track down this bug', 'the fix didn't stick', 'figure out why', 'NullPointer/segfault/500 out of nowhere', 'intermittent failure'. It diagnoses and fixes the ONE confirmed cause, then hands back. NOT writing a planned feature (implement), NOT the lint/test gate (verify), NOT adversarial diff reading (review). Honors the harness accompaniment dial.",
+      "tags": [
+        "debug",
+        "bug",
+        "troubleshoot"
+      ],
+      "recommends": [],
+      "profiles": [
+        "core",
+        "full"
+      ]
+    },
+    {
+      "id": "deployment",
+      "description": "Use when containerizing an app, writing a Dockerfile, setting up GitHub Actions CI/CD, choosing a deploy target, or deploying to Coolify, Vercel, or a Hetzner VPS — multi-stage builds (FastAPI/uv, Go/distroless, Next.js standalone, Flutter web, Postgres), BuildKit build secrets, image scanning (trivy/hadolint), OIDC to registries (no long-lived secrets), least-privilege GITHUB_TOKEN, zero-downtime/rolling deploys, env/secrets flow GitHub→Coolify, healthchecks, rollback, and a hosting decision matrix (Vercel vs Hetzner+Coolify vs a third option). Trigger phrases: 'dockerize', 'write a Dockerfile', 'CI pipeline', 'GitHub Actions', 'deploy', 'ship it', 'where should I host this', 'Coolify', 'Vercel', 'Hetzner', 'VPS', 'docker-compose for local dev'.",
+      "tags": [
+        "deploy",
+        "docker",
+        "ci",
+        "github-actions",
+        "coolify"
+      ],
+      "recommends": [
+        "secure-coding"
+      ],
+      "profiles": []
+    },
+    {
+      "id": "design",
+      "description": "Use when designing a modern UI, building/writing a high-converting landing page or web page, refreshing a hero, choosing type/color/spacing/motion, or making an interface feel premium instead of generic/AI-templated. Brand-grounded: reads the project's 02-DOCS brand study first and STOPS to interview the user if it is missing or incomplete. Research-first: studies award-winning current work (Awwwards, Godly, Land-book, Refactoring UI, Linear/Stripe/Vercel/Resend-tier) and pulls current 2026 trends with citations before prescribing. Ships Tailwind v4 + Next.js 15 + React 19 patterns with correctly-stated WCAG 2.2 AA and Core Web Vitals (LCP/INP/CLS) as hard design constraints; ties to 'marketing' for the words and 'nextjs' for the build. Triggers: 'design a landing page', 'build a web page', 'make this look premium', 'pick a color palette', 'this UI feels generic', 'bento section', 'design review', 'modern UI'.",
+      "tags": [
+        "design",
+        "ux",
+        "ui",
+        "landing",
+        "conversion"
+      ],
+      "recommends": [
+        "nextjs",
+        "marketing"
+      ],
+      "profiles": []
+    },
+    {
+      "id": "fastapi",
+      "description": "Use when building, reviewing, testing, securing or deploying a FastAPI / async Python service. Triggers: creating endpoints/routers, Pydantic v2 models (Create/Update/Response), dependency injection, async SQLAlchemy 2.0 + Alembic, OAuth2/JWT auth + RBAC, pytest + httpx ASGITransport tests, CORS / rate limiting / secret handling, uvicorn/gunicorn + structured logging + healthchecks + graceful shutdown, pyproject + ruff + mypy strict + uv. Any .py file importing fastapi, pydantic, sqlalchemy, starlette, or a pyproject.toml declaring those.",
+      "tags": [
+        "python",
+        "api",
+        "async",
+        "backend",
+        "rest"
+      ],
+      "recommends": [
+        "postgresdb",
+        "secure-coding",
+        "deployment"
+      ],
+      "profiles": []
+    },
+    {
+      "id": "flutter",
+      "description": "Use when building, structuring, testing or optimizing a Flutter app (Dart 3, Riverpod 3 / Bloc, go_router, Material 3, freezed, widget & golden tests). Triggers: creating a Flutter feature, choosing state management, wiring navigation/auth guards, modeling async/error state, JSON/dio data layer, killing widget rebuilds/jank, or writing widget/golden/integration tests. Stack: Flutter 3.44 / Dart 3.12.",
+      "tags": [
+        "flutter",
+        "dart",
+        "mobile",
+        "app",
+        "ios",
+        "android"
+      ],
+      "recommends": [
+        "design",
+        "deployment"
+      ],
+      "profiles": []
+    },
+    {
+      "id": "go",
+      "description": "Use when writing, reviewing, testing, securing, or shipping Go code or HTTP services - Go idioms (simplicity, useful zero value, accept-interfaces/return-structs, functional options, embedding), error wrapping with %w and errors.Is/As, goroutines/channels/context/errgroup concurrency, net/http with Go 1.22 routing, log/slog structured logging, graceful shutdown, cmd/-internal/-pkg/ layout, table-driven tests with httptest/-race/fuzz, and govulncheck/SQL-parametrization security. Triggers - \\\"write a Go service/handler\\\", \\\"review this Go code\\\", \\\"add tests\\\", \\\"fix a goroutine leak\\\", \\\"is this idiomatic Go\\\", .go files, go.mod, net/http, slog, chi, errgroup.",
+      "tags": [
+        "go",
+        "golang",
+        "http",
+        "backend",
+        "service"
+      ],
+      "recommends": [
+        "postgresdb",
+        "secure-coding",
+        "deployment"
+      ],
+      "profiles": []
+    },
+    {
+      "id": "harness",
+      "description": "Use when you want to control, govern or maintain the harness of a workspace — software OR a non-code base (a company, an ops desk, a personal knowledge vault). The harness is the CONTROL PLANE: the `01-TOOLS/` operational tooling layer + the `02-DOCS/` Karpathy chaos→knowledge engine + the root Knowledge map. Triggers: 'control the harness', 'gestiona el arnés', 'manage 01-TOOLS and 02-DOCS', 'audit my workspace', 'audita mi proyecto', 'procesa el inbox', 'sal a pasear', migrating numbered `XX-*` folders into the canonical structure, detecting external provider integrations (Stripe, Mailjet, Hetzner, Firebase, OAuth, Postgres…) and scaffolding connection-ready tools, generating root `CLAUDE.md`/`AGENTS.md`, or consolidating scattered docs into a living wiki. `/rsc-core:init` is the bootstrap front door; THIS skill is the ongoing control. Brownfield-first; greenfield is the degenerate case.",
+      "tags": [
+        "harness",
+        "company",
+        "ops",
+        "docs",
+        "wiki",
+        "connect",
+        "tools",
+        "knowledge"
+      ],
+      "recommends": [
+        "init"
+      ],
+      "profiles": [
+        "minimal",
+        "core",
+        "full"
+      ]
+    },
+    {
+      "id": "implement",
+      "description": "Use when executing a planned feature into working, tested code — turning the tasks list into commits, writing code task-by-task under TDD discipline (failing test first, then the code that passes it, then refactor), with a stop-and-show checkpoint after each task. Triggers: 'implement the plan', 'build out the tasks', 'start coding this feature', 'work through the task list', 'execute the implementation', 'write the code for this spec', 'do task 3', 'continue implementing', 'red-green-refactor this', 'implement with tests first'. The SDD phase AFTER analyze and BEFORE verify. Embeds red→green→refactor and delegates concrete test tooling to the stack skill (fastapi/go/nextjs/flutter); fans independent tasks out via parallel; logs every non-obvious choice to 02-DOCS/wiki/sdd/decisions.md and stays inside the constitution. NOT spec writing, NOT planning, NOT the final lint/audit gate.",
+      "tags": [
+        "sdd",
+        "implement",
+        "code"
+      ],
+      "recommends": [
+        "verify"
+      ],
+      "profiles": [
+        "core",
+        "full"
+      ]
+    },
+    {
+      "id": "init",
+      "description": "Use when starting from nothing or pointing the rsc-skills harness at an existing project — the front door / bootstrapper. It gauges the user's technical level FIRST (non-technical by default), sets an explanation/accompaniment dial, then discovers what they want to build OR govern (any software stack, OR a non-code harness: running a company/ops, research, personal knowledge, content). It detects greenfield vs brownfield, profiles the user into 02-DOCS, RECOMMENDS which rsc bundles to install (printing the exact install commands), and hands off to /rsc-core:harness to scaffold 01-TOOLS + 02-DOCS. Triggers: 'empezar de cero', 'no sé por dónde empezar', 'start a new project', 'bootstrap', 'set up the harness', 'monta el proyecto', 'quiero montar una empresa/ops/wiki con esto', 'arranca', 'init'. NOT the scaffolder itself (that's /rsc-core:harness) and NOT a specific stack skill.",
+      "tags": [
+        "init",
+        "bootstrap",
+        "start",
+        "new",
+        "setup"
+      ],
+      "recommends": [
+        "harness"
+      ],
+      "profiles": [
+        "minimal",
+        "core",
+        "full"
+      ]
+    },
+    {
+      "id": "marketing",
+      "description": "Use when writing the WORDS for a landing page, marketing site, or launch — value proposition, hero/headline, section-by-section landing copy, microcopy, CTAs, email and launch sequences, channel-adapted messaging (X/LinkedIn/newsletter), SEO-aware copy structure, and SEO/GEO optimization (technical SEO, JSON-LD schema, and getting cited by AI engines like ChatGPT/Perplexity/Gemini/Claude). Grounds every output in the project's brand study under 02-DOCS; if that study is missing or incomplete, it STOPS and interviews the user first. Triggers: 'write the landing copy', 'write the hero', 'value proposition', 'rewrite this CTA', 'write the launch emails', 'turn features into benefits', 'adapt this for LinkedIn/X', 'this copy sounds like AI', 'marketing copy', 'seo', 'geo', 'ai search', 'schema', 'json-ld', 'get cited by ChatGPT', 'rank on Google', 'keyword research', 'meta description', 'AI Overview'. NOT the pixels (that's `design`) and NOT the build (that's `nextjs`).",
+      "tags": [
+        "marketing",
+        "copywriting",
+        "landing",
+        "content"
+      ],
+      "recommends": [
+        "presentations",
+        "design"
+      ],
+      "profiles": []
+    },
+    {
+      "id": "nextjs",
+      "description": "Use when building, reviewing, testing, securing, or optimizing a Next.js App Router app (Next.js 15/16, React Server Components, \\\"use client\\\"/\\\"use server\\\", server actions, route handlers, layouts, streaming/Suspense, the App Router caching model, TypeScript, Auth.js, Vitest/Playwright, CSP/security headers). Triggers on `app/` directory work, `next.config.ts`, `proxy.ts`/`middleware.ts`, server actions, route handlers, `use cache`, `useActionState`, RSC boundary questions, hydration errors, and Next.js perf/Core Web Vitals.",
+      "tags": [
+        "nextjs",
+        "react",
+        "frontend",
+        "web",
+        "seo",
+        "ssr"
+      ],
+      "recommends": [
+        "design",
+        "secure-coding",
+        "deployment"
+      ],
+      "profiles": []
+    },
+    {
+      "id": "parallel",
+      "description": "Use when you have two or more genuinely independent pieces of work and want to fan them out across subagents instead of doing them one after another — disjoint scope, no shared files or state, no ordering dependency, then gather and reconcile the results. Triggers: 'do these in parallel', 'fan this out', 'split this across subagents', 'run these at the same time', 'these tasks are independent, parallelize them', 'dispatch agents for each module', 'hazlo en paralelo', 'reparte esto en subagentes', 'a la vez'. The on-demand SDD helper that implement calls when its task list has disjoint clusters; it owns the partition→dispatch→gather→reconcile discipline. NOT for sequential or data-dependent steps (serialize those), NOT the TDD loop itself (that stays inside implement), NOT git isolation (that's worktrees).",
+      "tags": [
+        "parallel",
+        "subagents",
+        "fanout"
+      ],
+      "recommends": [],
+      "profiles": [
+        "core",
+        "full"
+      ]
+    },
+    {
+      "id": "plan",
+      "description": "Use when turning an approved, clarified spec into a technical implementation plan — the SDD phase between clarify and tasks. Covers architecture and component boundaries, the public interfaces/contracts, data model and data flow, the testing strategy, sequencing, and the risk register. Triggers: 'plan this feature', 'how should we build this', 'design the architecture', 'write the implementation plan', 'plan.md', 'what's the data flow', 'how do we test this', 'what are the risks', 'we have the spec, now what'. Reads the spec under 02-DOCS/wiki/sdd/specs/ and the constitution; writes 02-DOCS/wiki/sdd/plans/<slug>.md; defers concrete stack mechanics (framework APIs, ORM, test tooling) to the relevant stack skill. NOT requirements capture (that's specify), NOT ambiguity removal (that's clarify), NOT the task breakdown (that's tasks). Honors the harness accompaniment dial.",
+      "tags": [
+        "sdd",
+        "plan",
+        "design"
+      ],
+      "recommends": [
+        "tasks"
+      ],
+      "profiles": [
+        "core",
+        "full"
+      ]
+    },
+    {
+      "id": "postgresdb",
+      "description": "Use when designing or reviewing a PostgreSQL schema (types, constraints, normalization), writing or optimizing SQL, choosing or adding indexes, reading EXPLAIN/ANALYZE, planning a migration (expand-contract, concurrent index, batched backfill), or operating/securing Postgres (roles, RLS, PgBouncer pooling, VACUUM/autovacuum, pg_stat_statements, declarative partitioning, backups/PITR). Triggers - \"slow query\", \"add an index\", \"EXPLAIN\", \"design this table\", \"zero-downtime migration\", \"row level security\", \"connection pool\", \"N+1\", \"JSONB\", \"full-text search\", \"pgvector\". PostgreSQL 16; ORM-agnostic (SQLAlchemy/Alembic, Prisma, golang-migrate, raw SQL).",
+      "tags": [
+        "postgres",
+        "sql",
+        "database",
+        "migrations"
+      ],
+      "recommends": [
+        "secure-coding"
+      ],
+      "profiles": []
+    },
+    {
+      "id": "presentations",
+      "description": "Use when building a presentation deck — a pitch deck, sales deck, product/keynote talk, investor deck, board/QBR review, or a leave-behind one-pager — and you need a stunning, on-brand result exported to PDF and/or an editable PPTX. Covers two production pipelines: design-led Markdown decks (Marp/Slidev themed from the project's design tokens, exported to PDF + PPTX) and native editable PowerPoint via python-pptx (masters, layouts, native charts, tables, speaker notes). Grounds copy in the brand study and visuals in the design tokens; defers the WORDS to `marketing` and the visual system to `design`. Triggers: 'make a deck', 'build a pitch/sales/investor deck', 'slides for my talk', 'turn this doc into slides', 'export to PowerPoint/PPTX', 'Marp', 'Slidev', 'python-pptx', 'keynote deck', 'one-pager'. NOT a video skill (motion is used with restraint, not as the medium).",
+      "tags": [
+        "presentations",
+        "pptx",
+        "slides",
+        "deck"
+      ],
+      "recommends": [
+        "marketing"
+      ],
+      "profiles": []
+    },
+    {
+      "id": "review",
+      "description": "Use when giving OR receiving an adversarial code review in the rsc SDD chain — after implement/verify and before ship. Triggers: 'review this PR', 'review my diff', 'revisa este código', 'critique this change', 'be my reviewer', 'tear this apart', 'what's wrong with this code', plus the receiving side: 'the reviewer said X', 'address this review comment', 'they want me to change Y', 'do I have to do what the review says', 'PR feedback', 'someone left comments on my PR'. Covers the full loop: producing a rigorous, evidence-backed review keyed to the spec/plan/constitution under 02-DOCS/wiki/sdd/, AND processing incoming feedback with technical rigor — verify each finding against the code before agreeing, push back on the wrong ones, fix the real ones. NOT running lint/type/test gates (that's the verify phase) and NOT merging/closing the branch (that's ship). No performative agreement; points to ship when the diff survives review.",
+      "tags": [
+        "sdd",
+        "review",
+        "code-review"
+      ],
+      "recommends": [
+        "ship"
+      ],
+      "profiles": [
+        "core",
+        "full"
+      ]
+    },
+    {
+      "id": "sdd",
+      "description": "Use when you want a disciplined, spec-driven path from a feature idea to shipped, verified software — the rsc-sdd dispatcher / front door. It states the SDD method, reads the accompaniment dial from 02-DOCS, and routes to the right phase skill: constitution -> specify -> clarify -> plan -> tasks -> analyze -> implement -> verify -> review -> ship, with debug / worktrees / parallel callable on demand. Use it to START a feature, when unsure which SDD phase you are in, or to govern the whole flow. Triggers: 'spec-driven development', 'sdd', 'build this feature properly', 'start a new feature', 'I have an idea, take it to production', 'which phase am I in', 'run the sdd flow', 'desarrollo dirigido por especificación', 'monta esta feature bien', 'de la idea a producción'. NOT itself a single phase (it dispatches), NOT the workspace harness (/rsc-core:harness), NOT a stack build skill.",
+      "tags": [
+        "sdd",
+        "spec",
+        "workflow",
+        "plan"
+      ],
+      "recommends": [
+        "constitution",
+        "specify"
+      ],
+      "profiles": [
+        "core",
+        "full"
+      ]
+    },
+    {
+      "id": "secure-coding",
+      "description": "Use when threat-modeling a feature, reviewing code or a diff for security, hardening authentication/authorization, handling secrets, configuring CORS/CSP/security headers, or fixing OWASP-class vulnerabilities (broken access control, injection, SSRF, auth failures, supply-chain) in FastAPI/Python, Go, Next.js, or Flutter. Triggers: 'security review', 'threat model this', 'is this safe', 'harden auth', 'rotate secrets', 'fix this vuln', 'OWASP', 'why is this endpoint exposed', before merging an endpoint that touches auth/payments/PII/uploads.",
+      "tags": [
+        "security",
+        "owasp",
+        "stride",
+        "auth",
+        "review"
+      ],
+      "recommends": [
+        "deployment"
+      ],
+      "profiles": []
+    },
+    {
+      "id": "ship",
+      "description": "Use when the work is complete and verified and it is time to CLOSE the development branch — the final phase of the rsc SDD chain, after review approves the diff. Triggers: 'ship it', 'close the branch', 'open the PR', 'merge this', 'merge into main', 'create the pull request', 'how do I land this work', 'finish this feature', 'haz el merge', 'abre el PR', 'cierra la rama', 'súbelo a main', 'clean up the branch', 'I'm done, what now'. Presents exactly three landing options (direct merge / pull request / park-or-discard) matched to the workflow, runs the pre-ship safety checklist (review verdict, clean tree, rebased, no secrets), and writes the commit and PR. HARD RULE: git authorship is ALWAYS Eric — never Claude. No Co-Authored-By Claude, no 'generated with' footer in any commit or PR body. NOT running lint/type/test (that is verify), NOT reading the diff adversarially (that is review), NOT the deploy/release mechanics to a server (that is deployment). Honors the harness accompaniment dial.",
+      "tags": [
+        "sdd",
+        "ship",
+        "release",
+        "pr"
+      ],
+      "recommends": [],
+      "profiles": [
+        "core",
+        "full"
+      ]
+    },
+    {
+      "id": "specify",
+      "description": "Use when a feature, change, or product idea is still fuzzy and needs to become a written spec BEFORE any planning or code — turn a one-line intent into a WHAT/WHY specification (problem, goals, users, scope, behaviour, acceptance criteria) with zero implementation detail. Triggers: 'write a spec for…', 'spec this out', 'especifica esta feature', 'I want to add X but haven't thought it through', 'capture requirements for…', 'what should this feature do', 'draft a PRD', 'define the feature before we build', kicking off an SDD feature after the constitution exists, or any moment someone jumps to HOW before WHAT is agreed. Asks ONE focused question at a time only where it cannot infer, then writes 02-DOCS/wiki/sdd/specs/<slug>.md and marks open points to clarify. NOT the technical plan (that's `plan`), NOT the de-risking ambiguity sweep (that's `clarify`), NOT project-wide principles (that's `constitution`).",
+      "tags": [
+        "sdd",
+        "spec",
+        "requirements"
+      ],
+      "recommends": [
+        "clarify",
+        "plan"
+      ],
+      "profiles": [
+        "core",
+        "full"
+      ]
+    },
+    {
+      "id": "tasks",
+      "description": "Use when you have an approved implementation plan and need to break it into an ordered, independently-verifiable task list before any code is written — the SDD `tasks` phase (GitHub Spec Kit lineage: constitution → specify → clarify → plan → tasks → analyze → implement). Turns a plan into numbered tasks, each with an explicit done-check (the literal command or observation that proves it complete), dependencies, and a parallel-safe marker. Triggers: 'break the plan into tasks', 'make a task list', 'task breakdown', 'descompón el plan en tareas', 'lista de tareas', 'what are the steps to build this', 'turn the plan into a checklist', 'sequence the work', 'which tasks can run in parallel', 'give each task a done-check'. Appends the task list into the plan artifact under 02-DOCS/wiki/sdd/plans/<slug>.md. NOT writing the plan itself (that is `plan`), NOT the consistency gate over the artifacts (that is `analyze`), NOT executing the tasks (that is `implement`).",
+      "tags": [
+        "sdd",
+        "tasks",
+        "breakdown"
+      ],
+      "recommends": [
+        "analyze",
+        "implement"
+      ],
+      "profiles": [
+        "core",
+        "full"
+      ]
+    },
+    {
+      "id": "verify",
+      "description": "Use when implementation is finished and someone is about to say it's done, shipped, working, or ready to merge in the rsc-sdd flow — the post-implementation GATE that demands evidence before any 'done' claim. Triggers: 'verify this feature', 'is it done?', 'run the checks', 'lint/type/test before merge', 'did the acceptance criteria pass', 'confirm the tasks are complete', 'gate before review', 'audit the change', 'are we green', 'prove it works'. Runs the relevant stack skill's scripts/verify.sh (lint, type-check, tests, coverage, dependency/vuln audit), then walks every task done-check and every spec acceptance criterion, attaching the actual command output as evidence. Writes the verification record under 02-DOCS/wiki/sdd/ and points to the review phase. NOT writing tests or features (that is implement), NOT adversarial code reading (that is review), NOT root-cause diagnosis of a failing test (that is debug). Honors the harness accompaniment dial.",
+      "tags": [
+        "sdd",
+        "verify",
+        "test"
+      ],
+      "recommends": [
+        "review"
+      ],
+      "profiles": [
+        "core",
+        "full"
+      ]
+    },
+    {
+      "id": "worktrees",
+      "description": "Use when feature work needs an isolated workspace before code is touched — branch or git worktree off the default branch so the main checkout stays clean while a plan is executed. Triggers: 'isolate this work', 'I don't want to touch main', 'set up a worktree', 'work on a branch for this', 'spin up an isolated checkout', 'start the feature without dirtying my tree', 'create a worktree for the plan', 'I'm on main and need to implement', 'keep the working tree clean', 'parallel checkout for this branch'. The on-demand SDD step that runs right before implement: it confirms a clean, isolated workspace exists (native EnterWorktree first, git worktree fallback), records nothing to runtime, and hands back to implement. NOT the task breakdown (tasks), NOT writing code (implement), NOT branch cleanup/merge after the work (that's the ship phase). Honors the harness accompaniment dial.",
+      "tags": [
+        "git",
+        "worktree",
+        "isolation"
+      ],
+      "recommends": [],
+      "profiles": [
+        "core",
+        "full"
+      ]
+    }
+  ]
+}

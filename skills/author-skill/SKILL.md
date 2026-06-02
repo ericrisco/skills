@@ -1,6 +1,8 @@
 ---
 name: author-skill
 description: "Use when authoring a NEW skill or editing an existing one for the rsc catalog — writing or fixing a SKILL.md, crafting a trigger-rich third-person description that fires on the right prompts, deciding what goes in references/ vs the body, writing evals/cases.yaml + evals/README.md, or wiring a skill into the bundles. Triggers: 'write a skill', 'author a skill', 'create a new skill', 'escribe una skill', 'haz una skill nueva', 'edit this skill', 'improve this skill', 'my skill never triggers', 'my skill always fires', 'fix the description', 'the frontmatter is invalid', 'write evals for this skill', 'add this skill to a bundle', 'audit this skill against the rubric', 'progressive disclosure', 'SKILL.md too long'. Knows the rsc conventions: hybrid layout, /rsc-*: namespacing, scripts/sync-bundles.sh, the Knowledge map, real-copy bundles. NOT building runtime features (that is the SDD chain) and NOT general docs."
+tags: [skill, authoring, meta]
+recommends: []
 origin: risco
 ---
 

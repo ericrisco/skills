@@ -1,6 +1,9 @@
 ---
 name: init
 description: "Use when starting from nothing or pointing the rsc-skills harness at an existing project — the front door / bootstrapper. It gauges the user's technical level FIRST (non-technical by default), sets an explanation/accompaniment dial, then discovers what they want to build OR govern (any software stack, OR a non-code harness: running a company/ops, research, personal knowledge, content). It detects greenfield vs brownfield, profiles the user into 02-DOCS, RECOMMENDS which rsc bundles to install (printing the exact install commands), and hands off to /rsc-core:harness to scaffold 01-TOOLS + 02-DOCS. Triggers: 'empezar de cero', 'no sé por dónde empezar', 'start a new project', 'bootstrap', 'set up the harness', 'monta el proyecto', 'quiero montar una empresa/ops/wiki con esto', 'arranca', 'init'. NOT the scaffolder itself (that's /rsc-core:harness) and NOT a specific stack skill."
+tags: [init, bootstrap, start, new, setup]
+recommends: [harness]
+profiles: [minimal, core, full]
 origin: risco
 ---
 

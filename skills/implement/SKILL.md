@@ -1,6 +1,9 @@
 ---
 name: implement
 description: "Use when executing a planned feature into working, tested code — turning the tasks list into commits, writing code task-by-task under TDD discipline (failing test first, then the code that passes it, then refactor), with a stop-and-show checkpoint after each task. Triggers: 'implement the plan', 'build out the tasks', 'start coding this feature', 'work through the task list', 'execute the implementation', 'write the code for this spec', 'do task 3', 'continue implementing', 'red-green-refactor this', 'implement with tests first'. The SDD phase AFTER analyze and BEFORE verify. Embeds red→green→refactor and delegates concrete test tooling to the stack skill (fastapi/go/nextjs/flutter); fans independent tasks out via parallel; logs every non-obvious choice to 02-DOCS/wiki/sdd/decisions.md and stays inside the constitution. NOT spec writing, NOT planning, NOT the final lint/audit gate."
+tags: [sdd, implement, code]
+recommends: [verify]
+profiles: [core, full]
 origin: risco
 ---
 
