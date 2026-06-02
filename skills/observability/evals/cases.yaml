@@ -1,0 +1,49 @@
+skill: observability
+
+should_trigger:
+  - prompt: "Add OpenTelemetry traces, metrics and logs to our API."
+    why: Core trigger — wire the three signals through OTel. The skill's central job.
+  - prompt: "Requests are slow and we can't see where the time goes across our services."
+    why: Non-obvious wording (no mention of OTel/tracing). The symptom maps to distributed tracing — spans across hops to attribute latency.
+  - prompt: "Replace our print/console.log statements with structured logs correlated to traces."
+    why: The structured-logging pillar — JSON logs injected with trace_id/span_id so you can pivot log → trace.
+  - prompt: "Instrument our LLM calls so each request is a span with token counts."
+    why: Non-obvious. GenAI semantic conventions (gen_ai.* token attrs) on spans; the bridge that feeds cost-tracking, but the instrumentation itself lives here.
+  - prompt: "Stand up an OTel Collector and export our telemetry to Grafana."
+    why: Collector config + OTLP export + per-signal pipelines — the architecture core.
+  - prompt: "Define RED metrics and a burn-rate alert from the telemetry we emit."
+    why: Telemetry-driven alerting that the instrumentation makes possible (rate/errors/duration + multi-window SLO burn).
+  - prompt: "Instrumenta el servei amb OpenTelemetry i exporta a Grafana."
+    why: Catalan trigger for the core instrument-and-export flow.
+
+should_not_trigger:
+  - prompt: "Alert me when the site goes down and set up an on-call rotation."
+    route_to: monitoring
+    why: Outside-in detection + who-gets-paged. Observability emits the signals; monitoring decides the page and the human.
+  - prompt: "Design our retry strategy, circuit breaker, and error taxonomy."
+    route_to: error-handling
+    why: How the code handles failure, not how failure is recorded as telemetry.
+  - prompt: "This endpoint takes 3 seconds — make it fast."
+    route_to: performance
+    why: Fixing slowness. Observability makes slowness visible/attributable; performance does the actual optimization.
+  - prompt: "Track user signups and our activation funnel conversion."
+    route_to: analytics
+    why: Product/business events for growth, not system/operational signals.
+  - prompt: "Build a dashboard of our monthly LLM spend by model and team."
+    route_to: cost-tracking
+    why: Turning token usage into dollars and budgets. Observability emits the gen_ai.* token span; cost-tracking prices it.
+
+capability:
+  - scenario: >
+      I have a Node service that uses console.log for everything and has no metrics.
+      Make it observable: I want to explain an incident from telemetry alone.
+    must_include:
+      - SDK init that sets resource attributes service.name, service.version, and deployment.environment
+      - auto-instrumentation enabled (zero-code register hook or getNodeAutoInstrumentations) before any manual spans
+      - one manual span around a business operation that carries attributes AND sets span status (OK/ERROR) and records exceptions
+      - structured JSON logs that inject trace_id and span_id (not free-text print/console.log)
+      - a RED metric set — request rate, error rate, and latency as a histogram (not a single average)
+      - a Collector config where every exporter under exporters is referenced in a service.pipelines entry
+      - a multi-window SLO burn-rate alert defined from the emitted metrics
+      - respects the cardinality rule (no user_id/request_id/email as a metric label) and logs no PII (opaque ids, redaction in the Collector)
+      - exports through a Collector via OTLP, not straight to a vendor

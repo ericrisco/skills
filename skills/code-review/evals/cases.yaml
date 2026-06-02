@@ -1,0 +1,55 @@
+skill: code-review
+
+should_trigger:
+  - prompt: "review this PR before I merge it"
+    why: Core diff/PR review on its own merits with no SDD spec/plan chain — the spec-less giving pass.
+  - prompt: "revisa este diff, ¿está bien?"
+    why: Spanish phrasing for a standalone diff judgment with no project artifact chain.
+  - prompt: "què està malament en aquest canvi?"
+    why: Catalan phrasing — judge a concrete change for defects, no spec required.
+  - prompt: "is this dependency bump safe to merge?"
+    why: Non-obvious — a diff with almost no code still needs supply-chain/transitive review; this is the giving pass on a bump.
+  - prompt: "a contractor pushed a branch, tear it apart"
+    why: Inbound external change where you have only the diff + stated intent, no rsc-SDD artifacts to key off.
+  - prompt: "/code-review --comment 1432"
+    why: Running the executable discipline by hand, in comment-posting mode.
+  - prompt: "give me a high-signal review of this change, no nitpicks"
+    why: Names the signal-to-noise north star directly — exactly this skill's defining trait.
+
+should_not_trigger:
+  - prompt: "the reviewer left comments — do I have to make these changes?"
+    route_to: review
+    why: That is the receiving loop keyed to the SDD review gate, which review owns; code-review is giving-only.
+  - prompt: "run the lint, type-check and test gate and make it green"
+    route_to: verify
+    why: Running the gates to prove green is the verify phase; code-review judges whether green is correct.
+  - prompt: "threat-model this upload endpoint for OWASP issues with fixed diffs"
+    route_to: secure-coding
+    why: A deep STRIDE/OWASP exploitability pass with vulnerable→fixed diffs is secure-coding; code-review does only a boundary pass.
+  - prompt: "this test is flaky, find the root cause"
+    route_to: debug
+    why: Root-causing one confirmed failure is debug; code-review surveys a change for latent defects.
+  - prompt: "open the PR and merge it now that it's approved"
+    route_to: ship
+    why: PR/merge/close after approval is ship; code-review only produces the verdict ship consumes.
+  - prompt: "cross-check the spec, plan and tasks before we write any code"
+    route_to: analyze
+    why: Pre-code consistency across SDD artifacts is analyze; code-review reads the diff after code exists.
+
+capability:
+  - scenario: |
+      Review a PR diff for a checkout service that contains TWO things:
+      (a) a real correctness bug — the new code re-implements an existing
+      `cart.compute_subtotal()` helper inline as `sum(i.price * i.qty ...)`,
+      silently dropping the per-item discount the helper applies; and
+      (b) a planted non-bug — a call that interpolates a value into a SQL
+      string and *looks* like injection, but the value is a server-derived
+      enum already validated upstream in the same function (guarded upstream).
+      The user asked for a review and did NOT pass --comment or --fix.
+    must_include:
+      - Flags the duplicated/discount-dropping logic as [blocking] or [should-fix] with where/why/repro/fix.
+      - Does NOT flag the guarded SQL call as a blocker — either omits it or labels it [question] only after stating it traced the value to an upstream validation (signal-to-noise discipline).
+      - Emits exactly one verdict — APPROVE, APPROVE WITH NITS, or CHANGES REQUESTED.
+      - Ranks findings by blast radius × reachability with no severity inflation.
+      - Stays read-only — posts no PR comment and applies no fix, since neither --comment nor --fix was requested.
+      - States the assumed intent when reasoning about the change.

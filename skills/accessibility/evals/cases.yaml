@@ -1,0 +1,47 @@
+skill: accessibility
+
+should_trigger:
+  - prompt: "Make this signup form accessible — WCAG 2.2 AA."
+    why: Direct conformance ask against the exact standard this skill owns.
+  - prompt: "axe-core reports color-contrast and button-name violations, fix them."
+    why: Tool-output trigger; named axe rules are this skill's home turf.
+  - prompt: "The modal doesn't trap focus and Escape doesn't close it."
+    why: Non-obvious phrasing — focus management for overlays, no a11y keyword in sight.
+  - prompt: "Tab order jumps around and the icon-only buttons have no label for screen readers."
+    why: Keyboard order plus accessible-name problem; core operable/perceivable work.
+  - prompt: "El lector de pantalla no lee los errores del formulario, fes-ho accessible."
+    why: Spanish/Catalan trigger — live region for errors plus general conformance ask.
+  - prompt: "Our tap targets are smaller than 24px — does WCAG 2.2 require bigger ones?"
+    why: Non-obvious specificity on SC 2.5.8 Target Size (Minimum), a 2.2 delta.
+  - prompt: "Lighthouse accessibility score is 62, get it into the green."
+    why: Low a11y score is a direct entry point even though Lighthouse is multi-purpose.
+
+should_not_trigger:
+  - prompt: "The page LCP is 4 seconds, make it load faster."
+    route_to: performance
+    why: Page-speed / Core Web Vitals tuning, not WCAG conformance.
+  - prompt: "Set up the Jest + React Testing Library harness for this repo."
+    route_to: testing-web
+    why: Test runner / render setup mechanics; this skill only supplies the a11y assertions that run inside it.
+  - prompt: "Write Playwright E2E tests for the checkout flow."
+    route_to: e2e-testing
+    why: Full browser-driven flow orchestration, not a WCAG audit.
+  - prompt: "Pick the brand colors and spacing scale for the design system."
+    route_to: design
+    why: Visual intent and design tokens; this skill checks the contrast/target-size outcome, not the aesthetic.
+  - prompt: "Sanitize this user input to prevent XSS."
+    route_to: secure-coding
+    why: Security hardening, unrelated to accessibility conformance.
+
+capability:
+  - scenario: >
+      Given a React component where an icon-only toggle is a <div onClick> inside a card,
+      with no labels, a custom brand color for the glyph, and no keyboard handler — produce
+      an accessible rewrite plus a way to verify it.
+    must_include:
+      - Replaces the div with a native <button> (Rule 0 — native HTML before ARIA).
+      - Adds an accessible name (aria-label or visually-hidden text) so the icon-only control is announced.
+      - Ensures keyboard operability and visible focus (:focus-visible rather than outline:none).
+      - Flags that contrast must be checked in a real browser because jsdom/jest-axe can't compute it.
+      - Adds an automated check (jest-axe, or @axe-core/playwright scoped to the wcag22aa tag).
+      - States automation catches only ~57% of issues and names at least one manual check (keyboard pass or screen-reader spot check).

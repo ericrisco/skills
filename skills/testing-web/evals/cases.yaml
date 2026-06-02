@@ -1,0 +1,52 @@
+skill: testing-web
+
+should_trigger:
+  - prompt: "Write a Vitest test for this LoginForm component that fills the fields and clicks submit."
+    why: Core component-test request — render in jsdom, drive with user-event, assert on output. The center of this skill.
+  - prompt: "I keep getting 'An update to Profile was not wrapped in act(...)' in my test. How do I fix it?"
+    why: Non-obvious symptom this skill owns; the real fix is awaiting findBy/waitFor, not a manual act() wrap.
+  - prompt: "How do I test my useCountdown custom hook in isolation?"
+    why: Hook testing via renderHook from @testing-library/react (not the deprecated react-hooks package).
+  - prompt: "test mi componente de carrito con Testing Library, que al añadir un producto suba el total"
+    why: Spanish trigger — component behavior test (add item -> total updates) via role/text queries.
+  - prompt: "Vull provar un hook amb renderHook però no sé com llegir result.current"
+    why: Catalan trigger — reading hook state off result.current and wrapping setters in act().
+  - prompt: "Should I use getByText or findByText here? My query passes sometimes and throws other times."
+    why: Non-obvious query-semantics flakiness — async content needs findBy, sync needs getBy. This skill's exact lane.
+  - prompt: "Migrate our Jest component tests to Vitest, including the jest-dom matchers and mocks."
+    why: Jest -> Vitest migration of frontend component tests, including the jest-dom import-path swap.
+
+should_not_trigger:
+  - prompt: "Write a Playwright test that logs in and verifies the dashboard page loads."
+    route_to: e2e-testing
+    why: Real browser driving a multi-page journey, not a jsdom component test.
+  - prompt: "Add pytest tests for my FastAPI endpoints with fixtures."
+    route_to: testing-py
+    why: Python test suite, a different runner and ecosystem entirely.
+  - prompt: "Run an axe accessibility audit on this page and fix the color-contrast failures."
+    route_to: accessibility
+    why: Auditing a11y/contrast as the goal, not authoring component tests (which merely use role queries).
+  - prompt: "Why does this React component re-render so many times and slow down the page?"
+    route_to: debug
+    why: Runtime performance diagnosis, not writing or fixing a test.
+  - prompt: "Review this PR diff for correctness bugs before I merge."
+    route_to: review
+    why: Code review of a diff, not authoring frontend tests.
+  - prompt: "Write Go table-driven tests for my handler package."
+    route_to: testing-go
+    why: Go test suite, outside the web/DOM scope of this skill.
+
+capability:
+  - scenario: >
+      Given a React <SearchBox> that calls fetch('/api/search?q=...') on submit and renders the result
+      titles as a list, write a complete Vitest + React Testing Library test file proving that typing a
+      query and submitting shows the matching results, and that a server error shows an error message.
+    must_include:
+      - Vitest config or test assumes jsdom environment and @vitejs/plugin-react (or relies on existing setup)
+      - Calls userEvent.setup() and awaits every interaction (await user.type / await user.click)
+      - Queries by role/label/text (e.g. getByRole searchbox/button), not getByTestId as the primary query
+      - Mocks the network at the boundary — MSW handlers or vi.mock of the fetch module, not the component internals
+      - Asserts rendered results appear via await findBy* (waiting for async data), not getBy for async content
+      - Tests an error path (500 -> visible error / role=alert) in a separate case
+      - No bare act() misuse in the component test; no assertions on state/props/className
+      - At least one real expect(...) assertion per test

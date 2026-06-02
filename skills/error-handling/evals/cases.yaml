@@ -1,0 +1,46 @@
+skill: error-handling
+
+should_trigger:
+  - prompt: "Add retry with exponential backoff to our payment-provider client — it times out a lot."
+    why: "Core retry-policy request. The skill owns caps, full jitter, transient-vs-permanent classification, and the idempotency precondition for a payment mutation."
+  - prompt: "Our exceptions get swallowed all over the codebase. Give us a real error strategy."
+    why: "Taxonomy + surfacing. 'Swallowed exceptions' is the skill's one rule (classify/contain/surface, never swallow), not a single-bug hunt."
+  - prompt: "Set up error boundaries in our Next.js App Router so a broken widget doesn't blank the page."
+    why: "Step 4 boundary placement: error.tsx / global-error.tsx, what bubbles where, what render-only boundaries don't catch."
+  - prompt: "When Stripe is down the whole checkout 500s. Make it degrade gracefully instead."
+    why: "Non-obvious: the ask sounds like 'fix Stripe' but it is circuit-breaker + fallback design (contain blast radius, serve a degraded path), not debugging Stripe."
+  - prompt: "afegeix reintents amb backoff i un tallacircuits al client de l'API"
+    why: "Catalan trigger ('add retries with backoff and a circuit breaker to the API client') — retry policy + circuit breaker, squarely Steps 2-3."
+  - prompt: "Why does one slow downstream service cause a retry storm that takes our database down?"
+    why: "Non-obvious: this is retry-budget + circuit-breaker design (uncapped retries amplifying load), not 'add more capacity' (scaling) and not 'find the bug' (debug)."
+  - prompt: "This catch block hides the real error — we only ever see 'undefined' in logs. Fix how we handle errors here."
+    why: "Cause-chaining and the log-vs-user split (Step 1 + Step 5). Dropped cause is a named anti-pattern this skill fixes."
+
+should_not_trigger:
+  - prompt: "Find out why this specific endpoint throws a NullPointer intermittently — it only happens under load."
+    route_to: debug
+    why: "Root-causing one specific intermittent crash is debug. error-handling designs the reaction to a CLASS of failure, not the diagnosis of this one."
+  - prompt: "Wire up OpenTelemetry traces so we can see where requests fail across services."
+    route_to: observability
+    why: "Making failures visible after the fact (traces/metrics/logs) is observability. error-handling decides the runtime reaction, not the telemetry pipeline."
+  - prompt: "Define the JSON error envelope every endpoint returns — we want RFC 9457 problem+json."
+    route_to: api-design
+    why: "The on-the-wire error contract (envelope shape, fields, versioning) is api-design. error-handling produces the status/code; api-design decides the bytes."
+  - prompt: "Page me when the API starts returning 5xx for more than two minutes."
+    route_to: monitoring
+    why: "Alerting/paging/on-call is monitoring. error-handling keeps the service from going down; it does not own the alert rule."
+  - prompt: "Write the tests that prove our retry logic gives up after 4 attempts."
+    route_to: testing-web
+    why: "Authoring the tests that prove the error paths is testing-web. error-handling designs the paths; the test skill verifies them."
+
+capability:
+  - scenario: "A Node service calls a flaky third-party API inside a Next.js checkout. Design end-to-end error handling for it."
+    must_include:
+      - "A typed / Result error taxonomy with stable string codes and three buckets (domain / transient / programmer-error)."
+      - "Classification of retryable transient failures (timeout, 429, 503, network) vs permanent (400/401/403/404/business-rule)."
+      - "Capped retry (3-5 attempts) with full jitter and a per-attempt timeout BEFORE the retry."
+      - "An idempotency-key precondition for the retried checkout mutation (no double-charge), deferring key design to api-design."
+      - "A circuit breaker with Closed/Open/Half-Open states and a concrete threshold (~50% over ~20 reqs, Open 30-60s) plus a fallback."
+      - "error.tsx / global-error.tsx boundary placement, and the note that boundaries catch render errors only (event/async/data-fetch need try/catch)."
+      - "A distinct user message (plain, correlation id, no internals) vs a structured operator log carrying the cause chain."
+      - "Explicit hand-offs: envelope shape to api-design, telemetry to observability, alerting to monitoring."
