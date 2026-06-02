@@ -1,0 +1,43 @@
+skill: unit-economics
+
+should_trigger:
+  - prompt: "What's our CAC and LTV, and is the LTV:CAC ratio healthy?"
+    why: "Canonical trigger — compute the core numbers plus benchmark the ratio; the skill's center of gravity."
+  - prompt: "Our payback period feels too long — how do I bring it down?"
+    why: "Diagnosis + lever, not just a calculation; routes to annual prepay / margin levers via the diagnose table."
+  - prompt: "Calcula'm el CAC i quant trigo a recuperar el cost d'un client."
+    why: "Catalan; 'quant trigo a recuperar el cost' is the payback-period phrasing without naming the metric in English."
+  - prompt: "Our blended CAC looks fine but I think paid is bleeding money — can we check?"
+    why: "NON-OBVIOUS — the user never says 'unit economics' or 'segment'; this is exactly the paid-vs-blended / segmentation failure the skill surfaces."
+  - prompt: "The model says we're profitable but each customer feels like a loss — what's the contribution margin per customer?"
+    why: "Contribution-margin entry point; surfaces the per-unit truth against a whole-company P&L that looks fine."
+  - prompt: "Is a 5:1 LTV:CAC actually good or are we under-investing in growth?"
+    why: "Benchmark interpretation — the >5:1 under-investing caveat that most rules-of-thumb miss."
+
+should_not_trigger:
+  - prompt: "Build me a 3-year revenue and P&L projection for the raise."
+    route_to: financial-model
+    why: "Multi-year projection / scenario engine, not the per-customer truth; the named boundary in the description."
+  - prompt: "What should we charge and how should we package the tiers?"
+    route_to: pricing
+    why: "Setting the actual price and packaging, not validating the economics of an existing price."
+  - prompt: "Design a churn save-play and win-back sequence for at-risk accounts."
+    route_to: retention
+    why: "Churn-prevention program design, not measuring churn's effect on LTV."
+  - prompt: "Figure out our per-request AI inference cost so we know gross margin."
+    route_to: cost-tracking
+    why: "Per-unit COGS instrumentation that feeds gross margin — upstream of this skill, not the same job."
+  - prompt: "Forecast next year's MRR from our cohort retention curves."
+    route_to: forecasting
+    why: "Time-series / cohort projection, not the per-customer ratios."
+
+capability:
+  - scenario: "Operator gives: period S&M spend $120K, 80 new customers, monthly ARPA $400, gross margin 75%, monthly churn 3%; one segment is self-serve, one is sales-led. Produce the unit-economics worksheet and diagnose."
+    must_include:
+      - "CAC = $1,500 (120000 / 80)."
+      - "Gross-margin LTV: (400 × 0.75) / 0.03 = $10,000, explicitly NOT the revenue LTV of $13,333, and flags the difference."
+      - "Payback = 1500 / (400 × 0.75) = 5 months (gross margin in the denominator)."
+      - "LTV:CAC = 6.67:1, flagged as possibly under-investing in growth because it exceeds 5:1."
+      - "Conservatism note: 3% monthly churn implies ~33-month life, within the 48-month cap; states the cap/×0.7 rule."
+      - "Recommends segmenting self-serve vs sales-led because blended hides the truth, and names the lever for the worst sub-metric."
+      - "Emits a worksheet (yaml/csv/md) with named inputs and recomputed outputs, not just prose."

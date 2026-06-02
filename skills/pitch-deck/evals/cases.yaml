@@ -1,0 +1,55 @@
+skill: pitch-deck
+
+should_trigger:
+  - prompt: "Help me build our seed pitch deck for investors."
+    why: "Core use case: writing the fundraising-deck narrative and slide content for a seed raise. This skill owns the story order and the deck-level numbers."
+  - prompt: "What slides do I need to raise a pre-seed round?"
+    why: "A request for the slide spine / deck structure at a named stage — the canonical 10 + ask spine and stage deltas are exactly this skill."
+  - prompt: "Investors keep losing interest after slide 3 — can you fix our deck's narrative?"
+    why: "Non-obvious: a narrative DIAGNOSIS, not a build request. The front-load-belief principle and risk-order sequencing are the cure this skill owns; it is not asking to render slides."
+  - prompt: "Write the traction slide and the ask slide for our Series A deck."
+    why: "Slide-level content — the two highest-stakes slides (growth shape, amount/use-of-funds/milestone). Deciding what metric and what ask go on a slide is this skill's job."
+  - prompt: "Prepara el pitch deck para la ronda seed."
+    why: "Spanish trigger for building a seed fundraising deck — same core use case, named explicitly in the description triggers."
+  - prompt: "Tighten our fundraising story before demo day."
+    why: "Non-obvious: story-arc tightening for an accelerator/demo-day pitch, not a slide-design task. The narrative arc and slide ordering are this skill's center."
+  - prompt: "Our market slide says we just need 1% of a trillion-dollar market — does that hurt us?"
+    why: "Non-obvious: a content-judgment question about the market slide. Bottom-up TAM/SAM/SOM and the over-claim trap are this skill's market-sizing guidance."
+
+should_not_trigger:
+  - prompt: "Export our deck to PDF and PPTX with our brand colors and a clean theme."
+    route_to: presentations
+    why: "Rendering, theming, and exporting the slides is presentations' craft; pitch-deck hands it a locked outline and does not draw or export pixels."
+  - prompt: "Build the 3-year revenue projection and burn/runway model behind these numbers."
+    route_to: financial-model
+    why: "The spreadsheet that COMPUTES the projections is financial-model; pitch-deck only places the decision-grade few numbers on a slide."
+  - prompt: "Draft the investor one-pager and the data-room checklist for the raise."
+    route_to: investor-materials
+    why: "The non-deck raise collateral (one-pager, memo, data room, FAQ) is investor-materials; pitch-deck writes the deck itself, not the package around it."
+  - prompt: "Is our CAC/LTV actually healthy? Run the full unit-economics analysis by channel."
+    route_to: unit-economics
+    why: "The standalone CAC/LTV/payback health check is unit-economics; pitch-deck cites the headline band on a slide but does not run the analysis."
+  - prompt: "Make a sales deck to demo our product to enterprise customers."
+    route_to: presentations
+    why: "A sales/demo deck sells product to customers, not equity to investors — that is a presentations deck, not a fundraising pitch."
+  - prompt: "Plan our raise: build the target-investor list and the outreach sequence."
+    route_to: fundraising
+    why: "The raise PROCESS — investor targeting, outreach, round strategy — is fundraising; pitch-deck produces only the deck content."
+
+capability:
+  - scenario: "A pre-seed SaaS founder gives raw context: problem is finance teams closing books in spreadsheets; an early product ships; $40K MRR growing 22% MoM for 5 straight months; 2 technical/finance founders; wants to raise $1.2M. 'Turn this into a pitch deck.'"
+    must_include:
+      - "Produces a ~10-slide + ask outline (problem, solution, why-now, market, product, business model, traction, competition, team, ask) in risk-evaluation order, kept under ~15 slides."
+      - "Traction slide shows the growth SHAPE — $40K MRR with the +22% MoM, 5-month trend/curve — not just the single $40K figure; each number carries a unit."
+      - "Ask slide names all three: the amount ($1.2M), a use-of-funds allocation, and the milestone the runway buys (e.g. months of runway to a target MRR / Series-A readiness)."
+      - "Sizes the market bottom-up (accounts x price, sourced), explicitly avoiding the '$X trillion, we just need 1%' top-down hand-wave."
+      - "Frames pre-seed correctly: sells the team + insight, does not over-claim a Series-A 'repeatable engine'."
+      - "Defers rendering/theming/export to presentations and the projection/burn model to financial-model instead of building them here."
+      - "Flags any vanity or over-claim (e.g. registered users without an activation/paying rate, hollow superlatives) and keeps the deck within the ~15-slide discipline."
+  - scenario: "A founder says 'our deck has 28 slides and investors zone out after slide 3 — fix it.'"
+    must_include:
+      - "Diagnoses front-loading: belief must be won in the first ~5 slides because a first read is ~2.5-3.7 minutes (~19s/slide); depth moves to the conversation/data room."
+      - "Cuts the deck toward the 10 + ask spine, well under ~15 slides, moving appendix-grade detail off the deck."
+      - "Re-sequences into investor risk order (problem -> solution -> why-now -> market -> proof -> team -> ask) and calls out any feature-tour opening as the wrong front."
+      - "Identifies which slides do not move the investment decision and cuts or appendixes them."
+      - "Hands the re-themed/re-exported result to presentations once the outline is locked, rather than redesigning slides itself."

@@ -1,0 +1,60 @@
+skill: investor-materials
+
+# Prompts that MUST load `investor-materials`. The skill owns the PACKAGING and
+# CIRCULATION of fundraising documents an investor reads outside the meeting:
+# the data room, the one-pager/teaser, and the recurring investor update. It
+# does NOT own the slide story (pitch-deck), the projections (financial-model),
+# or the round strategy/pipeline (fundraising).
+should_trigger:
+  - prompt: "Set up our data room for the seed round — what folders and documents do investors expect before diligence?"
+    why: "Structuring the data room (8 numbered categories, per-stage doc counts, naming convention) is the skill's core organization job."
+
+  - prompt: "Draft this month's investor update for May."
+    why: "The recurring monthly update (6 sections, metrics table, named asks, runway line) is a primary artifact owned here."
+
+  - prompt: "Write a one-pager we can attach to cold investor emails."
+    why: "The investor one-pager/teaser (7 blocks, specific ask, no confidential financials) is owned here; cold-outreach writes the email, this writes the attachment."
+
+  - prompt: "Our data room is a disorganized mess — rename and reorganize all the files so it's not embarrassing."
+    why: "Non-obvious cleanup/organization trigger: renaming to YYYY-MM_Doc_vN and numbering the 8 categories is exactly the disorganization-is-a-deal-killer problem the skill exists to fix."
+
+  - prompt: "Set up a reusable monthly investor-update format with a metrics table we can fill in every month."
+    why: "Non-obvious: the ask is a repeatable FORMAT/system (fixed sections, fixed cadence), not a one-off email — the skill ships that template."
+
+  - prompt: "Actualización mensual a inversores y sala de datos para la ronda."
+    why: "Spanish trigger naming two core artifacts (monthly investor update + data room) — must route here regardless of language."
+
+# NEAR-MISS prompts that must NOT load `investor-materials`. Each routes to the
+# genuinely correct sibling. The recurring trap: anything about the STORY
+# (pitch-deck), the NUMBERS (financial-model), or the round STRATEGY
+# (fundraising) that merely sounds investor-adjacent.
+should_not_trigger:
+  - prompt: "Build the slide narrative and story arc for our investor pitch meeting."
+    route_to: "pitch-deck"
+    why: "The persuasive slide-by-slide story is pitch-deck; investor-materials only packages the deck it produces, it does not build the narrative."
+
+  - prompt: "Build our 3-year revenue projection and burn/runway spreadsheet with the cap-table math."
+    route_to: "financial-model"
+    why: "The projection spreadsheet and cap-table math are financial-model; investor-materials surfaces the model in the data room but does not author it."
+
+  - prompt: "Help me build my investor target list and decide between a SAFE and a priced round."
+    route_to: "fundraising"
+    why: "Investor pipeline and round mechanics (SAFE vs priced, term sheet) are fundraising strategy, not document packaging."
+
+  - prompt: "Write the cold email to this specific VC partner to get her to take a meeting."
+    route_to: "cold-outreach"
+    why: "The first-touch email to a named investor is cold-outreach; investor-materials produces the one-pager that email attaches, not the email."
+
+  - prompt: "Calculate our LTV/CAC and payback period so I know if the unit economics work."
+    route_to: "unit-economics"
+    why: "LTV/CAC/payback analysis is unit-economics; investor-materials only surfaces the resulting figures in the update or one-pager."
+
+# Capability: a realistic end-to-end task scored by a judge against the rubric.
+capability:
+  - scenario: "A seed-stage SaaS founder already has a pitch deck and a financial model and current metrics ($42k MRR, growing). They ask for a complete data-room index, an investor one-pager for cold outreach, and this month's investor update."
+    must_include:
+      - "A data-room index listing all 8 numbered categories (01 Corporate through 08 Tax) with per-stage doc counts (seed ~30–40)."
+      - "The file-naming/versioning convention shown with a concrete dated, versioned example (e.g. 2026-03_Financial-Model_v4.xlsx)."
+      - "A one-pager with all 7 blocks (headline, problem, solution, traction, market TAM/SAM/SOM, team, ask) and a SPECIFIC funding ask stating amount and use of funds; the teaser version omits confidential P&L / full cap table."
+      - "An investor update with the 6 sections, a metrics table comparing actual vs target vs prior period, each challenge PAIRED with a solution/learning, and NAMED asks (a specific intro/role/company, not 'let me know if you can help'), plus a cash/runway line."
+      - "Correctly routes deck-building to pitch-deck and projection-building to financial-model instead of producing them here."

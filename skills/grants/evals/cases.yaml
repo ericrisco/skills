@@ -1,0 +1,69 @@
+skill: grants
+
+# Prompts that MUST load `grants`. The skill owns the pursuit and writing of
+# non-dilutive public/foundation funding scored by a reviewer against a
+# published rubric: find-fit, go/no-go, registration, and the application
+# (needs, logic model, SMART objectives, impact, budget justification, LOI).
+should_trigger:
+  - prompt: "Find public grants and subsidies my nonprofit qualifies for."
+    why: "Building a funder-fit shortlist of grants/subsidies an org is eligible for is the skill's core find-fit job."
+
+  - prompt: "Write the impact section for this Horizon Europe proposal so it scores above threshold."
+    why: "Non-obvious: the user expects rubric-keyed writing that clears the 3/5 Impact threshold — the skill thinks in the evaluator's scoring grid, not generic prose."
+
+  - prompt: "Should we even bother applying to this call, or is it a two-week waste?"
+    why: "Non-obvious go/no-go: eligibility hard-stops, fit, and effort-vs-expected-value before any drafting — the gate that prevents wasted grant effort."
+
+  - prompt: "Build the budget and budget justification for this federal grant, including the indirect line."
+    why: "Budget with allowability (necessary/reasonable/allocable/consistent) and the 15% de minimis MTDC indirect rate is owned here, not by financial-model."
+
+  - prompt: "Necessito buscar la convocatòria a la BDNS i redactar la sol·licitud de la subvenció."
+    why: "Catalan: find the convocatoria on the BDNS and write the subsidy application — the Spain non-dilutive lane (bases reguladoras + convocatoria) plus the write."
+
+  - prompt: "Write a Letter of Inquiry to this foundation to get invited to the full proposal."
+    why: "The 1-3 page LOI fit filter (~20-40% invited onward) is an explicit owned artifact; lead with funder-fit."
+
+  - prompt: "Build the logic model and SMART objectives for our youth-employment grant application."
+    why: "INPUTS->ACTIVITIES->OUTPUTS->OUTCOMES chain and SMART objectives with measurable targets/dates are core owned deliverables, even without the word 'grant rubric'."
+
+# NEAR-MISS prompts that must NOT load `grants`. Each routes to the genuinely
+# correct sibling. The recurring trap: anything about money that is actually
+# equity (fundraising), a paying buyer (proposals), the company model
+# (financial-model), or post-award accounting (bookkeeping).
+should_not_trigger:
+  - prompt: "Write our seed round pitch and prep the investor data room."
+    route_to: "fundraising"
+    why: "Equity round, cap table, and investor data room are dilutive funding — grants owns only money you neither repay nor give equity for."
+
+  - prompt: "Draft the SOW and proposal to close this paying enterprise client."
+    route_to: "proposals"
+    why: "A commercial SOW persuades a paying buyer to sign, not a grant reviewer scoring a rubric."
+
+  - prompt: "Build our 3-year financial projection model with runway and scenario P&L."
+    route_to: "financial-model"
+    why: "Company projections and runway are the financial model, not an application keyed to an evaluation rubric."
+
+  - prompt: "Set up the books to track how we spent the grant after the award landed."
+    route_to: "bookkeeping"
+    why: "Post-award ledgers and spend tracking (justificación) are recordkeeping after the money lands, explicitly out of scope for grants."
+
+  - prompt: "Make the slides that pitch our vision to a room of investors."
+    route_to: "pitch-deck"
+    why: "The investor pitch deck sells a vision to a room; grants writes the rubric-scored application, not the slides."
+
+capability:
+  - scenario: >
+      Given a fictional call with a published Excellence/Impact/Implementation
+      rubric (each 0-5, 3/5 threshold, 10/15 total), a 40-page Part B limit, and
+      a small nonprofit org profile, do a go/no-go on eligibility and fit, then
+      write the impact section, a logic model, and a 12-month justified budget
+      with a de minimis indirect line.
+    must_include:
+      - "An explicit go/no-go decision citing the eligibility hard-stops and registration lead time, before any drafting."
+      - "Each rubric criterion (Excellence, Impact, Implementation) addressed by a section written to clear its own 3/5 threshold, not just the 10/15 total."
+      - "Outcomes stated as changed states with baselines/timeframes, distinct from outputs (no 'held N workshops' sold as an outcome)."
+      - "SMART objectives, each with a numeric target AND a date/timeframe."
+      - "A logic model with the INPUTS->ACTIVITIES->OUTPUTS->OUTCOMES chain."
+      - "Budget lines each mapped to a named workplan activity."
+      - "An indirect line at or below 15% of MTDC (computed on the MTDC base), or a stated negotiated rate."
+      - "Respects the stated 40-page limit and notes that content beyond it is disregarded."
