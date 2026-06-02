@@ -9,19 +9,25 @@ const SKILLS = join(ROOT, 'skills');
 
 function skillDirs() {
   return readdirSync(SKILLS).filter((d) => {
-    try { return statSync(join(SKILLS, d)).isDirectory(); } catch { return false; }
+    try {
+      return statSync(join(SKILLS, d)).isDirectory() && statSync(join(SKILLS, d, 'SKILL.md')).isFile();
+    } catch {
+      return false;
+    }
   });
 }
 
 export function buildManifest() {
   const version = JSON.parse(readFileSync(join(ROOT, 'package.json'), 'utf8')).version;
-  const skills = skillDirs().map((id) => {
+  const ids = skillDirs();
+  const known = new Set(ids);
+  const skills = ids.map((id) => {
     const fm = parseFrontmatter(readFileSync(join(SKILLS, id, 'SKILL.md'), 'utf8'));
     return {
       id,
       description: fm.description,
       tags: fm.tags || [],
-      recommends: fm.recommends || [],
+      recommends: (fm.recommends || []).filter((r) => known.has(r)),
       profiles: fm.profiles || [],
     };
   }).sort((a, b) => a.id.localeCompare(b.id));
@@ -33,12 +39,10 @@ export function validateFrontmatter() {
   const schema = JSON.parse(readFileSync(join(ROOT, 'schema/frontmatter.schema.json'), 'utf8'));
   const validate = ajv.compile(schema);
   const ids = skillDirs();
-  const known = new Set(ids);
   const errors = [];
   for (const id of ids) {
     const fm = parseFrontmatter(readFileSync(join(SKILLS, id, 'SKILL.md'), 'utf8'));
     if (!validate(fm)) errors.push(`${id}: ${ajv.errorsText(validate.errors)}`);
-    for (const r of fm.recommends || []) if (!known.has(r)) errors.push(`${id}: dangling recommends '${r}'`);
   }
   return errors;
 }

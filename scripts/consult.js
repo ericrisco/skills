@@ -44,6 +44,7 @@ function expandedTerms(query) {
 export async function rank(manifest, query) {
   const terms = expandedTerms(query);
   if (!terms.length) return [];
+  const scored = scoreRows(manifest.skills, terms);
   const SQL = await initSqlJs();
   const db = new SQL.Database();
 
@@ -62,7 +63,9 @@ export async function rank(manifest, query) {
     const match = terms.map((t) => `"${t}"*`).join(' OR ');
     const res = db.exec('SELECT id FROM s WHERE s MATCH ? ORDER BY rank', [match]);
     db.close();
-    return res.length ? res[0].values.map(([id]) => ({ id })) : [];
+    if (!res.length) return [];
+    const ids = new Set(res[0].values.map(([id]) => id));
+    return scored.filter((r) => ids.has(r.id)).sort(byScore);
   } catch {
     db.run('CREATE TABLE s (id TEXT, doc TEXT);');
     const stmt = db.prepare('INSERT INTO s (id, doc) VALUES (?, ?)');
@@ -76,6 +79,28 @@ export async function rank(manifest, query) {
       params,
     );
     db.close();
-    return res.length ? res[0].values.map(([id]) => ({ id })) : [];
+    if (!res.length) return [];
+    const ids = new Set(res[0].values.map(([id]) => id));
+    return scored.filter((r) => ids.has(r.id)).sort(byScore);
   }
+}
+
+function scoreRows(skills, terms) {
+  return skills.map((skill) => {
+    const id = skill.id.toLowerCase();
+    const tags = (skill.tags || []).map((t) => t.toLowerCase());
+    const description = ` ${skill.description.toLowerCase()} `;
+    let score = 0;
+    for (const term of terms) {
+      if (id === term) score += 20;
+      else if (id.includes(term)) score += 8;
+      if (tags.includes(term)) score += 10;
+      if (description.includes(` ${term} `)) score += 1;
+    }
+    return { id: skill.id, score };
+  }).filter((r) => r.score > 0);
+}
+
+function byScore(a, b) {
+  return b.score - a.score || a.id.localeCompare(b.id);
 }
