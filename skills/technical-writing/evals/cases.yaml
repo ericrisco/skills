@@ -1,0 +1,53 @@
+skill: technical-writing
+
+# Prompts that MUST load technical-writing. The skill owns the user-facing
+# DOCUMENT — README, tutorial, how-to, reference — and the discipline of
+# writing each in its correct Diátaxis mode. Not topic strategy, not the
+# calendar, not localization, not pedagogy.
+should_trigger:
+  - prompt: "Write a README for my Python CLI tool."
+    why: "Core job — the README is the one doc everyone gets wrong; squarely in scope."
+  - prompt: "My docs page teaches, explains, and lists every parameter at once — readers are lost."
+    why: "Non-obvious: no doc-type word, but it is the signature mode-mixing failure the skill exists to fix."
+  - prompt: "Turn these notes into a step-by-step getting-started guide a beginner can run end to end."
+    why: "Tutorial mode — linear, runnable, guaranteed success."
+  - prompt: "Document this REST endpoint's parameters, responses, and error codes."
+    why: "Reference mode — dry, complete, table-structured."
+  - prompt: "Split this page into a tutorial vs a how-to — right now it's one confusing blob."
+    why: "Non-obvious: the request is a Diátaxis split, the core decision this skill makes."
+  - prompt: "Add a Vale lint to block 'simply' and 'just' in our /docs on every PR."
+    why: "Docs-as-code: prose linting in CI is owned here, framed as tooling not writing."
+  - prompt: "escriu un README clar per aquesta llibreria"
+    why: "Catalan trigger for the core README job."
+  - prompt: "documenta esta API con una guía paso a paso"
+    why: "Spanish trigger — documenting an API as a step-by-step guide (tutorial/how-to)."
+
+# Prompts that must NOT load technical-writing — each routes to a real sibling.
+should_not_trigger:
+  - prompt: "Write a 1500-word SEO blog post about vector databases with FAQ schema."
+    route_to: article-writing
+    why: "Search-intent prose plus on-page schema, not a product/codebase doc."
+  - prompt: "Build our content calendar and topic pillars for Q3."
+    route_to: content-engine
+    why: "The system and calendar across many pieces, not one document."
+  - prompt: "Translate our existing English docs into Spanish."
+    route_to: translation-l10n
+    why: "Localization of already-written docs, not authoring the source doc."
+  - prompt: "Design a 6-week course curriculum on Kubernetes with lessons and slides."
+    route_to: course-storytelling
+    why: "Syllabus and pedagogy over time, not one runnable doc."
+  - prompt: "Define our brand tone of voice and a reusable style spec."
+    route_to: brand-voice
+    why: "The voice rules a doc is written in, not the doc itself."
+
+# Capability: can the skill actually restructure a mixed page and clean the prose?
+capability:
+  - scenario: "Given a single docs page that opens with a beginner tutorial intro, then drifts into an opinionated explanation of why the architecture is async, then dumps a parameter list — restructure it correctly."
+    must_include:
+      - "Classifies the page's content into the four Diátaxis modes (tutorial, how-to, reference, explanation)."
+      - "Proposes splitting it into separate pages, one mode per page — not patching one page."
+      - "Rewrites at least one mode in its correct shape (e.g. a dry reference table for the parameters, with required/default columns)."
+      - "Removes weasel/AI-tell words (simply, just, easy, seamless) and explains why."
+      - "Ensures code samples are minimal, runnable, and show expected output, with no hidden '...' lines."
+      - "Recommends a Vale-in-CI blocking gate (or the verify.sh banlist) so docs cannot regress."
+      - "States that the README must say what the thing is and what it's for, and link to the fuller docs."

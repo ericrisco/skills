@@ -1,0 +1,50 @@
+skill: knowledge-ops
+
+should_trigger:
+  - prompt: "Mi wiki de 02-DOCS está hecha un desastre, hay un montón de artículos a medias — decide qué merece quedarse."
+    why: "Spanish capture/prune judgment over an existing wiki — exactly the gardener's first job (say no, keep what earns it)."
+  - prompt: "This wiki article is 600 lines and covers three different things — split it into separate pages."
+    why: "Structure/split: ≥2 theses, Overview can't be one paragraph. Core knowledge-ops operation."
+  - prompt: "Where should this note about our Stripe webhook retry logic live in the wiki — does it need its own article?"
+    why: "Capture topic-choice + altitude decision (merge vs new article), not engine work."
+  - prompt: "scores.json says these three articles are orphans — fix the cross-links so they're reachable."
+    why: "NON-OBVIOUS: link operation driven by the orphan_penalty score signal; reader must know scores.json is the worklist."
+  - prompt: "Poda la wiki: archiva lo que esté obsoleto y retira lo que ya esté superado."
+    why: "Spanish prune request — archival-not-delete, the _archive/ rail. Pure gardening."
+  - prompt: "Two articles in the wiki contradict each other on the refund window — which is right, fix it."
+    why: "Prune/conflict arbitration — flag for human, never auto-resolve; clearly the judgment layer."
+
+should_not_trigger:
+  - prompt: "Build my 02-DOCS wiki and run an inbox sweep over the files I dropped in inbox/."
+    route_to: harness
+    why: "Bootstrapping the engine and running the sweep is the machinery, owned by harness — not gardening an existing wiki."
+  - prompt: "Turn this meeting transcript into a recap with action items and owners."
+    route_to: meeting-notes
+    why: "One-shot extraction from a transcript, not wiki curation."
+  - prompt: "Write a decision record for why we chose Postgres over Mongo, with alternatives and status."
+    route_to: decision-records
+    why: "ADR authoring discipline. knowledge-ops may file an ADR but does not author it."
+  - prompt: "Document our newsletter publishing process step by step so anyone can run it."
+    route_to: sop-builder
+    why: "Procedure authoring, not gardening a knowledge wiki."
+  - prompt: "Walk me through this unfamiliar codebase so I understand how it's structured."
+    route_to: codebase-onboarding
+    why: "First-pass codebase exploration, not maintaining a 02-DOCS wiki."
+
+capability:
+  - scenario: >
+      Point the skill at a deliberately messy sample 02-DOCS/wiki/ containing: a
+      600-line article that mixes two unrelated theses; two near-duplicate pages
+      on the same subject; three articles scores.json marks as orphans
+      (orphan_penalty 5); one stale archived answer; one unresolved conflict
+      annotation between two pages; and a loose note someone dropped with no home.
+      Ask it to garden the wiki.
+    must_include:
+      - "Reads wiki/index.md and wiki/scores.json before making any edit."
+      - "Applies the capture bar to the loose note (discard / raw-only / merge — with a stated reason); does NOT reflexively create a new article."
+      - "Splits the 600-line article into two single-thesis articles and fixes Sources, Raw, and See Also on both halves."
+      - "Merges the two duplicates into the higher-scored page, archives the loser to _archive/<a>__YYYY-MM-DD.md, and redirects inbound links."
+      - "Repairs See Also so the three orphans gain bidirectional inbound links."
+      - "Prunes the superseded page to _archive/ (never rm); flags the stale archive with a '> ⚠ Stale' note instead of rewriting it."
+      - "Flags the conflict for human arbitration and does NOT auto-pick a winner."
+      - "Logs every operation to wiki/log.md; treats gaps.md and log.md as append-only; touches no article updated <24h ago without consent."

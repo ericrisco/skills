@@ -1,0 +1,49 @@
+skill: course-builder
+
+should_trigger:
+  - prompt: "I have 30 topics on Kubernetes scattered in a doc — turn them into a structured curriculum with modules and a sensible order."
+    why: "Raw topic pile -> structured curriculum with sequenced modules. Core sequencing/scoping job."
+  - prompt: "Write measurable learning outcomes for my intro Python course; right now I just have 'students will understand functions'."
+    why: "Outcomes + measurability/Bloom, including rewriting a banlist verb ('understand') into an observable one."
+  - prompt: "What should the final project and quizzes be for my data-analytics bootcamp, and do they actually prove what I claim students will be able to do?"
+    why: "Assessment design plus alignment — does the evidence prove the outcomes (constructive alignment)."
+  - prompt: "My course just ends with no real endpoint. What should a learner be able to DO when they finish, and how do I build toward that?"
+    why: "NON-OBVIOUS: no Bloom/curriculum jargon, but it's pure backward design — outcomes-first, build toward the DO."
+  - prompt: "Estructura el temario de mi curso de onboarding y dime qué evaluación demuestra cada objetivo."
+    why: "Spanish: structure the curriculum and map assessment to each objective — outcomes + alignment."
+  - prompt: "Map my existing modules to outcomes — I want to check the course is actually aligned and nothing is orphaned."
+    why: "Alignment matrix / constructive-alignment check; orphan-module and unproven-outcome detection is the emitted artifact."
+  - prompt: "Dissenya el pla docent d'un taller de 2 hores sobre Git per a principiants i quina avaluació demostra cada objectiu."
+    why: "Catalan: design the syllabus for a short workshop and the assessment per objective — grounding + right-sized scope + alignment."
+
+should_not_trigger:
+  - prompt: "This module on indexing is correct but students nod and forget it — make it land with a story and a sticky name."
+    route_to: course-storytelling
+    why: "Narrative landing of a single concept (epiphany, sticky name), not the skeleton/structure."
+  - prompt: "Audit module 14 of my finished course for gaps, redundancy, and outdated references, with a written report."
+    route_to: review
+    why: "Diagnostic content-audit pass over finished material, not design-from-intent."
+  - prompt: "Turn my designed module into a polished slide deck with speaker notes."
+    route_to: presentations
+    why: "Slides/visuals from an already-designed module, not the learning structure."
+  - prompt: "Write the landing-page copy and launch emails to sell my course."
+    route_to: marketing
+    why: "Sales/launch copy, not the learning contract."
+  - prompt: "Document the exact repeatable steps our support team follows to process a refund."
+    route_to: sop-builder
+    why: "A repeatable procedure with steps but no outcomes/assessment — an SOP, not a course."
+
+capability:
+  - scenario: >
+      A user gives a learner profile (junior dev who can write small scripts but has never built a
+      web API) and a goal ("ship a small REST API"), in a 2-week self-paced format, and asks
+      course-builder to design the course.
+    must_include:
+      - "Works backward: defines measurable outcomes (Bloom verbs in ABCD form) BEFORE any module or content."
+      - "Bans vanity verbs — no 'understand'/'know'; outcomes are observable ('build', 'deploy', 'debug')."
+      - "Designs assessment that PROVES each outcome, with BOTH formative checkpoints and a summative artifact."
+      - "Verb-matches: the assessment requires the same verb as the outcome (constructive alignment), not a recall quiz for a 'build' outcome."
+      - "Sequences modules in prerequisite order, each module mapped to >=1 outcome (no orphan modules, no unproven outcomes)."
+      - "Respects self-paced format: formative checks self-grade (auto-graded quiz / a test that runs); right-sizes outcome count to 2 weeks."
+      - "Emits an outcome x module x assessment alignment matrix as the artifact."
+      - "Hands off narrative landing to course-storytelling rather than doing the storytelling here."

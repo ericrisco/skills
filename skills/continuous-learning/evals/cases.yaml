@@ -1,0 +1,39 @@
+skill: continuous-learning
+
+should_trigger:
+  - prompt: "We just resolved that nasty outage. Run a quick retro so we actually learn from it."
+    why: "Canonical retro/postmortem moment — harvest the lesson into a durable home, not just talk about it."
+  - prompt: "You keep stripping the YAML frontmatter when you edit skills — I've fixed it three times now. Make it stop for good."
+    why: "Recurring correction past the 2+ threshold; 'make it stop for good' demands a structural guardrail, not another apology."
+  - prompt: "Apúntate esta lección para que no volvamos a cometer el mismo error con las migraciones."
+    why: "Spanish verbatim 'save this lesson so we don't repeat the migration mistake' — explicit backward-lesson capture."
+  - prompt: "Now that debug found the root cause, make sure we never ship this pattern again."
+    why: "Non-obvious post-debug capture; the teaching point is the boundary with debug — capture runs after diagnosis."
+  - prompt: "Sweep all the little 'note to self' corrections from this week into wherever they actually belong."
+    why: "Non-obvious harvest/route phrasing with no 'lesson' keyword; this is the periodic-sweep entry point."
+
+should_not_trigger:
+  - prompt: "Document why we chose Postgres over Mongo, with the options we rejected."
+    route_to: decision-records
+    why: "Forward choice with alternatives, not a backward lesson from a mistake."
+  - prompt: "Write the SKILL.md and the evals for a new pr-describe skill."
+    route_to: author-skill
+    why: "Skill craft; continuous-learning only decides a lesson belongs in a skill and hands the edit over."
+  - prompt: "Find why the checkout endpoint is returning 500."
+    route_to: debug
+    why: "In-the-moment diagnosis; capture comes after the root cause is found."
+  - prompt: "Set up a recurring weekly job that runs our retro automatically."
+    route_to: harness
+    why: "Scheduling cadence is the harness/loop CLI; this skill is not a scheduler, it only recommends a cadence."
+
+capability:
+  - scenario: "A user says: 'You've now twice deleted my .env when scaffolding a tool. I'm tired of catching it. Make sure this never happens again.' Show how continuous-learning captures it."
+    must_include:
+      - "Reads 02-DOCS/wiki/harness/user-profile.md for the accompaniment dial and adapts narration to L0–L3."
+      - "States the root cause blamelessly as a system gap (a missing guardrail), not 'I was careless'."
+      - "Applies the 2+-recurrences rule: this is the 2nd time, so a structural fix is required — not another apology or note."
+      - "Routes to the right durable home via the table: a root CLAUDE.md rule and/or a verify.sh check on the scaffolding skill, naming the exact path."
+      - "Delegates the actual SKILL.md / eval / verify.sh edit to author-skill where skill craft is required, rather than hand-editing it."
+      - "Writes the lesson in the situation-tagged entry format (situation, we believed, actually, durable home, fires next time)."
+      - "Proves it fires next time by pointing to the concrete surface (rule / should_not_trigger eval / verify.sh check) that catches the regression, and notes this skill emits no artifact of its own — the check lives there."
+      - "Keeps prose original in rsc voice; no copied signature artifacts."
