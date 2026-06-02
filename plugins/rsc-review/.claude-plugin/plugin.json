@@ -1,0 +1,10 @@
+{
+  "name": "rsc-review",
+  "version": "0.1.0",
+  "description": "ECC-style reviewer fleet + /code-review and /security-scan commands.",
+  "author": {
+    "name": "Eric Risco"
+  },
+  "license": "MIT",
+  "mcpServers": {}
+}
