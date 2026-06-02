@@ -1,0 +1,48 @@
+skill: youtube-thumbnails
+
+should_trigger:
+  - prompt: "Design 3 thumbnail variants to A/B test for my new video."
+    why: Core job — concept generation feeding a Test & Compare run.
+  - prompt: "My CTR dropped this month, can you fix this thumbnail?"
+    why: Diagnostic entry point into the craft rules.
+  - prompt: "Set up a Test & Compare experiment on this upload."
+    why: The skill owns the native thumbnail A/B mechanics.
+  - prompt: "CTR is fine but the test keeps picking the boring thumbnail — why?"
+    why: Non-obvious — the watch-time-share metric vs CTR and the over-promise trap.
+  - prompt: "Which thumbnail style actually wins on my channel?"
+    why: Reads the per-channel wiki log and mines patterns; distinctive feedback-loop job.
+  - prompt: "Fes la miniatura del vídeo perquè tingui més clics."
+    why: Catalan phrasing for thumbnail design — language + craft trigger.
+
+should_not_trigger:
+  - prompt: "Write 5 title options for this video."
+    route_to: youtube-packaging
+    why: Title wording and the click-promise pairing live in packaging, not image craft.
+  - prompt: "What niche should my channel focus on?"
+    route_to: youtube-strategy
+    why: Channel-level positioning and cadence, not a single thumbnail.
+  - prompt: "Give me 10 video ideas for this week."
+    route_to: youtube-ideation
+    why: Topic/idea generation, upstream of any thumbnail.
+  - prompt: "Programmatically upload and set the thumbnail via the YouTube Data API."
+    route_to: youtube-api
+    why: API integration, not design or A/B mechanics.
+  - prompt: "Design a logo and a brand color palette for my company."
+    route_to: brand-identity
+    why: General visual identity, not a YouTube thumbnail.
+  - prompt: "Run a statistically rigorous A/B test on my landing page."
+    route_to: ab-testing
+    why: Generic experiment design on a non-YouTube surface.
+
+capability:
+  - scenario: >
+      A creator has a video "I built a PC in 24 hours", current CTR ~3%, and wants
+      better thumbnails plus a test they can actually learn from. Walk them from
+      brief to logged result.
+    must_include:
+      - Proposes 2-3 variants that differ on exactly ONE named axis each (e.g. subject: face vs object)
+      - Enforces hard constraints — 1280x720, 16:9, under 2MB, 320x180 legibility, bottom-right safe zone
+      - Applies face+emotion and the ~30% contrast/luminance guidance concretely
+      - Sets up Test & Compare correctly — up to 3 variants, winner by watch-time share not CTR, ~2-week window, auto-promote
+      - Writes/updates a log row under 02-DOCS/wiki/youtube/thumbnail-experiments.md and states the next-concept rule
+      - Defers title wording and the title<->thumbnail promise to youtube-packaging rather than rewriting the title

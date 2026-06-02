@@ -1,0 +1,64 @@
+skill: remotion-video
+
+# Prompts that MUST load `remotion-video`. The skill owns the ENCODE: turning React
+# code + assets into a real MP4/MOV via Remotion — the composition/Sequence/
+# TransitionSeries graph, the Whisper.cpp → toCaptions → createTikTokStyleCaptions
+# captions pipeline, the upstream silence pass, b-roll overlays, and `npx remotion render`.
+# It does NOT write the script/hook/caption text (video-shorts), master audio or build
+# an RSS feed (podcast), structure narrative (course-storytelling), design the thumbnail
+# image (youtube-thumbnails), or write title/description/tags (youtube-packaging).
+should_trigger:
+  - prompt: "Render my script and voiceover into an MP4 with Remotion."
+    why: "Core ask — producing the actual file from code + assets is exactly this skill's deliverable."
+
+  - prompt: "Burn animated word-by-word captions onto this video from the Whisper transcript."
+    why: "Non-obvious — names a transcript and burned captions; this is the toCaptions → createTikTokStyleCaptions pipeline, not caption copywriting."
+
+  - prompt: "Automatically remove the silences from my recording before I render it."
+    why: "Non-obvious — the silence pass (auto-editor/ffmpeg) sits upstream of Remotion and is owned here, not by a script skill."
+
+  - prompt: "Add slide and fade transitions between scenes in my Remotion composition."
+    why: "Programmatic transitions via @remotion/transitions <TransitionSeries> — pixels and frames, this skill."
+
+  - prompt: "Quita los silencios y genera el vídeo final con subtítulos quemados."
+    why: "Spanish for 'remove the silences and generate the final video with burned-in subtitles' — the full silence-pass + captions + render pipeline."
+
+  - prompt: "Set up a headless Remotion render in CI that outputs a checkable MP4."
+    why: "Non-obvious — CI/headless render with a verifiable artifact is the rendering half of this skill."
+
+  - prompt: "Renderitza la composició a MP4 amb transicions i overlay de b-roll."
+    why: "Catalan for 'render the composition to MP4 with transitions and a b-roll overlay' — composition graph + transitions + overlay encode."
+
+should_not_trigger:
+  - prompt: "Write the hook and shot-by-shot script for a 30-second Reel."
+    route_to: video-shorts
+    why: "The words, beats and caption text are the script craft; this skill only encodes them into frames."
+
+  - prompt: "Master my podcast audio to -16 LUFS and write the RSS item."
+    route_to: podcast
+    why: "Audio mastering to a loudness spec and feed generation are audio-first, not a video render."
+
+  - prompt: "Design a clickable thumbnail image for this video."
+    route_to: youtube-thumbnails
+    why: "A still image design, not a rendered video file."
+
+  - prompt: "Write the YouTube title, description and tags for the upload."
+    route_to: youtube-packaging
+    why: "Metadata copy for the listing, not encoding pixels."
+
+  - prompt: "Structure the narrative arc and lesson flow for my course video."
+    route_to: course-storytelling
+    why: "Narrative architecture decides what story to tell; this skill renders it, it does not structure it."
+
+capability:
+  - scenario: "Given a voiceover MP4, b-roll clips and a transcript, produce a Remotion project that renders a 1080x1920 video with two scenes, a fade transition between them, a b-roll overlay at a timecode, and burned-in TikTok-style captions, then render it."
+    must_include:
+      - "Pinned fps + dimensions on the <Composition> up front (e.g. 1080x1920 @ 30)"
+      - "frames = seconds * fps math applied with Math.round at the edge for any timecode→frame conversion"
+      - "<TransitionSeries> with a presentation (fade) and a timing (linearTiming or springTiming)"
+      - "Captions pipeline: Whisper.cpp → toCaptions → createTikTokStyleCaptions with combineTokensWithinMilliseconds"
+      - "A silence-removal step (auto-editor or ffmpeg) located on the source BEFORE Remotion, not inside the composition"
+      - "B-roll overlay via <OffthreadVideo> inside an <AbsoluteFill> gated by a <Sequence from>"
+      - "`npx remotion render <id> out/video.mp4` with an explicit output path"
+      - "A deterministic-render note (no Date.now()/unseeded Math.random; drive off useCurrentFrame)"
+      - "A short region test (e.g. --frames=0-45) before the full render"

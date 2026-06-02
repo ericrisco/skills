@@ -1,0 +1,48 @@
+skill: youtube-packaging
+
+should_trigger:
+  - prompt: "Write the title and description for my new tutorial video."
+    why: Core packaging ask — the text fields of the upload.
+  - prompt: "Give me 3 title options to A/B test for this video."
+    why: Title SET / Test & Compare hypothesis, the signature output rule.
+  - prompt: "Add chapters with timestamps to my video description."
+    why: Chapters mechanics — the four exact rules live here.
+  - prompt: "My video's CTR is terrible and the title just isn't landing — fix it."
+    why: Non-obvious — a CTR complaint with no 'title/description' keyword leading; the rescue case for the words on the upload.
+  - prompt: "Log how the last upload performed and apply the lesson to the next package."
+    why: Non-obvious — the learning loop, reading the 02-DOCS feedback log and carrying winners forward.
+  - prompt: "Escríbeme el título, la descripció i els hashtags del vídeo i afegeix capítols."
+    why: Catalan/Spanish — full metadata write (title, description, hashtags, chapters).
+
+should_not_trigger:
+  - prompt: "Design a thumbnail image for this video."
+    route_to: youtube-thumbnails
+    why: The picture, not the text fields — co-owned hypothesis but image work is the sibling's.
+  - prompt: "What video should I make next? Give me ideas for my channel."
+    route_to: youtube-ideation
+    why: The idea/angle, which packaging consumes but never invents.
+  - prompt: "Programmatically update the title and description via the YouTube Data API."
+    route_to: youtube-api
+    why: The API call/plumbing, not the copy.
+  - prompt: "Build my channel growth plan and posting cadence."
+    route_to: youtube-strategy
+    why: Channel-level strategy, not a single video's metadata.
+  - prompt: "Do keyword research for our website blog so it ranks on Google."
+    route_to: seo-geo
+    why: Non-YouTube web/AI-search SEO, a different surface entirely.
+
+capability:
+  - scenario: >
+      Here is a video: a 12-minute beginner Python tutorial. The channel's last 5
+      uploads are logged in 02-DOCS with their title sets, CTR, and avg view
+      duration. Package this upload.
+    must_include:
+      - "Grounds in 02-DOCS first: reads the channel brand voice and the feedback log, and carries a prior winner forward into the new set."
+      - "Emits a SET of 2-3 titles framed as an A/B hypothesis, each ≤100 chars with the keyword + hook in the first ~60 chars / first 5 words."
+      - "Above-the-fold description first line ≤ ~150 chars containing the primary keyword + who-it's-for."
+      - "Full description ~200-350 words of natural prose (no keyword stuffing), plus a links block and a 3-5 hashtag line."
+      - "Chapters obey all four rules: ≥3 timestamps, first is 00:00, each ≥10s, ascending order."
+      - "5-8 tags with the first tag = the exact target phrase, and notes tags' minimal ranking impact."
+      - "Appends/updates a feedback-log entry in 02-DOCS for this package."
+      - "Routes the thumbnail image to youtube-thumbnails, the idea to youtube-ideation, and any API upload to youtube-api."
+      - "States that the A/B winner is chosen by watched-time-per-impression, not raw CTR."

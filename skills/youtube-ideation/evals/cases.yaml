@@ -1,0 +1,52 @@
+skill: youtube-ideation
+
+should_trigger:
+  - prompt: "What should my next 5 YouTube videos be? Rank them for my channel."
+    why: Core ask — generate and prioritize a ranked shortlist for this channel.
+  - prompt: "Score these 12 ideas and tell me which ones to actually produce."
+    why: Rubric scoring down to a produce/improve/abandon shortlist is the skill's center.
+  - prompt: "Find content gaps and 3x+ outliers in my niche I could win."
+    why: Outlier/gap research is step 2-4 of the research-led pipeline.
+  - prompt: "My last video flopped — log the result and adjust what we pick next."
+    why: Non-obvious — the back-half learning loop (append outcome, update next scoring) most
+      creators skip; this skill owns it.
+  - prompt: "Which of our past video bets actually beat baseline, and what's the pattern?"
+    why: Non-obvious — reading the append-only hypothesis/outcome log to find validated bets.
+  - prompt: "Qué vídeo grabo ahora? Dame ideas priorizadas y valida la demanda antes de grabar."
+    why: Spanish — full ideation + demand-validation ask before committing to production.
+  - prompt: "Is there real search demand for this topic before I commit a week of editing?"
+    why: Demand pre-test (search/trend signal) gating an idea before production.
+
+should_not_trigger:
+  - prompt: "Write the title and thumbnail text for this video I'm making."
+    route_to: youtube-packaging
+    why: Wording the sell of an already-chosen idea, not picking which idea — packaging's job.
+  - prompt: "Design a high-contrast thumbnail with my face for this video."
+    route_to: youtube-thumbnails
+    why: Image composition/craft, not idea selection.
+  - prompt: "Set my channel's niche, format mix, and upload cadence for the year."
+    route_to: youtube-strategy
+    why: Durable positioning doctrine; ideation operates inside it, it does not set it.
+  - prompt: "Pull my last 30 videos' views, CTR, and retention curves from the API."
+    route_to: youtube-api
+    why: Raw data plumbing; this skill reads the log the API produces, it does not call it.
+  - prompt: "Write the 8-minute script for this explainer video."
+    route_to: video-shorts
+    why: Scripting / edit direction of a chosen video, not deciding which video to make.
+
+capability:
+  - scenario: >
+      Given a small channel performance log (a stated baseline plus a handful of past videos
+      with view counts) and a niche, produce a ranked idea ledger and promote the top picks
+      with hypotheses.
+    must_include:
+      - Computes or uses an outlier baseline (views divided by channel average views).
+      - Generates ideas grounded in named outliers (3x+ examples), not a blind brainstorm.
+      - Requires 5-10 outliers with a shared trait, not a single anecdote.
+      - Scores each idea on all 7 rubric dimensions with a /35 total.
+      - Applies the correct verdict band (>=30 produce, 24-29 improve, 18-23 gray, <18 abandon).
+      - Every promoted idea carries a dated hypothesis with a predicted outlier multiple AND a
+        judge-by metric vs baseline.
+      - Records demand evidence (outlier links + search number) on each scored row.
+      - Defines the append-only hypothesis/outcome log shape to grade the bets later.
+      - Routes title/thumbnail work out to youtube-packaging / youtube-thumbnails.

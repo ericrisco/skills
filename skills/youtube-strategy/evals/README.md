@@ -1,0 +1,5 @@
+# Evals — youtube-strategy
+
+`cases.yaml` holds three groups. `should_trigger` lists channel-level prompts (positioning, cadence, playlist/series/end-screen architecture, "what's working" reviews, plus a Spanish and a no-keyword phrasing) that must load this skill. `should_not_trigger` lists single-asset prompts that must route to a real sibling instead (`youtube-ideation`, `youtube-packaging`, `youtube-thumbnails`, `youtube-api`, `social-publisher`). `capability` is one end-to-end scenario with a `must_include` rubric covering the read-wiki-first loop, three-factor positioning, data-driven cadence, a session-time architecture move, and writing a dated decision record back to the wiki.
+
+There is no automated runner in this repo. Run it by hand or with the catalog harness: feed each `should_trigger`/`should_not_trigger` prompt to the router and confirm the routing matches; for `capability`, run the scenario against the skill and score the output against every `must_include` line (each is pass/fail). The artifact discipline is separately checked by `../scripts/verify.sh` against a real `02-DOCS/wiki/youtube/` tree.
