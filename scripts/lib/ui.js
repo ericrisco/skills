@@ -1,5 +1,8 @@
-import { createInterface, emitKeypressEvents } from 'node:readline';
+import { createInterface } from 'node:readline/promises';
+import { emitKeypressEvents } from 'node:readline';
 import { stdin, stdout } from 'node:process';
+
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 export async function ask(question) {
   const rl = createInterface({ input: stdin, output: stdout });
@@ -33,20 +36,48 @@ const C = {
   green: (s) => `\x1b[32m${s}\x1b[39m`,
 };
 
-// ASCII wordmark shown at the top of the wizard.
-export function banner() {
-  const tty = Boolean(stdout.isTTY);
-  const art = [
-    '',
-    ' ██████╗ ███████╗ ██████╗',
-    ' ██╔══██╗██╔════╝██╔════╝',
-    ' ██████╔╝███████╗██║     ',
-    ' ██╔══██╗╚════██║██║     ',
-    ' ██║  ██║███████║╚██████╗',
-    ' ╚═╝  ╚═╝╚══════╝ ╚═════╝',
-  ];
-  for (const l of art) say(tty ? C.cyan(l) : l);
-  say((tty ? C.dim('  231 skills · one CLI · zero bloat') : '  231 skills · one CLI · zero bloat'));
+const ART = [
+  ' ██████╗ ███████╗ ██████╗',
+  ' ██╔══██╗██╔════╝██╔════╝',
+  ' ██████╔╝███████╗██║     ',
+  ' ██╔══██╗╚════██║██║     ',
+  ' ██║  ██║███████║╚██████╗',
+  ' ╚═╝  ╚═╝╚══════╝ ╚═════╝',
+];
+
+// Vertical truecolor gradient (sky → violet), phase-shiftable for the wave.
+function gradientLine(text, row, phase) {
+  const a = [56, 189, 248]; const b = [167, 139, 250];
+  const t = ((row + phase) % ART.length) / (ART.length - 1);
+  const r = Math.round(a[0] + (b[0] - a[0]) * t);
+  const g = Math.round(a[1] + (b[1] - a[1]) * t);
+  const bl = Math.round(a[2] + (b[2] - a[2]) * t);
+  return `\x1b[38;2;${r};${g};${bl}m${text}\x1b[39m`;
+}
+
+// Animated ASCII wordmark — the "wooow". Static plain text when not a TTY.
+export async function banner() {
+  if (!stdout.isTTY) {
+    say('');
+    for (const l of ART) say(l);
+    say('  231 skills · one CLI · zero bloat');
+    return;
+  }
+  stdout.write('\x1b[?25l'); // hide cursor
+  say('');
+  // 1) reveal top-down
+  for (let i = 0; i < ART.length; i++) {
+    say(gradientLine(ART[i], i, 0));
+    await sleep(55);
+  }
+  // 2) flowing color wave through the wordmark
+  for (let phase = 1; phase <= ART.length; phase++) {
+    stdout.write(`\x1b[${ART.length}A`);
+    stdout.write(ART.map((l, i) => `\x1b[2K${gradientLine(l, i, phase)}`).join('\n') + '\n');
+    await sleep(60);
+  }
+  say(C.dim('  231 skills · one CLI · zero bloat'));
+  stdout.write('\x1b[?25h'); // show cursor
 }
 
 // Repaint a fixed block of lines in place (cursor ends just below the block).
@@ -140,6 +171,18 @@ export async function select(question, options) {
   if (n >= 1 && n <= options.length) return options[n - 1].key;
   const byKey = options.find((o) => o.key.toLowerCase() === a);
   return byKey ? byKey.key : null;
+}
+
+// Public: yes/no confirmation. Arrow TUI when interactive, typed prompt otherwise.
+export async function confirm(question) {
+  if (interactive()) {
+    const k = await tuiSelect(question, [
+      { key: 'yes', label: 'Yes, install it' },
+      { key: 'no', label: 'No, cancel' },
+    ]);
+    return k === 'yes';
+  }
+  return yes(await ask(`${question} (yes / no) > `));
 }
 
 // Public: multi-select. items: array of strings or { id, label }. Returns ids.
