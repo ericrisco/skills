@@ -1,0 +1,48 @@
+skill: shortform-packaging
+
+should_trigger:
+  - prompt: "Write the hook, caption and hashtags for this finished Reel."
+    why: Core ask — three of the five upload-form artifacts for a finished short.
+  - prompt: "Pick the cover frame and the text that goes on it for my TikTok."
+    why: The cover artifact specifically — frame choice plus overlay, owned here.
+  - prompt: "My shorts get views but nobody shares them — fix the packaging."
+    why: Non-obvious — a shares complaint with no copy keyword; diagnosis maps to send-bait caption and a sendable hook, not the edit.
+  - prompt: "Is 20 hashtags too many for a Reel?"
+    why: Non-obvious — tests the Instagram 5-tag hard cap and the 3-5 best-practice rule.
+  - prompt: "Log how my last 5 shorts performed and apply it to the next batch."
+    why: The learning loop — read the 02-DOCS feedback log on retention/sends and carry winners forward.
+  - prompt: "Rewrite this caption so it ranks in TikTok search."
+    why: Caption as a search-ranking field — keyword-led first sentence, owned here.
+  - prompt: "Escríbeme el gancho i el pie de foto per a aquest Reel i dona'm els hashtags."
+    why: Spanish/Catalan — full upload-form copy ask (hook, caption, hashtags).
+
+should_not_trigger:
+  - prompt: "Come up with an idea for a short about productivity."
+    route_to: shortform-ideation
+    why: The idea/angle, which packaging consumes but never invents.
+  - prompt: "Write the full script and plan the cuts for this 30s TikTok."
+    route_to: video-shorts
+    why: The spoken script and edit direction (the narrative layer), not the upload copy.
+  - prompt: "Burn in the captions and add the B-roll for this clip."
+    route_to: shortform-editing
+    why: Execution of the edit, not the words and cover that wrap it.
+  - prompt: "Schedule this Reel to post Tuesday 6pm across IG and TikTok."
+    route_to: social-publisher
+    why: When and where to post, not the copy or cover.
+  - prompt: "Write the title and description for my long-form YouTube video."
+    route_to: youtube-packaging
+    why: Long-form metadata, not a vertical short's package.
+
+capability:
+  - scenario: >
+      Given a finished 25s faceless productivity TikTok and a 02-DOCS feedback log whose
+      last winner was a number-led on-screen hook, produce the full package.
+    must_include:
+      - Reads the 02-DOCS feedback log / brand voice BEFORE writing, and carries the number-led winner forward.
+      - Emits a SET of >=2 hook + on-screen-text variants, each 4-7 words.
+      - On-screen text restates the hook (the silent twin) and stays in the safe zones.
+      - Caption first sentence is keyword-led and <=~150 chars, not a teaser like "wait for it".
+      - Exactly 3-5 hashtags, topic-signal not a discovery dump.
+      - A cover frame plus a <=6-word overlay that sits inside the 1:1 centre square (the band that survives the 3:4 grid, 4:5 feed, and 9:16 tab crops) and matches the hook.
+      - A feedback-entry stub keyed on intro_retention / sends_per_reach / saves — not likes.
+      - Routes nothing it does not own (no scripting, editing, scheduling, or idea invention).

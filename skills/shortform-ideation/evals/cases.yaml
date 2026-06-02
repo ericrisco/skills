@@ -1,0 +1,58 @@
+skill: shortform-ideation
+
+# Prompts that MUST load `shortform-ideation`. The skill owns the IDEA LOOP for a
+# Reels/TikTok/Shorts account: ground in the account's own perf log, fold in dated
+# trending signals (no scraping), generate + score + rank a backlog, and log each
+# bet as a hypothesis with result fields. It does NOT script/edit one video
+# (video-shorts), set pillars/cadence (shortform-strategy), package a finished cut
+# (shortform-packaging), do YouTube ideation (youtube-ideation), run a cross-channel
+# calendar (content-engine), or build dashboards (analytics).
+should_trigger:
+  - prompt: "Give me 10 Reels ideas for next week for our coffee brand."
+    why: "Core ask — generate a ranked batch of short-form ideas is the skill's primary deliverable."
+
+  - prompt: "We have 12 ideas — which 3 do we shoot first?"
+    why: "Prioritization/scoring of an idea set is core; the skill ranks into a backlog rather than dumping."
+
+  - prompt: "Fold this week's trending TikTok sounds into our idea list."
+    why: "Trend-grounded ideation — capturing dated trend signals and turning them into scored ideas is Phase 2→3."
+
+  - prompt: "Why did the videos we bet on last month flop?"
+    why: "Non-obvious — sounds like analytics, but reviewing the outcome ledger that ties each bet to its measured result is THIS skill's loop, not generic reporting."
+
+  - prompt: "Idéame Reels para esta semana basándote en lo que ya nos funcionó."
+    why: "Spanish for 'come up with Reels for this week based on what already worked for us' — grounded-in-own-log ideation, the Phase-1+Phase-3 signature."
+
+  - prompt: "Prioritza idees de vídeo curt per aquesta setmana i digue'm quina gravem primer."
+    why: "Catalan for 'prioritize short-video ideas for this week and tell me which to film first' — generation + prioritization, core loop."
+
+should_not_trigger:
+  - prompt: "Write the shot-by-shot script and edit sheet for this Reel idea."
+    route_to: video-shorts
+    why: "Writing spoken lines and beat timecodes crosses out of ideation into the craft of one short."
+
+  - prompt: "What should our posting cadence and content pillars be?"
+    route_to: shortform-strategy
+    why: "Account-level positioning, pillars, and cadence are consumed by this skill, not authored by it."
+
+  - prompt: "Write the caption and pick the hashtags for this finished Reel."
+    route_to: shortform-packaging
+    why: "Caption/cover/hashtag-set for an already-shot cut is packaging; ideation only suggests a hashtag as a trend signal."
+
+  - prompt: "Give me YouTube video ideas with thumbnail-first packaging."
+    route_to: youtube-ideation
+    why: "YouTube's packaging-led, slower-decay idea pipeline is a different skill; this one is Reels/TikTok/Shorts-native."
+
+  - prompt: "Build us a metrics dashboard for our social performance."
+    route_to: analytics
+    why: "Generic reporting/dashboards live in analytics; this skill only reads the perf log to ground and score ideas."
+
+capability:
+  - scenario: "An account has a 2-month performance log in 02-DOCS where hook patterns A and B won (>60% 3s-hold) and topic C flopped twice. The user asks for next week's idea batch and to fold in this week's trending sounds."
+    must_include:
+      - "Reads/uses the 02-DOCS performance log to ground ideas (cites winning hooks A/B and the dead topic C; never re-pitches topic C)"
+      - "Captures at least one trend signal WITH a first-seen date and WITHOUT any scraping command (manual/assisted capture or sanctioned API)"
+      - "Produces a ranked backlog table with the required columns (id, idea, hook line, trend signal + date, format, target length, score, status)"
+      - "Scores each idea by hook strength and shareability/save (hook weighted highest), not by topic interest alone"
+      - "Writes at least one advanced idea as a dated hypothesis under 02-DOCS/shortform/experiments/ with result fields left pending"
+      - "Does NOT write full scripts or beat timecodes; explicitly hands the chosen idea off to video-shorts"

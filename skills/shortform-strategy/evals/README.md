@@ -1,0 +1,3 @@
+# Evals — shortform-strategy
+
+These are routing and capability cases for manual or harness-driven evaluation; there is no automated runner. To run them, prompt the model (with this skill available) using each `should_trigger` prompt and confirm the skill activates, then each `should_not_trigger` prompt and confirm it routes to the named sibling instead. For the `capability` case, give the model the scenario, let it produce a full strategy, and grade the output against the `must_include` rubric — every bullet should be satisfiable from the produced strategy doc + decision log. The `scripts/verify.sh` linter checks the *structure* of a produced strategy doc but not these routing/capability judgments, which stay human-graded.

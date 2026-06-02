@@ -1,0 +1,51 @@
+skill: tiktok-api
+
+should_trigger:
+  - prompt: "Publish a video to my TikTok account via the Content Posting API and poll until it's live."
+    why: "Core write path — init → chunked transfer → status/fetch poll. The transport job this skill owns."
+  - prompt: "My TikTok access token stops working after 24 hours and the cron breaks — how do I keep it alive?"
+    why: "Non-obvious: 24h access token / 365d refresh lifecycle. This skill maps the symptom to refresh-every-run + persist refresh_token."
+  - prompt: "Pull watch time and full_video_watched_rate for my last TikTok videos and explain why the Display API returns nothing."
+    why: "The load-bearing Display-vs-Business split — those metrics only exist on the Business API, not /v2/video/query/."
+  - prompt: "publish init returns url_ownership_unverified for my PULL_FROM_URL — how do I fix it?"
+    why: "TikTok-specific failure mapped to domain/URL-prefix verification in the portal. Squarely this skill's debugging surface."
+  - prompt: "I keep hitting rate_limit_exceeded at 6 requests per minute while polling publish status."
+    why: "Non-obvious 6/min per-user-token cap; this skill prescribes sleep/backoff instead of a tight status loop."
+  - prompt: "Fetch this week's TikTok impression sources (FYP vs profile) and append them to 02-DOCS/wiki/shortform/."
+    why: "The ingestion deliverable — Business API insight pull appended to the platform-namespaced feedback log."
+  - prompt: "subir vídeos a TikTok por API y guardar las métricas del canal en el wiki."
+    why: "Spanish; upload + ingest metrics — the full transport + ingestion loop this skill owns."
+  - prompt: "treure la retenció i el watch time de TikTok cap al wiki."
+    why: "Catalan; pull retention/watch time and log it — Business-API read + ingestion, this skill's core."
+
+should_not_trigger:
+  - prompt: "What kind of TikToks should I post to grow this account this quarter?"
+    route_to: shortform-strategy
+    why: "Strategy/cadence/niche, not transport. This skill delivers numbers; it does not set the plan."
+  - prompt: "Write 5 hook and caption options for this clip."
+    route_to: shortform-packaging
+    why: "Caption/cover/title packaging and A/B framing — packaging, not the API call."
+  - prompt: "Cut this long video into vertical 9:16 clips with burned-in captions."
+    route_to: shortform-editing
+    why: "Production of the file. This skill uploads the file; it does not produce it."
+  - prompt: "Post this same clip to TikTok, Instagram Reels, and YouTube Shorts at once."
+    route_to: social-publisher
+    why: "Multi-network fan-out. This skill is TikTok-only and deep on TikTok's three APIs."
+  - prompt: "Connect Instagram's Graph API to publish a Reel."
+    route_to: instagram-api
+    why: "Different platform; same family pattern, different transport."
+  - prompt: "Wrap a generic REST API I picked with OAuth and retries."
+    route_to: api-connector-builder
+    why: "Generic connector for an arbitrary provider, not TikTok's specific three-API split."
+
+capability:
+  - scenario: "Build a daily cron that authenticates to a TikTok account, publishes a local MP4 via the Content Posting API, then fetches that video's views + full_video_watched_rate + impression sources and appends a dated entry to 02-DOCS/wiki/shortform/."
+    must_include:
+      - "OAuth v2 token refresh each run (24h access token / 365d refresh token, with the rotating refresh_token persisted)"
+      - "publish init (FILE_UPLOAD) → sequential Content-Range chunked PUT (5–64 MB chunks, final ≤128 MB, 1–1000 chunks; <5 MB = single chunk) expecting 206 then 201 → poll status/fetch on publish_id until PUBLISH_COMPLETE"
+      - "correct API split: counters via Display POST /v2/video/query/, but watch time + full_video_watched_rate + impression_sources via the Business Account API, NOT Display"
+      - "6 requests/minute throttle with sleep/backoff (no tight status-poll loop)"
+      - "least-privilege scopes (video.publish, video.list) and the unaudited-app SELF_ONLY-until-audited caveat"
+      - "append-not-overwrite, platform-namespaced wiki entry (tiktok-account-YYYY-MM-DD.md) with dated frontmatter"
+      - "never-commit-secret note (client_secret / refresh_token loaded from env/secret store)"
+      - "24–48h metric-lag caveat: fresh pulls are provisional"
