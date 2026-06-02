@@ -26,6 +26,7 @@ once, then install only the bundles you want.
 /plugin install rsc-agents@rsc-skills     # building-agents
 /plugin install rsc-ops@rsc-skills        # secure-coding + deployment
 /plugin install rsc-sdd@rsc-skills        # sdd + constitution/specify/clarify/plan/tasks/analyze/implement/verify/review/ship + debug/worktrees/parallel
+/plugin install rsc-review@rsc-skills     # /code-review + /security-scan + the reviewer fleet
 ```
 
 Once a bundle is installed, its skills are **namespaced under the plugin name**
@@ -46,11 +47,16 @@ and invoke as `/<plugin>:<skill>`:
 /rsc-sdd:worktrees  /rsc-sdd:parallel
 ```
 
+The `rsc-review` bundle ships **commands and agents** rather than skills, so it
+invokes as commands: `/code-review [pr]` and `/security-scan`, backed by a fleet
+of reviewer agents (`code-reviewer`, `web-reviewer`, `python-reviewer`,
+`go-reviewer`, `sql-reviewer`, `flutter-reviewer`, `security-reviewer`).
+
 New here? Install `rsc-core` and run `/rsc-core:init` — it gauges your level,
 figures out what you're building, recommends which other bundles to install,
 and hands off to `/rsc-core:harness` to scaffold the workspace.
 
-The seven bundles map to one marketplace under `.claude-plugin/marketplace.json`;
+The eight bundles map to one marketplace under `.claude-plugin/marketplace.json`;
 each bundle lives at `plugins/<bundle>/`. A skill is authored once under
 `skills/<name>/` (the canonical source) and copied into each bundle for
 distribution — see [Repo layout & contributing](#repo-layout--contributing).
@@ -77,11 +83,12 @@ npx skills add ericrisco/skills --list
 
 ## Bundles & skills
 
-The skills ship as seven plugin bundles. The flat `npx skills` names are the
+The catalog ships as eight plugin bundles. The flat `npx skills` names are the
 skill names (e.g. `harness`, `fastapi`); the plugin invocations are namespaced
-as `/<bundle>:<skill>`.
+as `/<bundle>:<skill>`. `rsc-review` is the exception — it ships commands and
+agents, invoked directly (`/code-review`, `/security-scan`).
 
-| Bundle | Skills |
+| Bundle | Skills / commands |
 | --- | --- |
 | **rsc-core** | `init`, `harness`, `author-skill` |
 | **rsc-backend** | `fastapi`, `go`, `postgresdb` |
@@ -90,6 +97,7 @@ as `/<bundle>:<skill>`.
 | **rsc-agents** | `building-agents` |
 | **rsc-ops** | `secure-coding`, `deployment` |
 | **rsc-sdd** | `sdd`, `constitution`, `specify`, `clarify`, `plan`, `tasks`, `analyze`, `implement`, `verify`, `review`, `ship`, `debug`, `worktrees`, `parallel` |
+| **rsc-review** | `/code-review [pr]`, `/security-scan`; reviewer fleet (`code-reviewer`, `web-reviewer`, `python-reviewer`, `go-reviewer`, `sql-reviewer`, `flutter-reviewer`, `security-reviewer`) |
 
 ### rsc-core
 
