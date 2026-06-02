@@ -13,6 +13,15 @@ This is the **specify** phase of the rsc-sdd chain: `constitution` → **`specif
 
 A spec is a contract about behaviour and outcomes, readable by a non-technical stakeholder and precise enough that a `plan` can be derived from it. The output is one file: `02-DOCS/wiki/sdd/specs/<slug>.md`, indexed in the root `CLAUDE.md` Knowledge map.
 
+## Detect the moment — and hold the gate
+
+The instant the user is **thinking about a new feature or change** — "I want to add…", "can we build…", "it should also…", "wouldn't it be nice if…", "necesito que haga…", "quiero añadir…" — this phase owns it, *even if a stack skill (nextjs/fastapi/flutter…) also fired and is itching to build it*. Catch it here first.
+
+**The hard gate (non-negotiable for any non-trivial feature):**
+> No feature code gets written until (1) this spec exists and the user has **approved** it, and (2) `plan` has produced a technical plan + task list. If the user tries to jump straight to "just build it", do not. Name the gate in one friendly line, capture the spec, and walk the chain. The only bypass is a genuinely one-line, low-risk change (typo/copy/config) — say so out loud and skip.
+
+You are not slowing them down; you are making the intent reviewable *before* code exists, which is cheaper than discovering the misunderstanding in a PR. End every spec by handing to `clarify`/`plan` — never to `implement`.
+
 ## The one rule that defines this skill
 
 **No implementation leaks.** The moment the spec names a framework, a table schema, a library, an endpoint shape, a file path, or an algorithm, it has stopped being a spec. Those decisions belong to `plan` and the stack skills. Specify describes the *observable behaviour and the reason for it*; the system that delivers it is deliberately left open.

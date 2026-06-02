@@ -70,6 +70,8 @@ constitution ─(once per project)─┐
 
 When a request lands, do not start typing code. Place it on the map first, then invoke the phase skill that owns it.
 
+> **The new-feature gate (hard).** The moment the user is thinking about a new feature or change — "add…", "build…", "it should also…", "quiero añadir…" — it goes to `specify` first, *even if a stack skill (nextjs/fastapi/flutter/react…) also fired and could just build it*. **No feature code is written — by any skill — until a spec AND a plan exist and the user has approved them.** A stack skill about to build an unspec'd, non-trivial feature must stop and route here. The only exception is a genuinely one-line, low-risk change; name it and skip.
+
 1. **No `02-DOCS/wiki/sdd/config.yaml` and this is non-trivial?** → `sdd-init`.
 2. **No constitution yet AND this project will grow?** → `constitution` once, then come back to the chain.
 3. **Ambiguous / architectural / risky change before spec?** → optional proposal artifact via `specify`.
