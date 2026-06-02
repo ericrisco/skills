@@ -1,0 +1,29 @@
+{
+  "skillId": "demo",
+  "scenarios": [
+    {
+      "index": 0,
+      "xIsTreatment": true,
+      "gradeX": {
+        "mustInclude": [{ "item": "A", "satisfied": true, "evidence": "line a" }, { "item": "B", "satisfied": true, "evidence": "line b" }],
+        "quality": { "completeness": 9, "actionability": 9, "correctness": 9, "grounding": 9 }
+      },
+      "gradeY": {
+        "mustInclude": [{ "item": "A", "satisfied": false, "evidence": "" }, { "item": "B", "satisfied": true, "evidence": "line b" }],
+        "quality": { "completeness": 6, "actionability": 6, "correctness": 7, "grounding": 7 }
+      }
+    },
+    {
+      "index": 1,
+      "xIsTreatment": false,
+      "gradeX": {
+        "mustInclude": [{ "item": "A", "satisfied": false, "evidence": "" }],
+        "quality": { "completeness": 5, "actionability": 5, "correctness": 6, "grounding": 6 }
+      },
+      "gradeY": {
+        "mustInclude": [{ "item": "A", "satisfied": true, "evidence": "line a" }],
+        "quality": { "completeness": 9, "actionability": 9, "correctness": 9, "grounding": 9 }
+      }
+    }
+  ]
+}
