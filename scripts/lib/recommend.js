@@ -1,21 +1,21 @@
 import { skillById } from './manifest.js';
 
 const OUTCOMES = {
-  suggest: 'Un asistente que te va proponiendo lo que necesitas',
-  harness: 'Un espacio de trabajo ordenado: conecta y documenta tu empresa',
-  init: 'Arranque guiado de tu proyecto',
-  nextjs: 'Tu web (rápida y lista para Google)',
-  flutter: 'Tu app de móvil',
-  fastapi: 'Tu API / backend en Python',
-  go: 'Tu servicio backend en Go',
-  postgresdb: 'Guardar tus datos de forma fiable',
-  design: 'Que se vea bien y convierta',
-  marketing: 'Textos que venden',
-  presentations: 'Presentaciones con tu marca',
-  'course-storytelling': 'Enseñar de forma que se entienda',
-  'building-agents': 'Un agente de IA propio',
-  'secure-coding': 'Que sea seguro',
-  deployment: 'Publicarlo online',
+  suggest: 'An assistant that proposes what you need as you go',
+  harness: 'A tidy workspace: connect and document your company',
+  init: 'Guided project bootstrap',
+  nextjs: 'Your website (fast, ready for Google)',
+  flutter: 'Your mobile app',
+  fastapi: 'Your API / Python backend',
+  go: 'Your Go backend service',
+  postgresdb: 'Store your data reliably',
+  design: 'Make it look good and convert',
+  marketing: 'Copy that sells',
+  presentations: 'On-brand presentations',
+  'course-storytelling': 'Teach so it actually lands',
+  'building-agents': 'Your own AI agent',
+  'secure-coding': 'Make it secure',
+  deployment: 'Put it online',
 };
 
 export function hasOutcome(id) {

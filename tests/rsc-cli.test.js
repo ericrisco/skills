@@ -15,7 +15,7 @@ test('rsc registry refresh/status CLI writes project registry', () => {
     encoding: 'utf8',
   });
   assert.equal(refresh.status, 0, refresh.stderr);
-  assert.ok(refresh.stdout.includes('Registry actualizado'));
+  assert.ok(refresh.stdout.includes('Registry updated'));
   assert.ok(existsSync(join(cwd, '.rsc', 'skill-registry.json')));
   assert.ok(existsSync(join(cwd, '.rsc', 'skill-registry.md')));
 
