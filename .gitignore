@@ -3,6 +3,7 @@ node_modules/
 .env
 .env.local
 *.log
+.rsc/
 
 # Per-tool ignores already exist inside each skill's _TEMPLATE/.gitignore.
 
@@ -16,6 +17,10 @@ __pycache__/
 
 # docs/ is local scratch (specs, notes) — not part of the distributable catalog
 docs/
+
+# 02-DOCS/ at the repo root is stray harness/skill scratch produced when skills run
+# (brand guides, content briefs, sdd specs) — not part of the distributable catalog
+02-DOCS/
 
 node_modules/
 coverage/

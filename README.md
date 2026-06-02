@@ -45,6 +45,8 @@ npx rsc install --profile core          # floor + the SDD workflow
 npx rsc install --profile full          # everything
 npx rsc install --profile full --without go   # everything except one skill
 npx rsc consult "security review"       # recommend only, no install
+npx rsc registry refresh                # write .rsc/skill-registry.{json,md}
+npx rsc registry status                 # inspect the project registry
 npx rsc list                            # what rsc has installed
 npx rsc doctor                          # health check (state, hook, counts)
 npx rsc uninstall postgresdb --dry-run  # preview a removal
@@ -63,6 +65,12 @@ Two faces, one catalog (`manifest.json`):
 - **In the chat** — `rsc-suggest` is a tiny always-on skill. When a task would
   benefit from a skill you don't have, it names it and (with a one-word confirm)
   runs `npx rsc add <id>` for you. Installed by default; the floor of the system.
+
+For SDD/runtime work, `npx rsc registry refresh` writes a cheap project index to
+`.rsc/skill-registry.json` and `.rsc/skill-registry.md`: skill id, trigger,
+tags, path, installed/available state and hash. Agents use that index to select
+the few relevant skills and digest compact rules instead of loading the whole
+catalog into context.
 
 Repo detection maps real signals to skills: `package.json` + `next` → `nextjs`;
 `go.mod` → `go`; `pyproject.toml` → `fastapi`; `*.sql`/`prisma/` → `postgresdb`;
@@ -229,12 +237,16 @@ the stack skills above, and writes artifacts into the `02-DOCS/wiki/sdd/` layer
 the `harness` governs. Install the whole workflow with `npx rsc install
 --profile core`.
 
-The [sdd](skills/sdd/) dispatcher routes each request to its phase; the happy
-path is **constitution → specify → clarify → plan → tasks → analyze → implement
-→ verify → review → ship**, with `debug`, `worktrees`, and `parallel` callable on
-demand:
+The [sdd](skills/sdd/) dispatcher routes each request to its phase. Step zero is
+[`sdd-init`](skills/sdd-init/), which writes `02-DOCS/wiki/sdd/config.yaml`,
+detects test commands/strict TDD, and refreshes the skill registry. The happy
+path is **sdd-init → constitution → proposal? → specify → clarify → plan →
+tasks → analyze → implement → verify → review → ship → archive**, with `debug`,
+`worktrees`, and `parallel` callable on demand:
 
+- [sdd-init](skills/sdd-init/) — repo runtime calibration: stack, tests, commands, registry, budgets
 - [constitution](skills/constitution/) — project non-negotiables: stack canon, quality bars, conventions
+- proposal — optional pre-execution briefing under `02-DOCS/wiki/sdd/proposals/`
 - [specify](skills/specify/) — turn a fuzzy intent into a spec — what & why, no how
 - [clarify](skills/clarify/) — surface ambiguities / edge cases, ask, bake answers back in
 - [plan](skills/plan/) — technical plan: architecture, interfaces, data flow, tests, risks
@@ -243,7 +255,7 @@ demand:
 - [implement](skills/implement/) — execute tasks with checkpoints; TDD discipline embedded
 - [verify](skills/verify/) — post-build gate: stack checks + done-checks + acceptance
 - [review](skills/review/) — adversarial code review — give and receive with rigor
-- [ship](skills/ship/) — close the branch: PR / merge / cleanup
+- [ship](skills/ship/) — close the branch: PR / merge / cleanup, then archive
 - [debug](skills/debug/) — root-cause diagnosis: reproduce → isolate → fix → verify
 - [worktrees](skills/worktrees/) — isolate feature work in a branch/worktree
 - [parallel](skills/parallel/) — fan out independent tasks across subagents
