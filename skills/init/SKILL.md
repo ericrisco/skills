@@ -1,6 +1,6 @@
 ---
 name: init
-description: "Use when starting from nothing or pointing the rsc-skills harness at an existing project — the front door / bootstrapper. It gauges the user's technical level FIRST (non-technical by default), sets an explanation/accompaniment dial, then discovers what they want to build OR govern (any software stack, OR a non-code harness: running a company/ops, research, personal knowledge, content). It detects greenfield vs brownfield, profiles the user into 02-DOCS, RECOMMENDS which rsc skills to install (printing the exact `npx rsc add` commands), and hands off to the harness skill to scaffold 01-TOOLS + 02-DOCS. Triggers: 'empezar de cero', 'no sé por dónde empezar', 'start a new project', 'bootstrap', 'set up the harness', 'monta el proyecto', 'quiero montar una empresa/ops/wiki con esto', 'arranca', 'init'. NOT the scaffolder itself (that's the harness skill) and NOT a specific stack skill."
+description: "Use when starting from nothing or pointing the rsc-skills harness at an existing project — the front door / bootstrapper. It gauges the user's technical level FIRST (non-technical by default), sets an explanation/accompaniment dial, then discovers what they want to build OR govern (any software stack, OR a non-code harness: running a company/ops, research, personal knowledge, content). It detects greenfield vs brownfield, profiles the user into 02-DOCS, RECOMMENDS which rsc skills to install (printing the exact `npx @ericrisco/rsc add` commands), and hands off to the harness skill to scaffold 01-TOOLS + 02-DOCS. Triggers: 'empezar de cero', 'no sé por dónde empezar', 'start a new project', 'bootstrap', 'set up the harness', 'monta el proyecto', 'quiero montar una empresa/ops/wiki con esto', 'arranca', 'init'. NOT the scaffolder itself (that's the harness skill) and NOT a specific stack skill."
 tags: [init, bootstrap, start, new, setup]
 recommends: [harness]
 profiles: [minimal, core, full]
@@ -110,9 +110,9 @@ Figure out two things: **the state of the ground** and **what they want**.
 
 Record everything to `02-DOCS/wiki/harness/` as you go. Use the greenfield and brownfield questionnaires (for software AND non-code harnesses) in `references/discovery.md`. Ask in batches sized to the accompaniment level — never dump every question at once.
 
-### Phase 3 — RECOMMEND
+### Phase 3 — DETECT & INSTALL
 
-Map what you learned to individual rsc skills and **print the exact `npx rsc add` commands**. A skill cannot install anything itself — it recommends and prints commands the user runs. Skill map:
+Map what you learned to individual rsc skills. **You have a terminal — install them yourself.** After a one-word confirm, run `npx @ericrisco/rsc add <ids>` via Bash. (If you genuinely cannot run a shell, print the exact command and tell the user to paste it in another terminal tab.) Then tell them the **new skills activate in a fresh session/tab** — see the install note below the table. Skill map:
 
 | Need | Skills | Why (one line, matched to level) |
 | --- | --- | --- |
@@ -123,19 +123,21 @@ Map what you learned to individual rsc skills and **print the exact `npx rsc add
 | AI agents | `building-agents` | Agent loops, tools, RAG. |
 | Security & shipping / ops (incl. non-code company harness connecting tools) | `secure-coding`, `deployment` | Ship it safely and wire up external tools. |
 
-Print, with a one-line *why* per recommended skill (language matched to the user's level):
+Show the shortlist with a one-line *why* per skill (language matched to the user's level), get a one-word confirm, then install:
 
 ```text
-npx rsc add <skill> [<skill> ...]
+npx @ericrisco/rsc add <skill> [<skill> ...]
 ```
 
-Recommend only skills their answers justify — same discipline as "no speculative tools". Full skill map, sample printouts per scenario, and the requirements-first decision pattern → `references/recommend-skills.md`.
+> **After installing, say this (matched to their IDE):** "Listo, instaladas. Para que se activen, abre una **pestaña/sesión nueva** de Claude Code (o recarga Cursor/Codex/Gemini) en esta carpeta — las skills se cargan al arrancar la sesión." If you couldn't run the command yourself, give it to them to run in another terminal tab, then the same new-session note.
+
+Install only skills their answers justify — same discipline as "no speculative tools". Full skill map, sample printouts per scenario, and the requirements-first decision pattern → `references/recommend-skills.md`.
 
 ### Phase 4 — HANDOFF
 
-Tell the user to install `harness` (`npx rsc add harness`) and then run the **`harness`** skill to actually scaffold the `01-TOOLS/` + `02-DOCS/` workspace. `init` stops here — it has set the profile, recorded the discovery, and recommended the skills. `harness` reads the profile and builds the structure.
+Tell the user to install `harness` (`npx @ericrisco/rsc add harness`) and then run the **`harness`** skill to actually scaffold the `01-TOOLS/` + `02-DOCS/` workspace. `init` stops here — it has set the profile, recorded the discovery, and recommended the skills. `harness` reads the profile and builds the structure.
 
-> "Tu perfil y lo que hemos hablado ya están guardados. Cuando hayas instalado las skills de arriba (`npx rsc add …`), ejecuta `harness` y monto el esqueleto del proyecto (`01-TOOLS/` + `02-DOCS/`) leyendo todo lo que acabamos de decidir."
+> "Tu perfil y lo que hemos hablado ya están guardados. Cuando hayas instalado las skills de arriba (`npx @ericrisco/rsc add …`), ejecuta `harness` y monto el esqueleto del proyecto (`01-TOOLS/` + `02-DOCS/`) leyendo todo lo que acabamos de decidir."
 
 ## Iron rules (non-negotiable)
 
@@ -143,7 +145,7 @@ Tell the user to install `harness` (`npx rsc add harness`) and then run the **`h
 2. **Non-technical by default.** Plain language until told otherwise. Never assume the user reads code.
 3. **The dial governs verbosity AND question count.** Read it, obey it, in this skill and every skill downstream. L0 means *do it and stop talking*; L3 means *explain everything and ask*.
 4. **Three options, requirements first.** For any significant decision: gather the driving requirements, present exactly 3 options with honest trade-offs, recommend one, log it.
-5. **Recommend, never install.** A skill cannot run `npx rsc add`. Print the commands; the user runs them.
+5. **Install with consent, then flag the new session.** You have a terminal: after a one-word confirm, run `npx @ericrisco/rsc add …` yourself. Newly installed skills load at the START of a session, so tell the user to open a **new tab/session** (or reload) for them to activate. If you cannot run a shell, hand them the exact command for another tab — never install without a confirm.
 6. **No speculative skills.** Recommend a skill only if the discovery justified it. No "you'll probably want agents too".
 7. **Persist as you learn.** Goals, context, constraints, decisions go to `02-DOCS/wiki/harness/` continuously — `user-profile.md` for state, `decisions.md` append-only for choices.
 8. **`init` writes only the profile + the link.** It writes ONLY the user-profile + decisions log under `02-DOCS/wiki/harness/` and the `CLAUDE.md` Knowledge-map link. ALL other `01-TOOLS/` + `02-DOCS/` scaffolding is the `harness` skill's job. Hand off; do not do its job.
@@ -162,7 +164,7 @@ These thoughts mean the skill is about to break its own rules. Recognize and abo
 | "I'll scaffold 01-TOOLS now while I'm here" | No. That's the `harness` skill. `init` profiles and hands off. |
 | "The profile can wait until after discovery" | No. Profile first — every later question's framing depends on it. |
 | "This is a company, not code, so the harness doesn't apply" | No. Domain-agnostic. A non-code harness uses the same structure. |
-| "I'll install the skills for them" | No. A skill can't install. Print the `npx rsc add` commands. |
+| "I'll install the skills for them" | No. A skill can't install. Print the `npx @ericrisco/rsc add` commands. |
 | "They said 'ok', that's enough to pick the database" | No. A significant decision needs the 3-option pattern and a log entry. |
 
 ## Project grounding (02-DOCS + CLAUDE.md)

@@ -38,6 +38,6 @@ capability:
       - "Writes 02-DOCS/wiki/sdd/config.yaml, not an openspec/ folder."
       - "Sets testing.strict_tdd true because a runner exists and records apply/verify commands."
       - "Asks or defaults execution_mode, artifact_store, review budget and delivery strategy."
-      - "Runs or instructs npx rsc registry refresh and records .rsc/skill-registry.json as registry_path."
+      - "Runs or instructs npx @ericrisco/rsc registry refresh and records .rsc/skill-registry.json as registry_path."
       - "Distinguishes itself from init and harness."
       - "Ends with the standard result envelope including skill_resolution and evidence."
