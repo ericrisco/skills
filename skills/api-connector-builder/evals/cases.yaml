@@ -1,0 +1,47 @@
+skill: api-connector-builder
+
+should_trigger:
+  - prompt: "Write a connector for the Linear GraphQL API that pulls every issue, not just the first page."
+    why: "Core task: a typed client against a third-party GraphQL API with Relay cursor connections, walked to exhaustion. The skill's flagship deliverable."
+  - prompt: "This vendor API keeps returning 429. Add backoff and respect their rate limit so we stop getting throttled."
+    why: "Rate-limit + retry symptom. Honor Retry-After / X-RateLimit-* with jittered backoff is squarely this skill."
+  - prompt: "We only ever get the first 100 results back from this API. Paginate through everything."
+    why: "Pagination-to-exhaustion. The fixed-first-page bug is the canonical thing this skill fixes."
+  - prompt: "Our access token expires halfway through a long run and the whole job dies. Add refresh."
+    why: "Non-obvious phrasing — never says 'OAuth' or 'connector', but mid-run token expiry is the auth/refresh concern the skill owns (refresh rotation)."
+  - prompt: "Conector para una API de terceros que nos banea la key cuando vamos demasiado rápido."
+    why: "Spanish trigger combining rate-limit + auth (banned key from hammering). Vendor-agnostic outbound client = this skill."
+  - prompt: "Wrap this vendor REST API as a typed SDK with retries and per-request timeouts."
+    why: "Typed-client framing. 'Wrap a REST API as an SDK' with resilience is the connector-module deliverable."
+  - prompt: "Build me a client for the Shopify Admin API that reads the cursor-based pages and handles the leaky-bucket rate limit."
+    why: "Vendor with no dedicated skill, cursor pagination + bucket rate limit — the generic connector case this skill covers."
+
+should_not_trigger:
+  - prompt: "Verify the incoming webhook signature from Stripe on our /hooks endpoint and reject replays."
+    route_to: webhooks
+    why: "Inbound callback — receiving and verifying events the vendor POSTs to us, the inverse of calling their API."
+  - prompt: "Design the versioning, resource model, and error envelope for OUR new public API."
+    route_to: api-design
+    why: "Authoring a contract others will consume, not consuming someone else's. Opposite side of the boundary."
+  - prompt: "Chain Gmail to Sheets to Slack into one automated if-this-then-that workflow."
+    route_to: automation-flows
+    why: "Multi-service orchestration across many tools, not building one connector for one vendor."
+  - prompt: "Scrape the product prices off this storefront — it has no public API at all."
+    route_to: data-scraper
+    why: "HTML/DOM scraping with no documented API; this skill requires a real API contract to obey."
+  - prompt: "Pull the structured fields out of this LLM's free-text answer into JSON."
+    route_to: structured-extraction
+    why: "Extracting structure from a model response, not making HTTP calls to a third-party API."
+
+capability:
+  - scenario: "Build a Python connector for a paginated REST API (cursor-based) that requires a Bearer token and rate-limits at 60 req/min with X-RateLimit-* headers. It must fetch all records."
+    must_include:
+      - "Reads the Bearer token from an environment variable / secret store — never hardcoded in source."
+      - "Sets a per-request timeout on every call (no unbounded socket wait)."
+      - "Retries only transient statuses (429, 502, 503, 504) and network errors; never retries other 4xx."
+      - "Uses exponential backoff WITH jitter and explicit stop conditions (max attempts 3–5 and/or a total deadline)."
+      - "Honors Retry-After when present, otherwise computes the wait from X-RateLimit-Reset; throttles proactively on X-RateLimit-Remaining."
+      - "Paginates by following the cursor until exhausted (no fixed page-count loop); ideally exposes a generator/iterator."
+      - "Logs request id / status / attempt but never the raw token or Authorization header."
+      - "Sends the token in the Authorization header, not a query string."
+      - "Returns or streams the FULL record set across all pages, not just the first page."

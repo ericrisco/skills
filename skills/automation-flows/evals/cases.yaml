@@ -1,0 +1,44 @@
+skill: automation-flows
+
+should_trigger:
+  - prompt: "Build an n8n workflow: new Typeform response → add a row to Google Sheets → notify a Slack channel."
+    why: Canonical multi-app visual flow with a trigger and chained app actions — the core deliverable.
+  - prompt: "My Zap keeps failing silently at the HTTP step. Add retries and an alert so I know when it breaks."
+    why: Error handling on a visual platform — Autoreplay/Filters plus a failure notification.
+  - prompt: "Should I use Make or Zapier if I run about 50k automations a month?"
+    why: Platform selection by billing model (task vs operation) — non-obvious, not a build request but squarely this skill.
+  - prompt: "por qué se me dispara el Zap dos veces por cada pago de Stripe"
+    why: Spanish; the double-fire symptom routes to idempotency/dedup on a stable event id.
+  - prompt: "munta un workflow a n8n que processi els emails entrants amb gestió d'errors"
+    why: Catalan; n8n flow with an explicit error-handling requirement.
+  - prompt: "Give me the JSON I can import into n8n for a webhook → Notion → email flow."
+    why: Non-obvious artifact request — the user wants the importable workflow JSON, the checkable deliverable.
+  - prompt: "My automation bill exploded last month — I have a 12-step Zap running thousands of times."
+    why: Cost symptom pointing at the per-task billing model and a move to n8n's per-execution model.
+
+should_not_trigger:
+  - prompt: "Write a TypeScript client for the Acme REST API with auth, pagination, and exponential backoff."
+    route_to: api-connector-builder
+    why: That is real code — a typed client — not a visual no-code flow.
+  - prompt: "Build the endpoint in my Express app that receives and verifies Stripe webhook signatures."
+    route_to: webhooks
+    why: Building the inbound receiver in your own app code; this skill consumes webhooks as triggers, it does not build the receiver.
+  - prompt: "Append rows to a Google Sheet from a Python script every night."
+    route_to: spreadsheet-ops
+    why: Scripting the spreadsheet surface directly in code, not chaining SaaS apps on a platform.
+  - prompt: "Send a WhatsApp template message to customers from my backend service."
+    route_to: whatsapp-telegram
+    why: Single-vendor SDK called from your own code, not a visual flow.
+  - prompt: "Scrape product prices off this site into a CSV."
+    route_to: data-scraper
+    why: Web extraction/scraping, not gluing apps together with triggers and actions.
+
+capability:
+  - scenario: "User wants an n8n flow: Stripe payment_succeeded webhook → create a Notion DB row → post a Slack message, with production-grade error handling. Produce the importable workflow JSON and explain the error/dedup design."
+    must_include:
+      - "Exactly one trigger, and it is a webhook (not a polling trigger)."
+      - "An importable n8n workflow JSON with a non-empty `nodes` array and a `connections` object."
+      - "A dedicated Error Workflow via an Error Trigger node wired to a notification, referenced by `settings.errorWorkflow`."
+      - "Retry On Fail set on the external-API node (Max Tries 3–5) with a wait between tries."
+      - "Idempotency/dedup on the Stripe event id checked before the Notion write."
+      - "Credentials referenced via the n8n credential store, never pasted inline."

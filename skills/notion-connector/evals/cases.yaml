@@ -1,0 +1,45 @@
+skill: notion-connector
+
+should_trigger:
+  - prompt: "We want our internal task tool to push its tasks into a Notion database from a nightly cron job. How do I write to Notion from code?"
+    why: "Core push use case — app/cron writing rows into a Notion database over the API. Exactly the outbound connector this skill owns."
+  - prompt: "Our Notion integration broke after a teammate added a second data source to the database. Reads return nothing now."
+    why: "The flagship 2025-09-03 breakage symptom: a database became a multi-data-source container, so an old integration sees nothing. The skill's database→data-source resolution is the fix."
+  - prompt: "I need to sync our CRM rows into Notion every night and it keeps creating duplicate cards each run. How do I make it idempotent?"
+    why: "Upsert/idempotency — store page_id keyed by external id, query-by-key before create. Squarely the sync-patterns section, non-obvious that the fix is an external-key upsert."
+  - prompt: "guardar registros en una base de datos de Notion desde código sin duplicar filas"
+    why: "Spanish phrasing of the idempotent write-to-Notion-database use case. Must still route here."
+  - prompt: "Why does POST /v1/databases/:id/query suddenly return 404? It worked a few months ago."
+    why: "Non-obvious post-2025-09-03 symptom: the query endpoint moved to /v1/data_sources. An agent must recognize this as a Notion API-version migration, not a generic 404."
+  - prompt: "Build a read-only dashboard feed that mirrors a Notion database into our app, paginating through all rows."
+    why: "Pull/mirror use case requiring the cursor pagination loop (has_more/next_cursor, page_size<=100). Owned by this skill's query section."
+  - prompt: "We need to programmatically write meeting-note pages with headings and bullet blocks into Notion."
+    why: "Reading/writing page block content via the Notion API is in scope ('build/read page content programmatically')."
+
+should_not_trigger:
+  - prompt: "I need to wire up calls to some random third-party REST API that has nothing to do with Notion. Where do I start?"
+    route_to: api-connector-builder
+    why: "Generic call-any-REST-API task with no Notion-specific data model — the generic connector skill, not this one."
+  - prompt: "Notion can send me integration webhook events. How do I receive them and verify the signature in my handler?"
+    route_to: webhooks
+    why: "Inbound event receipt + signature verification is the webhooks skill's domain. This skill is outbound-only."
+  - prompt: "Chain Notion, Slack, and an email send into one automation that fires when a deal closes."
+    route_to: automation-flows
+    why: "Multi-tool orchestration where Notion is one node — that's the automation-flows sequence skill."
+  - prompt: "Bulk-import a CSV, dedupe and transform its columns, then output a clean sheet."
+    route_to: spreadsheet-ops
+    why: "Spreadsheet-shaped bulk transform mechanics with no Notion API involved — spreadsheet-ops owns this."
+  - prompt: "Where should I store the Notion integration token and how do I rotate it safely?"
+    route_to: secure-coding
+    why: "Secret storage/rotation policy is the secure-coding skill; this skill only says 'env var, never client-side' and defers the how."
+
+capability:
+  - scenario: "Build a nightly job that upserts records from our app DB into a Notion database keyed by an external id, paginating safely and never duplicating rows. We only have the database_id."
+    must_include:
+      - "Resolve the data_source_id from the database_id via GET /v1/databases/:id and read data_sources[]"
+      - "Pin a Notion-Version (e.g. 2025-09-03) / pass notionVersion to the client"
+      - "Query-by-external-key (rich_text equals on an ExternalId property) before deciding create vs update"
+      - "Create/update pages with a { type: 'data_source_id', data_source_id } parent, not database_id"
+      - "Cursor pagination loop using has_more + next_cursor with page_size <= 100"
+      - "Honor HTTP 429 Retry-After with backoff and cap concurrency under ~3 req/s"
+      - "Persist the Notion page_id keyed by external id so re-runs stay idempotent"

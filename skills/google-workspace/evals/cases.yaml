@@ -1,0 +1,44 @@
+skill: google-workspace
+
+should_trigger:
+  - prompt: "I need a Node cron job to send a daily email through the Gmail API using a service account, no user clicking Allow. How do I authenticate?"
+    why: "Core use case: server-side, no-human-in-the-loop Gmail send via a service account. Names the auth-mode decision this skill owns."
+  - prompt: "I'm getting unauthorized_client when my service account tries to impersonate ops@acme.com. What did I miss?"
+    why: "Non-obvious error-symptom trigger. unauthorized_client maps directly to a missing/incorrect domain-wide-delegation client-ID + scope authorization in the Admin console — the skill's troubleshooting core."
+  - prompt: "Read values from a Google Sheet in a Python script with a service account and write a couple of rows back."
+    why: "Sheets API read/write transport via SA — exactly this skill, not the data-modeling concern of spreadsheet-ops."
+  - prompt: "Necesito automatizar Gmail con una cuenta de servicio sin login del usuario, ¿qué scope y delegación uso?"
+    why: "Spanish phrasing of the flagship: service-account Gmail automation, scope + delegation question. Must fire across language."
+  - prompt: "Which OAuth scope do I need to upload a file into a shared drive with the Drive API — is drive.file enough?"
+    why: "Scope-selection question, the least-privilege table is the skill's job. Non-obvious because the answer hinges on shared-drive support + drive.file semantics."
+  - prompt: "Walk me through setting up the domain-wide delegation client ID in the Google Admin console for my service account."
+    why: "Setup step unique to this skill: authorizing the SA's numeric client ID plus exact scopes under Manage Domain Wide Delegation. Non-obvious that it's the client ID, not the email."
+  - prompt: "My Drive API integration keeps throwing 403 rateLimitExceeded under load — how should I handle it?"
+    why: "Quota-safe calling (per-user limits + exponential backoff with jitter) is a named section. Error symptom routes here, not to a generic performance skill."
+
+should_not_trigger:
+  - prompt: "Help me configure SPF, DKIM, and DMARC so our cold outreach stops landing in spam."
+    route_to: "email-deliverability"
+    why: "Deliverability / DNS auth records / inbox placement — provider-and-domain concern, explicitly out of scope. This skill is Gmail-the-API, not email reputation."
+  - prompt: "Build a booking page that finds free 30-minute slots across attendees in different timezones and generates a meeting link."
+    route_to: "calendar-scheduling"
+    why: "Scheduling-as-a-product: availability search, timezone UX, booking-link generation. This skill only covers the raw Calendar event CRUD underneath."
+  - prompt: "Write the formulas and a pivot table to summarize monthly sales by region in this spreadsheet."
+    route_to: "spreadsheet-ops"
+    why: "Spreadsheet data modeling and formulas as the deliverable — spreadsheet-ops. This skill is the Sheets API transport, not the analysis."
+  - prompt: "Extract the line items and totals from these invoice PDFs sitting in a Drive folder."
+    route_to: "document-processing"
+    why: "Content extraction / OCR from documents. Drive here is only storage transport; parsing file contents belongs to document-processing."
+  - prompt: "When a Stripe payment succeeds, create a Drive folder, add a Sheets row, and ping Slack — wire up the whole flow."
+    route_to: "automation-flows"
+    why: "Multi-step orchestration spanning several connectors. This skill owns the individual Google calls; chaining across connectors is automation-flows."
+
+capability:
+  - scenario: "A Node cron must run as a service account impersonating ops@acme.com to (1) send a Gmail summary and (2) append a row to a Sheet. It currently throws 403 insufficient permissions on the send. Diagnose and give working code."
+    must_include:
+      - "Identify the auth mode as service-account + domain-wide delegation, setting subject/with_subject to ops@acme.com on the JWT/credentials"
+      - "Prescribe minimal scopes: gmail.send + spreadsheets (not full drive / mail.google.com), and note the scope IS the blast radius"
+      - "Call out the Admin console Manage Domain Wide Delegation step: authorize the SA's numeric client ID plus the exact scope list (mismatch -> unauthorized_client; missing scope here -> 403 insufficient permissions)"
+      - "Show a googleapis Node client build (google.auth.JWT with email/key/scopes/subject, then google.gmail and google.sheets)"
+      - "Add exponential backoff with jitter on 403 rateLimitExceeded / 429 around the calls"
+      - "Warn never to commit the SA key JSON; prefer keyless ADC/WIF or a secret manager, unescape the private key newlines from env"

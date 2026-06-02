@@ -1,0 +1,45 @@
+skill: stripe
+
+should_trigger:
+  - prompt: "Add a Pro subscription tier with Stripe Checkout to my SaaS."
+    why: Core build — subscription-mode Checkout Session plus webhook to grant access.
+  - prompt: "My Stripe webhook returns 400 with 'No signatures found matching the expected signature'."
+    why: Non-obvious symptom of the raw-body/signature-verification bug this skill owns.
+  - prompt: "The Stripe webhook fires twice and creates the order twice."
+    why: Idempotency / dedupe on event.id — a core handler concern, not obvious from the word 'twice'.
+  - prompt: "Let customers cancel and upgrade their plan themselves without me building UI."
+    why: Customer billing portal session.
+  - prompt: "El webhook de Stripe se ejecuta dos veces y duplica el pedido."
+    why: Spanish phrasing of the idempotency problem; same skill.
+  - prompt: "Set up recurring billing with a 14-day free trial in Stripe."
+    why: Subscription mode with trial_period_days.
+  - prompt: "Charge a one-time payment for a digital download via Stripe."
+    why: payment-mode Checkout Session and fulfillment on checkout.session.completed.
+
+should_not_trigger:
+  - prompt: "Verify the HMAC on an incoming GitHub webhook and put it on a retry queue."
+    route_to: webhooks
+    why: Generic non-Stripe inbound receiver; not Stripe's Stripe-Signature scheme.
+  - prompt: "What must legally appear on the invoice I email the client, and what's the dunning copy?"
+    route_to: invoicing
+    why: The invoice document and its legal form, not Stripe API wiring.
+  - prompt: "Should our Pro plan be $29 or $49, and how many tiers should we offer?"
+    route_to: pricing
+    why: Packaging/amount decision, not implementation.
+  - prompt: "Build a 13-week cash-flow forecast and reconcile the bank statement."
+    route_to: finance-ops
+    why: Forecasting and reconciliation, not payment integration.
+  - prompt: "Build a typed client for the Acme REST API with retries and backoff."
+    route_to: api-connector-builder
+    why: Generic third-party API client, unrelated to Stripe.
+
+capability:
+  - scenario: "Add a subscription paywall to a Next.js app: a Checkout Session, a webhook handler, and a self-service billing portal."
+    must_include:
+      - "Checkout Session created with mode: 'subscription' and both success_url and cancel_url."
+      - "Webhook verifies the RAW body with stripe.webhooks.constructEvent using STRIPE_WEBHOOK_SECRET."
+      - "Returns a 2xx before slow work and dedupes on event.id."
+      - "Handles checkout.session.completed plus customer.subscription.updated/deleted."
+      - "Billing portal via stripe.billingPortal.sessions.create({ customer, return_url })."
+      - "Keys read from process.env, explicit apiVersion pin, no hard-coded sk_ literal."
+      - "Access granted from the webhook, not from the success_url redirect."

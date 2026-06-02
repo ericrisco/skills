@@ -1,0 +1,45 @@
+skill: calendar-scheduling
+
+should_trigger:
+  - prompt: "Add a 'book a call' page to our site that shows my real availability and creates the Google Calendar event automatically."
+    why: Core build — booking surface plus calendar sync (freebusy + events.insert), the skill's whole purpose.
+  - prompt: "We keep getting double-booked when two people pick the same slot — fix it."
+    why: Non-obvious symptom phrasing; the availability race (browser-computed slots / write-before-recheck) this skill owns.
+  - prompt: "Embed Cal.com on the landing page and white-label it so there's no Cal.com branding."
+    why: Embed altitude — self-hosted Cal.com embed for full white-label.
+  - prompt: "Añade reservas de citas a la web y evita solapamientos con mi calendario de Outlook."
+    why: Spanish trigger plus multi-provider sync; routes to the unified-API path, still this skill.
+  - prompt: "Build booking inside our own UI with the Cal.com Booker atom and fire a webhook on each booking."
+    why: Booker atom altitude plus booking webhook lifecycle — both core to this skill.
+  - prompt: "Bookings show the wrong time after the clocks changed last weekend."
+    why: Non-obvious DST/timezone-drift symptom; the stored-wall-clock bug this skill prevents.
+  - prompt: "Set up minimum notice and a 15-minute buffer so nobody books me back-to-back or in 5 minutes."
+    why: Availability rules (buffers + min-notice) computed server-side — part of the core slot flow.
+
+should_not_trigger:
+  - prompt: "List and update events on my Google Calendar for an internal dashboard — there's no booking page."
+    route_to: google-workspace
+    why: Raw calendar CRUD with no booking surface; that is the boundary this skill explicitly disclaims.
+  - prompt: "Set up a generic webhook receiver with signature verification and a retry queue for several providers."
+    route_to: webhooks
+    why: Generic inbound-event infrastructure, not the booking-specific lifecycle.
+  - prompt: "When a booking is created, also create a CRM record, post to Slack, and update a Google Sheet."
+    route_to: automation-flows
+    why: Multi-tool orchestration fan-out, not the act of reserving a slot.
+  - prompt: "Charge $50 when someone books a paid appointment."
+    route_to: stripe
+    why: Payment integration, not scheduling.
+  - prompt: "Write and send the booking confirmation email so it doesn't land in spam."
+    route_to: email-connector
+    why: Email sending/deliverability, not the slot/calendar logic.
+
+capability:
+  - scenario: "Design availability + booking for a solo consultant on Google Calendar with a public booking page, preventing double-booking and timezone bugs."
+    must_include:
+      - "freebusy.query run server-side across the relevant calendars before any slot is offered."
+      - "Slots computed server-side applying buffers and minimum notice (not in the browser)."
+      - "A narrow OAuth scope (calendar.freebusy / calendar.events.owned / calendar.app.created), not restricted auth/calendar."
+      - "Event written with an explicit timeZone (IANA) and the instant stored in UTC."
+      - "A booking webhook with signature verification and idempotency on the provider event id."
+      - "Reschedule updates the same stored event id and releases the freed slot (no orphaned second event)."
+      - "Re-check freebusy inside the write transaction to close the race."

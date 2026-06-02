@@ -1,0 +1,44 @@
+skill: e-signature
+
+should_trigger:
+  - prompt: "Send this signed offer letter out for signature via DocuSign and let me know when it's done"
+    why: Core send-for-signature plus completion notification — the central flow of the skill.
+  - prompt: "Wire up Dropbox Sign signature_request/send in our Node backend"
+    why: Names the provider and the exact endpoint; unambiguous integration request.
+  - prompt: "Verify the DocuSign Connect webhook and download the signed PDF + certificate of completion when an envelope completes"
+    why: Webhook signature verification plus audit-trail retrieval — the non-obvious depth that distinguishes a correct integration from fire-and-forget.
+  - prompt: "Is a typed-name e-signature legally binding for our EU customers, or do we need QES?"
+    why: Legal-tier triage with no API verb — non-obvious trigger the skill explicitly handles (SES vs QES under eIDAS).
+  - prompt: "Necessitem enviar el contracte a signar amb validesa legal i guardar el rastre d'auditoria"
+    why: Catalan phrasing for send-for-signature with legal validity and storing the audit trail.
+  - prompt: "Set up DocuSign JWT auth so our server can send envelopes without a user logging in"
+    why: JWT Grant server integration — a named setup task the skill covers in detail.
+
+should_not_trigger:
+  - prompt: "Redline the indemnity clause in this MSA and tighten the liability cap"
+    route_to: contracts
+    why: Drafting and reviewing contract text, not building a signing flow.
+  - prompt: "Extract the parties and signature dates from these scanned PDF contracts"
+    route_to: document-processing
+    why: OCR and field extraction with no signing involved.
+  - prompt: "Set up a generic inbound webhook receiver for our Stripe payment events"
+    route_to: webhooks
+    why: Non-signing webhook infrastructure; e-signature only covers signing-event payloads.
+  - prompt: "Write our GDPR data-retention policy for signed documents"
+    route_to: gdpr-privacy
+    why: Policy writing, not the signing integration; e-signature only flags the touchpoints.
+  - prompt: "Build a REST connector to a niche vendor API we have no SDK for"
+    route_to: api-connector-builder
+    why: Generic connector construction, not a signing flow.
+
+capability:
+  - scenario: "Implement DocuSign send-for-signature with JWT auth and a Connect webhook that, on completion, stores the signed PDF plus its audit trail."
+    must_include:
+      - JWT Grant auth — RSA key, impersonated user GUID, one-time consent
+      - base path discovered via /oauth/userinfo, sandbox (demo.docusign.net) before prod
+      - create-envelope with recipients and tabs (anchor or position) and an explicit status (sent vs created)
+      - Connect HMAC signature verification (X-DocuSign-Signature-1) against the raw body BEFORE trusting the payload
+      - idempotent completion handling (no double-processing on retries)
+      - download the signed PDF AND the Certificate of Completion / audit trail, then store
+      - no hardcoded API key or RSA private key in source; env vars / secret store
+      - pick the legal tier (SES/AES/QES) deliberately; recommend a lawyer + contracts for high-stakes docs

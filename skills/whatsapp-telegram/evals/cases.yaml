@@ -1,0 +1,44 @@
+skill: whatsapp-telegram
+
+should_trigger:
+  - prompt: "Send an order-confirmation WhatsApp message to a customer via the Cloud API"
+    why: Core WhatsApp Cloud API send — the central job of this skill.
+  - prompt: "My WhatsApp sends return error 131047, how do I re-engage the user?"
+    why: Non-obvious — #131047 is the closed-24h-window error; the fix is sending an approved template.
+  - prompt: "Build a Telegram bot that broadcasts alerts to subscribers and handle 429 retry_after"
+    why: Telegram send plus the rate-limit/backoff rule this skill owns.
+  - prompt: "Vull enviar una plantilla de WhatsApp d'avis de cita als clients"
+    why: Catalan phrasing for a WhatsApp template send (appointment-reminder template).
+  - prompt: "Set up the WhatsApp inbound webhook and verify the X-Hub-Signature-256 header"
+    why: Non-obvious WhatsApp-specific webhook setup (verify token + HMAC signature).
+  - prompt: "Should I use setWebhook or getUpdates for my Telegram bot?"
+    why: Telegram inbound decision — the two modes are mutually exclusive, a known footgun.
+  - prompt: "Why are my WhatsApp template blasts being billed per message now instead of per conversation?"
+    why: Non-obvious — pricing changed to per-message on 2025-07-01; agent must know the current model.
+
+should_not_trigger:
+  - prompt: "Write the actual support reply text and triage this angry customer"
+    route_to: customer-support
+    why: Content/tone and triage of the reply, not the transport pipe.
+  - prompt: "Plan our week's posts across LinkedIn, Instagram and TikTok"
+    route_to: social-publisher
+    why: Social content calendar and multi-platform posting, not 1:1 messaging APIs.
+  - prompt: "Write a cold first-touch DM sequence to prospects who never replied"
+    route_to: cold-outreach
+    why: First-touch outreach copy and cadence, not message delivery plumbing.
+  - prompt: "Design a generic webhook receiver with retries and idempotency for any provider"
+    route_to: webhooks
+    why: Abstract receiver design; this skill covers only WhatsApp/Telegram-specific setup.
+  - prompt: "When a Stripe payment succeeds, message the customer on WhatsApp — orchestrate the whole flow"
+    route_to: automation-flows
+    why: Cross-tool multi-step orchestration, not a single send implementation.
+
+capability:
+  - scenario: "Implement a function that messages a WhatsApp customer: send a free-form text if they messaged within the last 2 hours, otherwise send an approved template. Use the Cloud API."
+    must_include:
+      - "Endpoint pins the Graph version, e.g. https://graph.facebook.com/v25.0/{PHONE_NUMBER_ID}/messages"
+      - "Bearer token read from env (e.g. process.env.WA_TOKEN), never hardcoded"
+      - 'Body includes messaging_product: "whatsapp", to, and type'
+      - "Branches on the 24-hour window: in-window -> free-form text, out-of-window -> template"
+      - "Explains that out-of-window free-form fails with error #131047"
+      - "Captures the response message id (messages[0].id) for delivery tracing"
