@@ -1,0 +1,3 @@
+# Evals — react
+
+These cases document the trigger boundary for the `react` skill: a **client-side React SPA on Vite**, as distinct from server-rendered React (`nextjs`), native mobile (`react-native`), pure type theory (`typescript`), visual design (`design`), and test authoring (`testing-web`). Read `cases.yaml` as the routing contract, or feed `should_trigger` / `should_not_trigger` prompts through your skill-eval harness to check that selection lands here for SPA work and routes elsewhere otherwise. The `capability` case is graded by a human (or a judge model) against its `must_include` rubric — it is not auto-run; the rubric is the bar for a correct answer (TanStack Query over useEffect, explicit loading/error states, optimistic mutation, stable keys, typed data).

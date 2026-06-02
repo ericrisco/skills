@@ -1,0 +1,47 @@
+skill: django
+
+should_trigger:
+  - prompt: "Add a `published` filter and fix the N+1 in this Django ListView."
+    why: Core Django — QuerySet filtering plus select_related/prefetch_related on a CBV.
+  - prompt: "Build a DRF ModelViewSet for Orders with owner-only permission and wire it into a router."
+    why: Django REST Framework surface — serializer, viewset, router, object-level permission.
+  - prompt: "This template loops over `books` and queries `book.author` on each iteration and the page is slow."
+    why: Non-obvious — no word 'Django', but it is the classic ORM N+1 inside a template loop.
+  - prompt: "Revisa este modelo y añade un UniqueConstraint en (tenant, slug)."
+    why: Spanish/Catalan phrasing for a Django model Meta constraint change.
+  - prompt: "Why does `python manage.py check --deploy` warn about SECURE_HSTS_SECONDS?"
+    why: Django-specific security/settings question; the warning is the default 0 value.
+  - prompt: "El queryset hace N+1 al renderizar el feed; ¿cómo lo arreglo con prefetch?"
+    why: Spanish, non-obvious ORM performance phrasing pointing straight at prefetch_related.
+  - prompt: "Convert this fat publish() logic out of the view onto the model and add a data migration."
+    why: Fat-model rule plus RunPython migration — both squarely Django implementation.
+
+should_not_trigger:
+  - prompt: "Build an async FastAPI endpoint with Pydantic models and async SQLAlchemy."
+    route_to: fastapi
+    why: Async-first service importing fastapi/pydantic; no manage.py/INSTALLED_APPS.
+  - prompt: "Write the EXPLAIN ANALYZE for this slow query and add the right Postgres index."
+    route_to: postgresdb
+    why: DB-side query plan and indexing strategy, ORM-agnostic.
+  - prompt: "Do a STRIDE threat model of our payment flow."
+    route_to: secure-coding
+    why: Cross-stack threat modeling, not Django middleware/CSP knobs.
+  - prompt: "Should this REST API use cursor or offset pagination, and what status code for a partial update?"
+    route_to: api-design
+    why: REST contract design; the DRF wiring would be django, the contract choice is api-design.
+
+capability:
+  - scenario: >
+      Create a Django app `catalog` with a `Product` model (name, price, owner FK to the user),
+      a DRF ModelSerializer and ModelViewSet exposing it read/write to the owner only, wired into
+      a DefaultRouter, plus a pytest-django test asserting an anonymous user gets 403 and the
+      owner gets 200. Include the migration step.
+    must_include:
+      - "Product model with an owner ForeignKey and a Meta (constraint or index)"
+      - "ModelSerializer with an explicit fields list and owner as read-only"
+      - "ModelViewSet with permission_classes (IsAuthenticated + object-level IsOwner)"
+      - "get_queryset scoped to request.user and using select_related to avoid N+1"
+      - "DefaultRouter registration of the viewset"
+      - "perform_create sets owner=self.request.user (not from request data)"
+      - "pytest-django test using APIClient.force_authenticate, asserting 403 anon and 200 owner"
+      - "makemigrations/migrate step for the new model"

@@ -1,0 +1,3 @@
+# Evals — react-native
+
+These cases are prompt-routing fixtures, not executable tests. `should_trigger` lists prompts that must select `react-native`; `should_not_trigger` lists prompts that must route to the named sibling instead (`expo`, `flutter`, `nextjs`, `ship`); `capability` describes a realistic scenario plus a `must_include` rubric the generated answer should cover. Run them through the repo's eval harness, which checks selection on each trigger prompt, correct sibling routing on each non-trigger, and that every rubric item is addressed by the model's answer to the capability scenario. There is nothing to install; judge by reading the cases against the harness output.

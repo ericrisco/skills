@@ -1,0 +1,39 @@
+skill: nodejs
+
+should_trigger:
+  - prompt: "Set up an Express 5 service with a central error handler and graceful shutdown."
+    why: "Core greenfield plain-Node/Express service — layout, error handling, shutdown."
+  - prompt: "My async route throws but the client gets a 200 with an empty body."
+    why: "Non-obvious symptom of a mis-ordered or missing 4-arg error middleware in Express 5."
+  - prompt: "Where should controllers, services and repositories live in my Node API?"
+    why: "Non-DI service structure is exactly this skill's project-layout concern."
+  - prompt: "Why does one unhandled promise rejection crash my whole Node server?"
+    why: "Node 15+ runtime async semantics — floating promise as a latent crash."
+  - prompt: "Monta un backend con Express y apaga el servidor sin perder peticiones en vuelo."
+    why: "Spanish; graceful shutdown / draining in-flight requests on a plain Express service."
+
+should_not_trigger:
+  - prompt: "Wire a custom provider with useFactory in my NestJS module."
+    route_to: "nestjs"
+    why: "DI container, modules and providers are NestJS, not a bare Node/Express service."
+  - prompt: "Make this generic helper preserve the literal type and fix my tsconfig."
+    route_to: "typescript"
+    why: "Pure TypeScript type system and tsconfig, not the Node runtime."
+  - prompt: "Design the REST resource URLs, versioning and pagination for our public API."
+    route_to: "api-design"
+    why: "Framework-agnostic contract design; this skill wires handlers, it does not shape the contract."
+  - prompt: "Set up the Postgres connection pool and write the user query."
+    route_to: "postgresdb"
+    why: "Data layer / schema / queries belong to the database skill, not the HTTP service."
+
+capability:
+  - scenario: "A user asks to scaffold a production-ready Express 5 JSON service."
+    must_include:
+      - "app.ts builds and returns the app; server.ts owns listen() and shutdown."
+      - "Exactly one 4-arg (err,req,res,next) error middleware registered LAST, with a 404 fallthrough just before it."
+      - "Typed AppError carrying status + code; known errors mapped to status, unknown to 500, no stack leak in production."
+      - "Environment validated once at boot (fail fast), exported as a typed config; no scattered process.env reads."
+      - "SIGTERM handler: flip readiness to not-ready, server.close() to drain, abort in-flight via AbortController, then exit, with a force-exit backstop."
+      - "Tests use node:test and import the app from app.ts rather than starting the live server."
+      - "engines.node pinned to a supported LTS (Node 24); ESM for new code."
+      - "Routes DI/modules to nestjs, contract design to api-design, and the data layer to postgresdb."

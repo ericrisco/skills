@@ -1,0 +1,3 @@
+# Evals — swift-ios
+
+These cases are routing/trigger fixtures plus one capability rubric. `should_trigger` lists prompts that must select this skill (including a verbatim Swift 6 diagnostic and a Catalan phrasing); `should_not_trigger` lists adjacent prompts that must route to the named sibling instead. No Xcode, simulator, or Swift toolchain is needed to evaluate them — judge whether a router would pick `swift-ios` and explain why. The `capability` case is graded against its `must_include` checklist by reading the model's proposed refactor, not by compiling or running anything; pass it only if the answer covers each rubric point (MainActor isolation, `Task {}` over `Task.detached`, Sendable, `@Observable` + `@State`, cancellation).

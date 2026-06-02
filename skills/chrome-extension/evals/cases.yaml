@@ -1,0 +1,40 @@
+skill: chrome-extension
+
+should_trigger:
+  - prompt: "Build me a Chrome extension that highlights selected text on the page."
+    why: "Clear scaffolding-from-zero request — the core use case (manifest + content script + popup)."
+  - prompt: "My extension's background script keeps losing its state between events — the counter resets to zero."
+    why: "Non-obvious symptom of the ephemeral service worker killing globals; the fix (chrome.storage, top-level listeners) is this skill's heart."
+  - prompt: "The Chrome Web Store rejected my extension for excessive permissions. Help me fix the manifest."
+    why: "Store review + least-privilege permission model — activeTab vs host_permissions, justifications."
+  - prompt: "Migrate this Manifest V2 extension to V3 — it uses background scripts and blocking webRequest."
+    why: "MV2->MV3 migration map: background page->service worker, webRequest->declarativeNetRequest."
+  - prompt: "Crear una extensión para Chrome que bloquee anuncios con declarativeNetRequest."
+    why: "Spanish phrasing + DNR ad-blocking, the canonical replacement for blocking webRequest."
+  - prompt: "How do I send a message from my content script to the popup when the popup is closed?"
+    why: "Non-obvious cross-context messaging — there is no direct channel; route via service worker or storage."
+
+should_not_trigger:
+  - prompt: "Build a desktop app with web technologies that runs outside the browser."
+    route_to: electron
+    why: "Standalone desktop shell, not a browser extension package."
+  - prompt: "Build me a Next.js dashboard with server components."
+    route_to: nextjs
+    why: "Generic web app — the explicit NOT boundary in the description."
+  - prompt: "Write the privacy policy text for my app's data collection."
+    route_to: gdpr-privacy
+    why: "Legal copy; this skill only says where the privacy URL plugs into the store listing."
+  - prompt: "Build a cross-platform desktop app in Rust with a web frontend."
+    route_to: tauri
+    why: "Native desktop via Rust, not a Chrome extension."
+
+capability:
+  - scenario: "Scaffold a Manifest V3 extension that injects a content script on toolbar click (activeTab, not <all_urls>) and shows a click count in the popup that survives service worker restarts."
+    must_include:
+      - "manifest_version set to 3"
+      - "background.service_worker declared as a string (no background.scripts/page/persistent)"
+      - "activeTab permission rather than <all_urls> host_permissions"
+      - "count persisted with chrome.storage, not a background global variable"
+      - "event listeners registered synchronously at the top level"
+      - "chrome.scripting.executeScript or a declarative content_scripts entry"
+      - "icons (16/48/128) and a privacy/store note for shipping"

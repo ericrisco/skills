@@ -1,0 +1,45 @@
+skill: api-design
+
+should_trigger:
+  - prompt: "Design the REST API for a multi-tenant invoicing service"
+    why: core greenfield contract-design request; resource modeling + URLs.
+  - prompt: "How do I add a field and a new status value to this endpoint without breaking existing clients?"
+    why: evolution/versioning; non-obvious — no words 'API' or 'design', it's the additive-non-breaking rule.
+  - prompt: "Should this be REST or GraphQL, and how should pagination work?"
+    why: paradigm choice plus pagination convention — both are design-time decisions.
+  - prompt: "What's the standard error format? I keep returning a different shape per endpoint"
+    why: symptom-led; routes to the single RFC 9457 problem-details envelope.
+  - prompt: "Our list endpoint times out at page 5000 with offset pagination"
+    why: non-obvious symptom — the fix is a cursor/keyset pagination design, not a query tweak.
+  - prompt: "diseña los endpoints y el versionado de nuestra API pública"
+    why: Spanish trigger for endpoint design + versioning strategy.
+  - prompt: "We need an Idempotency-Key on POST so retries don't double-charge — how should the contract handle it?"
+    why: non-obvious header-level contract decision (idempotency), design-time not implementation.
+
+should_not_trigger:
+  - prompt: "Implement these endpoints in FastAPI with Pydantic models and async routes"
+    route_to: fastapi
+    why: build-time framework implementation, not contract design.
+  - prompt: "Threat-model this endpoint and check the CORS and CSP config for OWASP issues"
+    route_to: secure-coding
+    why: security/hardening lens, not the API shape.
+  - prompt: "Verify the incoming Stripe webhook signature and dedupe replayed events"
+    route_to: webhooks
+    why: receiving inbound events with HMAC verification, not designing an exposed API.
+  - prompt: "Write a client that calls the OpenWeather API and handles its rate limits and retries"
+    route_to: api-connector-builder
+    why: building an outbound client to a third-party API, not designing one.
+  - prompt: "Wire a custom provider with useFactory in my NestJS module"
+    route_to: nestjs
+    why: framework dependency-injection wiring, not contract design.
+
+capability:
+  - scenario: "Design the public REST API contract for a 'projects' resource with nested tasks, supporting pagination, consistent errors, and a versioning plan."
+    must_include:
+      - plural noun collections and nested path `/projects/{id}/tasks` with no verbs in paths
+      - correct methods + status codes, including 201 + Location on create and the 409-vs-422 distinction
+      - one RFC 9457 `application/problem+json` error envelope used across all endpoints, with a stable machine `type` and a correlation id, no leaked internals
+      - cursor (keyset) pagination with a consistent response envelope (data + next_cursor/has_more)
+      - URL-path versioning for the public API plus the additive-non-breaking evolution rule (and Deprecation/Sunset on removal)
+      - a handoff note pointing to a framework skill (fastapi/nestjs/go/nodejs) to implement it
+      - bonus: an OpenAPI 3.1 sketch of the contract

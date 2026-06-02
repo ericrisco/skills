@@ -1,0 +1,3 @@
+# Evals: nodejs
+
+These cases are run by the repository's eval harness against the skill router. Each `should_trigger` prompt expects the router to select `nodejs`; each `should_not_trigger` prompt expects it to select the named sibling instead (`route_to`), guarding the boundaries against `nestjs`, `typescript`, `api-design`, and `postgresdb`. The single `capability` case is graded by a judge against its `must_include` rubric — it checks that a scaffolded Express 5 service splits `app.ts` from `server.ts`, has one 4-arg error handler last, validates env at boot, and shuts down gracefully. Run them with the repo's standard eval command pointed at this skill directory; there is no separate setup beyond the harness itself.

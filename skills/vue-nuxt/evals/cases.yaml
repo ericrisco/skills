@@ -1,0 +1,49 @@
+skill: vue-nuxt
+
+should_trigger:
+  - prompt: "Why does my Nuxt page fetch the API twice on page load?"
+    why: "Classic SSR double-fetch symptom from a bare $fetch in setup — the core data-fetching boundary this skill owns. Non-obvious: the user describes a symptom, not an API."
+  - prompt: "Hydration node mismatch error in my .vue page after deploy"
+    why: "Hydration mismatch is a Vue/Nuxt SSR trap (Date/random/localStorage in setup); .vue + hydration is squarely this skill."
+  - prompt: "Should I use useFetch or useAsyncData here, and how do I share the result between two components?"
+    why: "The exact useFetch-vs-useAsyncData decision plus shared-key dedupe — the load-bearing Nuxt section."
+  - prompt: "Building a Nuxt 4 app, where do composables and stores go now?"
+    why: "Nuxt 4 app/ srcDir structure (app/composables, app/stores) — the version/structure detection this skill leads with."
+  - prompt: "per què el meu estat de Pinia es filtra entre peticions al servidor?"
+    why: "Catalan; SSR cross-request state leak (module-level singleton / store init at module scope). Non-obvious server-side leak that this skill diagnoses."
+  - prompt: "Convert this Vue component to defineModel and reactive props destructure"
+    why: "Vue 3.5 / 3.4 Composition API modernization (defineModel, reactive props destructure) — the reactivity core."
+  - prompt: "How do I set per-route ISR and SSG in nuxt.config with routeRules?"
+    why: "routeRules hybrid rendering strategy — non-obvious that prerender/swr/isr live in routeRules, not per-page config."
+
+should_not_trigger:
+  - prompt: "Set up React Server Components and server actions in my app/ dir"
+    route_to: nextjs
+    why: "RSC and server actions are React/Next concepts; Vue has no server-component boundary. The shared 'app/' word is a false signal."
+  - prompt: "Build a content-heavy static blog mixing React and Vue islands"
+    route_to: astro
+    why: "Multi-framework islands on a content-first static site is Astro's domain, not a single-framework Nuxt app."
+  - prompt: "Deploy my Nuxt app to Cloudflare Pages with the right adapter"
+    route_to: cloudflare
+    why: "Platform deploy specifics (adapter, edge config, bindings) belong to cloudflare; this skill only selects the Nitro preset."
+  - prompt: "Write Playwright E2E tests for my Vue checkout flow"
+    route_to: e2e-testing
+    why: "E2E test strategy and Playwright authoring live in e2e-testing; this skill only states the test setup."
+  - prompt: "Build a Python FastAPI backend for my Vue frontend"
+    route_to: fastapi
+    why: "A non-Nitro backend in Python is fastapi's domain; this skill owns only the Nitro/JS server."
+
+capability:
+  - scenario: >
+      A Nuxt 4 product page double-fetches the product API on SSR (data appears twice in the
+      network panel) and a shared "current user" value leaks between concurrent requests on the
+      server. The current code does `const product = await $fetch('/api/products/' + id)` in setup
+      and exports `export const user = ref(null)` at module scope. Ask the agent to fix both and
+      explain why.
+    must_include:
+      - "Detects/confirms Nuxt 4 (app/ srcDir, nuxt.config) before prescribing Nuxt-only APIs"
+      - "Replaces the bare $fetch in setup with useAsyncData/useFetch (one server fetch + payload transfer to client) and explains $fetch does not transfer a payload"
+      - "Uses a stable key so the two components share one data/error/status ref (dedupe + auto-cleanup)"
+      - "Replaces the module-level ref with useState(key, init) or a Pinia store, explaining the per-request server leak from a module singleton"
+      - "Notes shallowRef payload (Nuxt 4) and/or pick/transform to keep the SSR payload small where relevant"
+      - "Does NOT introduce RSC / 'use server' / server-component mental models"

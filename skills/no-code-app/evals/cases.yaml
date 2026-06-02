@@ -1,0 +1,43 @@
+skill: no-code-app
+
+should_trigger:
+  - prompt: "Build a CRM for my team without writing code"
+    why: Core no-code build request — app UI + data + light logic, no code.
+  - prompt: "Should I use Bubble or Glide for my MVP?"
+    why: Platform-choice question this skill owns the decision table for.
+  - prompt: "Monta una app sin codi per gestionar reserves del gimnàs"
+    why: Catalan phrasing for building a no-code booking app.
+  - prompt: "My Bubble app's monthly bill suddenly exploded — what happened?"
+    why: Non-obvious; symptom of Workload-Unit metering (per-row loops / unbatched writes).
+  - prompt: "How do I avoid getting locked into a no-code tool?"
+    why: Non-obvious; the exit/lock-in planning this skill insists on up front.
+  - prompt: "Airtable or Xano as the backend for my Softr app?"
+    why: Backend-by-logic-complexity decision, squarely in scope.
+
+should_not_trigger:
+  - prompt: "Build this web app in Next.js with a Postgres backend"
+    route_to: nextjs
+    why: Hand-written coded app, full control — not a visual builder.
+  - prompt: "I want to open an online store"
+    route_to: shopify
+    why: Commerce storefront, not a general-purpose app.
+  - prompt: "Connect my Stripe payments to a Google Sheet, no app needed"
+    route_to: automation-flows
+    why: Tool-to-tool wiring with no app UI.
+  - prompt: "Set up a blog / content site"
+    route_to: wordpress
+    why: CMS / content site, not an app with custom data + logic.
+  - prompt: "Clean up and pivot this spreadsheet of sales data"
+    route_to: spreadsheet-ops
+    why: The sheet itself is the deliverable, not a backend for an app.
+
+capability:
+  - scenario: >
+      Design a no-code booking app for a yoga studio (classes, bookings, payments)
+      and decide whether no-code is even the right call.
+    must_include:
+      - runs the Step 0 gate and confirms no-code is appropriate vs writing code (nextjs)
+      - picks a platform with a reason tied to app shape AND its billing model (Softr flat / Glide updates / Bubble WU)
+      - models the data as normalized tables + relations before screens; names a backend choice (native / Airtable / Xano) by logic complexity
+      - estimates the limit/cost ceiling (WU, updates, or record cap) and includes a load-test-at-10x note
+      - includes an exit/export plan (export day 1, portable model, migrate-off triggers, rewrite cost)

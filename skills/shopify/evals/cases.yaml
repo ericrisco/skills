@@ -1,0 +1,41 @@
+skill: shopify
+
+should_trigger:
+  - prompt: "Add a customizable section to my Shopify theme that merchants can edit in the theme editor without asking me to deploy."
+    why: "OS 2.0 section + {% schema %} with presets — the editable-content theme surface."
+  - prompt: "Build a Shopify app with Remix that reads orders from the Admin API and shows them in an embedded admin page."
+    why: "App surface: Remix template, admin.graphql(), App Bridge/Polaris."
+  - prompt: "Our checkout customizations stopped working after the August upgrade — how do I get them back?"
+    why: "Non-obvious: 2025-08-28 was the Plus self-migrate deadline; automatic upgrades begin 2026-01 → rebuild on checkout extensibility."
+  - prompt: "Replace the include tags in our Liquid snippets and stop the price from showing raw cents."
+    why: "Theme/Liquid rules: {% render %} over {% include %}, pipe through | money."
+  - prompt: "migrar el checkout.liquid a checkout extensibility i afegir un bloc d'app a la secció de producte"
+    why: "Catalan; checkout migration + @app block — both core surfaces of this skill."
+  - prompt: "We're getting MAX_COST_EXCEEDED from the Shopify Admin API on a big product export."
+    why: "Non-obvious: GraphQL query-cost/throttle model → bulk operations."
+
+should_not_trigger:
+  - prompt: "Build a WooCommerce store with a custom PHP theme and a few hooks in functions.php."
+    route_to: wordpress
+    why: "WooCommerce/PHP/WP plugin model, not Liquid + shopify.*.toml + GraphQL Admin API."
+  - prompt: "Integrate Stripe Checkout and subscription billing into our SaaS app."
+    route_to: stripe
+    why: "Non-Shopify payment system; Shopify Payments/checkout is in-platform only."
+  - prompt: "Build the React/RSC frontend and routing for our headless storefront."
+    route_to: nextjs
+    why: "The rendering/routing layer is Next.js; Shopify is only the data seam there."
+  - prompt: "Set up a no-code drag-and-drop online store, no developers involved."
+    route_to: no-code-app
+    why: "Non-developer store builder; this skill is the code surfaces (Liquid, CLI, GraphQL)."
+  - prompt: "Design our public REST API's versioning, pagination, and status-code conventions."
+    route_to: api-design
+    why: "Generic API contract design, not Shopify's specific versioned GraphQL + cost model."
+
+capability:
+  - scenario: "Scaffold an OS 2.0 section with {% schema %} + @app block support, and a Remix loader that queries products via the Admin GraphQL API."
+    must_include:
+      - "uses {% render %} (not {% include %})"
+      - "{% schema %} with a presets entry and a { type: '@app' } block"
+      - "pins a current apiVersion (2026-04 or another supported quarterly version) and uses admin.graphql()"
+      - "mentions query-cost / throttleStatus or bulk-operations awareness"
+      - "escapes/pipes dynamic output (| escape / | money) and does NOT touch checkout.liquid"

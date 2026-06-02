@@ -1,0 +1,47 @@
+skill: rails
+
+should_trigger:
+  - prompt: "Scaffold a blog with Posts and Comments and resourceful routes."
+    why: Core Rails MVC generation — models, controller, routes, views.
+  - prompt: "This index action is slow because of post.author in the loop, fix the N+1."
+    why: ActiveRecord eager-loading; the canonical Rails query footgun.
+  - prompt: "Make the comment list update live when someone posts a new comment."
+    why: Turbo Stream / model broadcast — Hotwire, the Rails default front-end.
+  - prompt: "Is this add_index migration safe to run on a 5M-row table in production?"
+    why: >
+      Non-obvious — reads like a database question, but it is the ActiveRecord
+      migration DSL and Rails migration-safety rules (disable_ddl_transaction!,
+      algorithm: :concurrently, strong_migrations).
+  - prompt: "My Capybara system test started failing randomly after I added a Turbo Frame."
+    why: >
+      Non-obvious Hotwire-timing flake; unmistakably Rails (ApplicationSystemTestCase
+      + Turbo), fixed by auto-waiting matchers / driver swap, not by sleeps.
+  - prompt: "Necesito un job en background con Solid Queue para enviar emails de aviso."
+    why: Spanish — Active Job on the Rails 8 default Solid Queue backend.
+  - prompt: "Aquesta migració amb add_column i default és segura en producció?"
+    why: Catalan — Rails migration safety on a live table.
+
+should_not_trigger:
+  - prompt: "Refactor this standalone Ruby parser script using Enumerable, no Rails involved."
+    route_to: ruby
+    why: Plain Ruby language work; nothing loads Rails or ActiveRecord.
+  - prompt: "Fix my Eloquent hasMany relationship in this Laravel controller."
+    route_to: laravel
+    why: Same MVC problem space, but PHP/Laravel — route by the actual framework.
+  - prompt: "Design the B-tree vs partial index strategy for a Postgres table, no ORM."
+    route_to: postgresdb
+    why: Engine-level index strategy expressed in raw SQL, not an AR migration.
+  - prompt: "Set up the Kamal host, Docker image, and CI runner to deploy the app."
+    route_to: deployment
+    why: Host/container/CI provisioning — infra mechanics, not Rails-side code.
+
+capability:
+  - scenario: "Build a Posts CRUD with Comments, a live-updating comment list, and tests."
+    must_include:
+      - "resourceful nested routes (resources :posts do resources :comments)"
+      - "has_many / belongs_to association plus at least one validation"
+      - "strong parameters via params.expect or require.permit"
+      - "eager loading with includes/preload to avoid N+1 on the comment list"
+      - "Turbo Stream or morphing for the live update (not hand-rolled JS/fetch)"
+      - "a system test using ApplicationSystemTestCase with auto-waiting assertions (assert_text / assert_selector, no sleep)"
+      - "Solid Queue (not Sidekiq/Redis) for any async work introduced"
