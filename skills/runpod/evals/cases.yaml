@@ -1,0 +1,47 @@
+skill: runpod
+
+should_trigger:
+  - prompt: "Deploy my fine-tuned Llama as a RunPod serverless endpoint with vLLM."
+    why: Direct serverless deployment plus the worker-vllm path — core of the skill.
+  - prompt: "My RunPod bill exploded this month and the workers never seem to scale down."
+    why: Cost / idle-timeout / max-workers symptom with no 'serverless' keyword; the non-obvious cost-control trigger.
+  - prompt: "Write me a handler(job) function and start the serverless worker."
+    why: Handler authoring — the runpod.serverless.start pattern.
+  - prompt: "Necesito entrenar un modelo en una GPU H100 por horas, ¿pod o serverless en RunPod?"
+    why: Spanish phrasing of the Pod-vs-Serverless decision plus SKU pick.
+  - prompt: "Should I use a network volume or bake the weights into the container image on RunPod?"
+    why: Volume-vs-image decision; non-obvious framing of the storage/template tradeoff.
+  - prompt: "Cold starts on my endpoint are 20 seconds, how do I make them faster?"
+    why: FlashBoot / active-worker tuning; non-obvious, no provider named but RunPod endpoint context.
+
+should_not_trigger:
+  - prompt: "Deploy this model with Python-native autoscaling and snapshots, no Dockerfile."
+    route_to: modal
+    why: Snapshot autoscaling with no container is Modal's niche, not RunPod's image-based workers.
+  - prompt: "Call the SDXL endpoint on Replicate and get the image URL back."
+    route_to: replicate
+    why: Hosted prebuilt model API the user does not self-host — not RunPod GPU rental.
+  - prompt: "Download Mistral-7B weights from the Hub and push my fine-tune back."
+    route_to: huggingface
+    why: Hub artifact transfer, not GPU compute.
+  - prompt: "Run Llama 3 locally on my Mac with Ollama."
+    route_to: ollama
+    why: Local on-device inference, not cloud GPU.
+  - prompt: "Containerize my FastAPI service with a multi-stage Dockerfile."
+    route_to: docker
+    why: Generic containerization unrelated to RunPod's worker image shape.
+  - prompt: "Build a cross-provider GPU spend dashboard across AWS, GCP and RunPod."
+    route_to: cost-tracking
+    why: Provider-agnostic cost attribution, not RunPod-specific knobs.
+
+capability:
+  - scenario: "I serve a 7B LLM, about 100k requests/day at ~2s each, bursty during business hours. Set up a cost-efficient RunPod serverless endpoint."
+    must_include:
+      - Recommends Serverless (flex) over a 24/7 Pod for bursty traffic, with utilization reasoning.
+      - Picks a right-sized GPU (e.g. RTX 4090 or L40S), not H100 by default.
+      - Sets Max Workers as a bounded cost ceiling (~20% over peak).
+      - Sets Idle Timeout and Execution Timeout explicitly rather than leaving defaults.
+      - Enables FlashBoot to cut cold-start cost on flex workers.
+      - Worker uses runpod.serverless.start and reads job["input"], or uses worker-vllm with MODEL_NAME env var.
+      - Reads the API key from RUNPOD_API_KEY env, never hardcoded.
+      - Mentions local test (python worker.py --rp_serve_api or test_input.json) before deploying.

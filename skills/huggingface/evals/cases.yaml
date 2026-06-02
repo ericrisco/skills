@@ -1,0 +1,41 @@
+skill: huggingface
+
+should_trigger:
+  - prompt: "I want to call an open chat model through Hugging Face without hosting it myself."
+    why: "Core Inference Providers router path — InferenceClient/router base URL, no infra owned."
+  - prompt: "Get sentence embeddings from a Hugging Face model using InferenceClient in Python."
+    why: "feature_extraction via the router; embeddings are the canonical hf-inference CPU task."
+  - prompt: "Deploy my fine-tuned model to a Hugging Face endpoint with scale to zero so it costs nothing when idle."
+    why: "Dedicated Inference Endpoint + scale-to-zero — the graduation-off-the-router path."
+  - prompt: "Push my model and a dataset to the Hub and write a model card for them."
+    why: "Hub ops: hf upload / repo create + README front-matter model card."
+  - prompt: "My HF serverless calls return 404 for a 70B model but work fine on a BERT classifier — why?"
+    why: "Non-obvious: hf-inference is CPU/small-model only; big LLMs must route to a partner provider. User never names the fix."
+  - prompt: "Necesito desplegar un modelo de Hugging Face con escalado a cero y controlar el coste de inferencia."
+    why: "Spanish; dedicated Endpoint + scale-to-zero + cost math, squarely this skill."
+
+should_not_trigger:
+  - prompt: "Run this open model locally with `ollama serve` on my laptop."
+    route_to: ollama
+    why: "Self-hosting an open model on your own machine — ollama's territory, not HF-routed/hosted."
+  - prompt: "Rent an A100 pod, build a container, and run my own inference server with autoscaling I operate."
+    route_to: runpod
+    why: "You own and operate the GPU infra; HF is for the Hub + HF-routed/hosted inference."
+  - prompt: "Generate polished product photos from a text prompt via a hosted image API for our store."
+    route_to: replicate-images
+    why: "Creative media deliverable via a hosted API, not the open-model + Hub workflow."
+  - prompt: "Build a retrieval pipeline over our docs: chunking, an index, and reranking."
+    route_to: rag
+    why: "Building a retrieval system, not calling/hosting a model on HF."
+  - prompt: "Set up a multi-provider LLM router across Together and Fireworks as our chosen vendors."
+    route_to: together-fireworks
+    why: "Non-HF vendor abstraction where HF is not the platform in play."
+
+capability:
+  - scenario: "Run Llama-3.1-8B-Instruct through Hugging Face without hosting it, then plan the move to a dedicated endpoint as traffic grows."
+    must_include:
+      - "InferenceClient or the OpenAI-compatible router base URL https://router.huggingface.co/v1"
+      - "a partner provider (e.g. together/fireworks), not hf-inference, for the 8B LLM"
+      - "HF_TOKEN read from the environment, never a hardcoded hf_ literal"
+      - "cost awareness: Free $0.10 / PRO $2 monthly credits then pay-as-you-go, no markup"
+      - "a dedicated Inference Endpoint with scale-to-zero as the graduation path when traffic is steady"

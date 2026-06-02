@@ -1,0 +1,50 @@
+skill: together-fireworks
+
+should_trigger:
+  - prompt: "Wire up the OpenAI SDK to call DeepSeek on Together AI."
+    why: Core job — point the OpenAI SDK at api.together.ai with the right base_url and namespaced model id.
+  - prompt: "My Fireworks call returns 404 model not found, here's my code."
+    why: Non-obvious — the classic bare-model-name bug; the fix is the accounts/fireworks/models/ namespace, squarely this skill.
+  - prompt: "Cut our open-model inference bill in half for a 200k-row classification job."
+    why: Batch-discount trigger — offline volume + cost; routes to the 50%-off batch decision, not generic cost tracking.
+  - prompt: "¿Qué modelo open source uso en Fireworks y cuánto me cuesta por millón de tokens?"
+    why: Spanish + model choice + per-1M cost — the pick-the-model decision table is this skill.
+  - prompt: "We're on GPT-4 but want a cheaper open-weights endpoint, same code if possible."
+    why: Migration trigger — OpenAI-compatible host means change base_url + key + model id only.
+  - prompt: "Should I use serverless or dedicated on Fireworks for 50 QPS sustained?"
+    why: Serving-mode decision (serverless vs batch vs dedicated) is a core section of this skill.
+  - prompt: "Abaratar la factura d'inferència fent servir batch a Together."
+    why: Catalan + the Together-native-Batch-API gotcha — not the OpenAI Batch endpoint.
+
+should_not_trigger:
+  - prompt: "Spin up an A100 pod and run vLLM myself."
+    route_to: runpod
+    why: Raw GPU self-host — you manage the box; this skill is a per-token hosted endpoint.
+  - prompt: "Run Llama locally on my Mac with no API cost."
+    route_to: ollama
+    why: Local/offline, zero marginal cost; together-fireworks is cloud pay-per-token.
+  - prompt: "Generate images with FLUX on a hosted endpoint."
+    route_to: fal
+    why: Media generation, not text/chat/embeddings LLM inference.
+  - prompt: "Deploy a model from the Hugging Face hub as an inference endpoint."
+    route_to: huggingface
+    why: HF hub + HF Inference Endpoints, a different host with its own ids.
+  - prompt: "Help me write a better system prompt for my chatbot."
+    route_to: prompt-engineering
+    why: Prompt design, not the hosting endpoint where tokens are billed.
+  - prompt: "Build the retrieval + reranking pipeline for my docs."
+    route_to: rag
+    why: A pipeline built on top of inference, not the inference endpoint itself.
+
+capability:
+  - scenario: >
+      A user has a 500,000-document text classification job, no real-time latency
+      requirement, and a tight budget. Recommend a provider, a model with its exact
+      id, a serving mode, and estimate the cost.
+    must_include:
+      - Picks batch inference and states it is ~50% off serverless on both providers.
+      - Names a cheap small model with a concrete namespaced id (e.g. openai/gpt-oss-20b on Together, or a Fireworks <4B/4B-16B tier id).
+      - Applies the cost formula (in_tokens*in_price + out_tokens*out_price)/1e6 with the dated 2026-06 $/1M numbers and the 0.5 batch multiplier.
+      - Uses the correct base_url and a namespaced model id (no bare model name).
+      - Notes that Together uses its native Batch API (JSONL upload), not the OpenAI /v1/batches endpoint.
+      - Prioritizes model choice (cheap small model) over serving mode as the bigger cost lever.

@@ -1,0 +1,42 @@
+skill: fal
+
+should_trigger:
+  - prompt: "Generate an image with fal-ai/flux/dev from this prompt and save the output URL"
+    why: Core synchronous generation against a fal endpoint id — the central use case.
+  - prompt: "Should I use subscribe or submit for a 30-second Veo video on fal?"
+    why: Call-mode decision; non-obvious — the right answer is submit + webhook, not subscribe or run.
+  - prompt: "My fal webhook signature verification keeps failing"
+    why: ED25519 / JWKS verification path; non-obvious failure that lives entirely in this skill.
+  - prompt: "How much will 500 Seedream images cost on fal, and is batch cheaper?"
+    why: Per-unit pricing estimate plus the 50% batch path.
+  - prompt: "Genera un vídeo con fal y recíbelo por webhook verificando la firma"
+    why: Spanish; submit + webhook + signature verification end to end.
+  - prompt: "Migrate our code off @fal-ai/serverless-client to the current fal client"
+    why: Deprecated-client migration is an explicit in-scope task.
+
+should_not_trigger:
+  - prompt: "Which video model gives the best cinematic look for our ad?"
+    route_to: ai-media
+    why: Model choice and art direction, not the fal call mechanics.
+  - prompt: "Run this same FLUX model on Replicate instead"
+    route_to: replicate
+    why: Different platform with a different API (replicate.run / predictions).
+  - prompt: "Spin up an A100 pod I can SSH into and train on"
+    route_to: runpod
+    why: Raw GPU rental, not endpoint inference.
+  - prompt: "Deploy my own Python inference function as an autoscaling endpoint"
+    route_to: modal
+    why: Serving your own code, not calling fal's hosted endpoints.
+
+capability:
+  - scenario: >
+      Given a FAL_KEY, a prompt, and a requirement to generate a long video and
+      receive it via webhook, produce the end-to-end flow.
+    must_include:
+      - "@fal-ai/client (or fal-client) install + FAL_KEY auth"
+      - "submit with webhook_url for the long job — NOT run/subscribe — with the why (no held connection / drop risk)"
+      - "webhook payload shape: request_id, status (OK/ERROR), payload (and payload_error case)"
+      - "ED25519 signature verification using the four X-Fal-Webhook-* headers and JWKS at rest.fal.ai/.well-known/jwks.json"
+      - "idempotent handler tolerating the 10-retries-over-2h duplicate deliveries (dedupe on request_id)"
+      - "reading the output URL from the result payload"
+      - "a per-second cost estimate and mention of the 50% batch path"
