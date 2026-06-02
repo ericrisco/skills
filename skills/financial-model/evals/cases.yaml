@@ -1,0 +1,53 @@
+skill: financial-model
+
+should_trigger:
+  - prompt: "Build a 3-year financial model for our seed raise with revenue, costs and runway."
+    why: Core, explicit ask — the assumption-driven projection engine that resolves to runway and a raise number.
+  - prompt: "When do we run out of cash and how much should we raise to get 24 months?"
+    why: Non-obvious phrasing; runway-sizing and the raise number are exactly this skill's output, not a deck or a 13-week tool.
+  - prompt: "Model our hiring plan and show what each hire does to monthly burn."
+    why: Headcount-driven cost build (hire × loaded cost × start month) feeding net burn — the model's cost layer.
+  - prompt: "Add a downside scenario — what if we miss revenue by 30% and the round closes 3 months late."
+    why: Scenario toggling off a small driver set (growth, close date) with runway reported per scenario.
+  - prompt: "What runway does a $2M round buy us at our current burn?"
+    why: Non-obvious; takes the raise as input and solves for post-raise runway from cash ÷ net burn.
+  - prompt: "Necesito un modelo financiero a 3 años con proyecciones de ingresos y runway para la ronda."
+    why: Spanish trigger for the full projection engine.
+  - prompt: "Construeix les projeccions financeres i el burn multiple per ensenyar als inversors."
+    why: Catalan trigger, also non-obvious — burn multiple is a model output, and "per ensenyar" still means build the model, not the slide.
+
+should_not_trigger:
+  - prompt: "Build me a 13-week cash flow forecast and reconcile it to the bank statement."
+    route_to: finance-ops
+    why: Short-horizon liquidity reconciled to actual bank balance, not an 18–36 month assumption-driven projection.
+  - prompt: "Calculate our LTV, CAC and payback period."
+    route_to: unit-economics
+    why: Isolated unit-economics math; the model consumes these as drivers but does not derive them.
+  - prompt: "What should we charge and how should we package the tiers?"
+    route_to: pricing
+    why: Sets the price the model takes as an input; choosing the price is pricing's job.
+  - prompt: "Forecast next quarter's churn from our last 18 months of history."
+    route_to: forecasting
+    why: Single-series statistical/time-series forecast, not a driver-based multi-line plan.
+  - prompt: "Turn these numbers into the financials slide for our pitch deck."
+    route_to: pitch-deck
+    why: Narrative/slide packaging of numbers already built, not constructing the projection.
+  - prompt: "Record this month's payroll and vendor invoices in the ledger."
+    route_to: bookkeeping
+    why: Recording actual journal entries, not forward-looking projection.
+
+capability:
+  - scenario: >
+      Seed-stage SaaS, $400K cash, $25K MRR growing ~10%/mo, planning a $2M raise.
+      Build the financial model.
+    must_include:
+      - Assumptions layer kept separate from outputs, with no hardcoded results (every output a formula off assumptions).
+      - Bottom-up revenue build with an MRR waterfall splitting new / expansion / contraction / churn (not a single growth %).
+      - Top-down TAM cross-check that states the implied penetration as a sanity test.
+      - Headcount-driven cost build — per-hire fully-loaded cost and start month, not a flat salary lump.
+      - Cash projection with net burn, runway, and a cash-out date computed from cash movements (not net income).
+      - Cash continuity (ending_cash[m] feeding starting_cash[m+1]).
+      - Base / downside / upside scenarios off toggled drivers, including a round-close-slips toggle, with runway reported per scenario.
+      - Raise sized to an 18–24 month post-raise runway target (not "what we can get"), with a use-of-funds note.
+      - A reasonableness check against at least one benchmark (burn multiple / Rule of 40 / gross margin / LTV:CAC).
+      - An explicit hand-off note to unit-economics for the CAC/LTV driver inputs.

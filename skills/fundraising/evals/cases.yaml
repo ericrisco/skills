@@ -1,0 +1,76 @@
+skill: fundraising
+
+# Prompts that MUST load `fundraising`. The skill owns the equity round as a
+# PROCESS: sizing the raise to a milestone, the SAFE-vs-priced instrument call,
+# building/tiering the investor list around intro paths, sequencing outreach for
+# momentum, the pipeline, and reading the term-sheet basics. It does NOT write
+# the deck (pitch-deck), build the model (financial-model), package collateral
+# (investor-materials), draft the binding legal doc (contracts), or write the
+# cold-email copy (cold-outreach).
+should_trigger:
+  - prompt: "Help me plan our seed raise — how much should we raise and on what terms?"
+    why: "Core round-planning ask: size the round to a milestone, set the dilution band, derive the cap — the skill's Step 1 plus instrument call."
+
+  - prompt: "SAFE or priced round for our $1.5M pre-seed? What cap should we set?"
+    why: "The instrument decision (size, lead, cap-table complexity, cost/speed) and cap derivation are Step 2, the skill's core."
+
+  - prompt: "Build my investor target list and tell me how many I need to contact to close."
+    why: "Tiered target list + back-solving the top-of-funnel from conversion math is Step 3 / references/funnel-math.md."
+
+  - prompt: "We've had 20 investor meetings and zero term sheets — what's wrong with our process?"
+    why: "NON-OBVIOUS: a process diagnosis, not a document. The funnel/stage-conversion read (serial vs parallel, momentum) is squarely fundraising."
+
+  - prompt: "Cuántos inversores tengo que contactar para cerrar la ronda y cómo secuencio el outreach?"
+    why: "Spanish: funnel sizing + outreach sequencing for momentum — Step 3 and Step 4."
+
+  - prompt: "We got a term sheet with a 2x participating liquidation preference — should I push back?"
+    why: "NON-OBVIOUS routing: this is the founder's NEGOTIATION read of market-standard terms (Step 5), not the legal redline of the binding doc."
+
+  - prompt: "Planifiquem la ronda d'inversió: quant aixequem, amb quin instrument i com muntem el pipeline d'inversors?"
+    why: "Catalan: round sizing + instrument + investor pipeline — the full process the skill owns end to end."
+
+  - prompt: "How do I sequence outreach so I create real momentum and FOMO without lying about offers we don't have?"
+    why: "Sprint sequencing and the honest-momentum mechanics are Step 4; the honesty rule is a core part of the skill."
+
+should_not_trigger:
+  - prompt: "Write our seed pitch deck narrative and fix the traction slide."
+    route_to: "pitch-deck"
+    why: "The persuasive slide story is pitch-deck; fundraising decides when/to whom the deck goes, not what the slides say."
+
+  - prompt: "Build the revenue projection and the cap-table dilution model behind the raise."
+    route_to: "financial-model"
+    why: "The numbers and the spreadsheet are financial-model; fundraising sets the target band, the model computes the table."
+
+  - prompt: "Draft our investor one-pager and set up the data room."
+    route_to: "investor-materials"
+    why: "Packaged collateral is investor-materials; fundraising only decides the sequence it ships in."
+
+  - prompt: "Write the actual cold email to this specific VC since I have no warm intro."
+    route_to: "cold-outreach"
+    why: "The message copy and follow-up cadence to a named target is cold-outreach; fundraising decides WHO and the order, not the words."
+
+  - prompt: "Redline the SAFE document our lawyer sent — is this language actually binding on us?"
+    route_to: "contracts"
+    why: "Drafting/redlining the binding legal instrument is contracts; fundraising covers the non-binding term-sheet basics a founder negotiates."
+
+  - prompt: "We want non-dilutive funding — help us with the R&D grant application."
+    route_to: "grants"
+    why: "Non-dilutive funding is out of equity-round scope entirely and owned by grants."
+
+  - prompt: "Set up our sales pipeline stages to convert inbound customers into paying accounts."
+    route_to: "sales-pipeline"
+    why: "A pipeline for CUSTOMERS, not investors; despite the 'pipeline' overlap this is sales-pipeline."
+
+capability:
+  - scenario: >
+      Pre-seed SaaS, $12K MRR growing 18% MoM, 6 months runway, no lead investor,
+      and the founder has a weak network. They ask: how much should we raise, SAFE
+      or priced, how big a target list, and how do we run the process?
+    must_include:
+      - "Sizes the round to a fundable milestone (burn × months to milestone + buffer), NOT 'as much as possible', with a pre-seed dilution band (~10–15%) and a cap rationale derived from amount ÷ dilution."
+      - "Recommends a post-money SAFE over a priced round for this small, no-lead case (cost ~$0–2k vs $15–25k, speed, simple cap table), and explicitly flags the post-money SAFE pile-up dilution trap."
+      - "Builds the target list from the warm-intro ladder and back-solves the top-of-funnel from ~15% outreach→meeting / ~50% first→second to land ≥2 term sheets — i.e. ~50–100+ warmth-weighted targets, not a flat spray."
+      - "Directly addresses the weak-network constraint by manufacturing intro paths (accelerator, portfolio-founder intros, scouts, syndicates) rather than defaulting to cold."
+      - "Lays out a concentrated sprint: 30–50 first meetings in ~2 weeks, parallel not serial, first term sheet as the unlock, ~6–8 week target — and says don't sign the first term sheet without a comparison."
+      - "Routes the deck to pitch-deck, the model/cap-table to financial-model, the one-pager/data-room to investor-materials, the cold message copy to cold-outreach, and the binding doc to contracts/a lawyer."
+      - "Does NOT fabricate competing offers, invent deadlines, or coach any dishonest FOMO — momentum comes from real signals only."

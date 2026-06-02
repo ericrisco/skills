@@ -1,0 +1,5 @@
+# Evals — unit-economics
+
+These cases are read, not executed. To run them by eye: for each `should_trigger` prompt, confirm the skill's `description` would plausibly fire on it (the non-obvious "blended CAC looks fine but paid is bleeding" and the Catalan payback case are the ones to watch — they never name a metric). For each `should_not_trigger` prompt, confirm the request belongs to the named `route_to` sibling instead (financial-model for the multi-year model, pricing for setting the price, retention for save-plays, cost-tracking for per-unit COGS, forecasting for cohort projection).
+
+The `capability` case is graded by handing the scenario to the agent and checking its answer against the `must_include` rubric: correct CAC ($1,500), gross-margin LTV ($10,000, not the $13,333 revenue version, with the difference flagged), payback in months (5), the >5:1 under-investing read on the 6.67:1 ratio, a conservatism/lifetime-cap note, segmentation advice, and an actual recomputable worksheet rather than prose. A worksheet emitted to `unit-economics.yaml` should additionally pass `scripts/verify.sh` clean.
