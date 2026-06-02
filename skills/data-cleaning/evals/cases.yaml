@@ -1,0 +1,57 @@
+skill: data-cleaning
+
+should_trigger:
+  - prompt: "Clean and dedupe this customer CSV and give me something I can re-run every month with the same result."
+    why: Core ask — reproducible cleaning pipeline plus dedupe; the headline use case.
+  - prompt: "My integer ID column came in as 1001.0 floats and a bunch of rows are duplicated. Fix it."
+    why: Non-obvious dtype footgun — only this skill explains read-typing (dtype_backend) before deterministic dedupe.
+  - prompt: "Normalize these country values — USA, U.S., United States all mean the same thing."
+    why: Category normalization via a mapping table; the unmapped→quarantine pattern is this skill's.
+  - prompt: "Add a validation gate so bad rows fail loudly before they ever reach my model."
+    why: Schema-contract / pandera framing — declare types, ranges, allowed values; fail loud.
+  - prompt: "Quarantine the rows that don't pass instead of silently dropping them."
+    why: Non-obvious quarantine pattern unique to this skill; not a generic cleaning ask.
+  - prompt: "Limpiar y deduplicar este dataset y dejar un pipeline repetible."
+    why: Spanish trigger — same reproducible clean+dedupe intent, no English keyword present.
+  - prompt: "Why do my dates parse wrong sometimes and a few rows look duplicated after import?"
+    why: Symptom-led, never says 'clean' — ambiguous date format + dedupe both live here.
+
+should_not_trigger:
+  - prompt: "Export this cleaned DataFrame to Excel with a summary chart and conditional formatting."
+    route_to: spreadsheet-ops
+    why: Output is a styled sheet/formulas/chart; cleaning already ended at the clean table.
+  - prompt: "Scrape all the product prices off this catalog website."
+    route_to: data-scraper
+    why: Acquisition — the rows aren't held yet; cleaning only starts once you have tabular rows.
+  - prompt: "Pull the line items out of these invoice PDFs into a table."
+    route_to: structured-extraction
+    why: Parsing fields out of unstructured blobs into rows, not cleaning rows you already hold.
+  - prompt: "Aggregate this 5GB CSV with SQL fast on my laptop."
+    route_to: duckdb
+    why: OLAP speed over multi-GB files is the bottleneck, not correctness/normalization.
+  - prompt: "Build the KPI dashboard from this already-clean table."
+    route_to: business-intelligence
+    why: Consumes the clean output; the boundary is the validated table.
+  - prompt: "Forecast next quarter's revenue from this monthly clean series."
+    route_to: forecasting
+    why: Modeling on top of clean data, not producing the clean data.
+
+capability:
+  - scenario: >
+      Given a messy customers CSV — an id column read as floats with .0, "N/A" and 999 sentinels in age,
+      duplicate rows per customer, country values USA / U.S. / United States, and malformed dates — produce
+      a reproducible clean() pipeline plus a pandera schema that types, normalizes, dedupes deterministically,
+      validates, and quarantines failures rather than dropping them.
+    must_include:
+      - Reads with explicit dtype control (dtype_backend="pyarrow" or numpy_nullable + na_values) so ids stay int, not float
+      - Profiles first (nulls %, dup count, per-column dtype, cardinality) to drive the plan
+      - Normalizes strings with strip/casefold/NFKC before dedupe
+      - Maps categories with a mapping table (dict), unmapped → NA/quarantine, not a regex pile
+      - Turns sentinels (-1/999/"N/A") into NA, with an explicit clip-vs-reject range decision
+      - Parses dates with an explicit format and errors="coerce", then checks the coerced-NaT count
+      - Deduplicates deterministically — explicit subset key + stable sort_values + keep
+      - Handles missing per column; no bare fillna(0); impute adds a _was_missing flag
+      - Defines a pandera DataFrameModel with coerce, nullable, Field checks (isin/ge/le/unique), and lazy=True
+      - Quarantines failing rows to an artifact instead of silently dropping them
+      - Writes to a NEW output artifact, leaving the raw source untouched
+      - Logs a row-count in/out/coerced/quarantined diff and pins library versions

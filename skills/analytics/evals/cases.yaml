@@ -1,0 +1,53 @@
+skill: analytics
+
+should_trigger:
+  - prompt: "Set up GA4 on our Next.js app and track signup and checkout."
+    why: Core instrumentation — install the SDK and wire named events for the signup/checkout funnel.
+  - prompt: "Add PostHog and design the event taxonomy for our SaaS."
+    why: Taxonomy design plus SDK wiring — the exact capture-layer work this skill owns.
+  - prompt: "Our purchase events are firing twice and counting double — fix the tracking."
+    why: Non-obvious. Double-counting from render-fired/unguarded-effect captures is a capture-layer bug, not a dashboard or stats problem.
+  - prompt: "Instrumentar analítica de producto con PostHog y configurar el consentimiento."
+    why: Spanish trigger covering capture + consent wiring.
+  - prompt: "Consent Mode v2 enforcement broke our Google Ads conversions — wire consent properly."
+    why: Non-obvious privacy-of-collection task — wiring the gtag consent signal, not writing legal text.
+  - prompt: "Make sure we're not leaking user emails into our analytics event properties."
+    why: PII discipline at the capture boundary — scrubbing props before capture/track.
+  - prompt: "Els esdeveniments de compra es compten dos cops — revisa la instrumentació."
+    why: Catalan trigger for double-counting in the capture layer.
+  - prompt: "Send a server-side purchase event from our Stripe webhook into GA4 with the right client_id."
+    why: Server-side Measurement Protocol capture with client_id stitching — squarely instrumentation.
+
+should_not_trigger:
+  - prompt: "Build a dashboard to chart our weekly active users."
+    route_to: dashboard
+    why: Visualization of data already captured — events flow out, not in.
+  - prompt: "Decide our North Star metric and the activation KPI."
+    route_to: kpi-framework
+    why: Choosing what to measure, not wiring the measurement in code.
+  - prompt: "Run an A/B test on the new pricing page and tell me if it's significant."
+    route_to: ab-testing
+    why: Experiment design and significance math; this skill only owns the event the experiment reads.
+  - prompt: "Write our cookie policy and the GDPR data-processing notice."
+    route_to: gdpr-privacy
+    why: Legal text and policy drafting, not the consent signal wiring.
+  - prompt: "Set up Sentry / OpenTelemetry tracing for our API errors."
+    route_to: observability
+    why: Error/trace/uptime telemetry, a different telemetry domain.
+  - prompt: "Query the raw events table in ClickHouse with SQL."
+    route_to: clickhouse-analytics
+    why: Warehouse querying of landed events, not capture.
+
+capability:
+  - scenario: >
+      Add product analytics to a Next.js SaaS that serves EU users: pick a tool, design the
+      signup -> activation -> purchase funnel events, wire the SDK, gate on consent, and avoid PII.
+    must_include:
+      - An event taxonomy table using object_action snake_case names (e.g. signup_completed, invoice_paid)
+      - A tool-choice rationale (PostHog vs GA4 vs both) tied to the product-analytics need
+      - An SDK init snippet with reverse-proxy host and person_profiles 'identified_only' (PostHog) OR a gtag config block (GA4)
+      - Consent Mode v2 default-denied (or PostHog opt_out) gating that runs BEFORE collection, because EU users are served
+      - A PII rule — no email/token in event props; identify uses a stable id, not the email
+      - A funnel defined from the named events in order
+      - reset() on logout and a correct identify on login
+      - A validation step before shipping (GA4 DebugView or PostHog live events / network tab) confirming each event fires once

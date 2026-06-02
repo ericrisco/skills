@@ -1,0 +1,50 @@
+skill: dashboard
+
+should_trigger:
+  - prompt: "Build a KPI dashboard for our leadership team that fits on one screen."
+    why: Core build job — arrange a metric set into a scannable one-screen layout.
+  - prompt: "Nobody opens the dashboard we built — it has too many charts and you can't tell if we're healthy."
+    why: Non-obvious audit/fix symptom; the tile-budget + 5-second-read failure mode this skill owns.
+  - prompt: "Which chart should each of these 8 metrics use? Some are trends, some are target-vs-actual."
+    why: Chart-per-metric selection is a core capability (line vs bullet vs sorted bar).
+  - prompt: "Munta un dashboard de KPIs per a direcció amb el north-star a dalt."
+    why: Catalan phrasing for the build job, including the north-star placement rule.
+  - prompt: "El dashboard tiene 20 gráficos y nadie lo mira — recórtalo a lo que de verdad importa."
+    why: Spanish phrasing; tile-budget + Decision Test (cutting vanity tiles).
+  - prompt: "Turn this list of metrics into a tiered, scannable layout with one north-star tile."
+    why: Layout hierarchy / Z-F scan with a single entry point.
+  - prompt: "Give me a dashboard.yaml manifest a developer can render for our exec metrics."
+    why: Producing the checkable artifact (tile manifest) is the literal output of this skill.
+
+should_not_trigger:
+  - prompt: "Decide our north-star metric and build the metric tree with targets and owners."
+    route_to: kpi-framework
+    why: Defining which metrics matter and their targets — dashboard displays a metric set, it does not choose it.
+  - prompt: "Set up event tracking and funnels in PostHog so we can measure activation."
+    route_to: analytics
+    why: Instrumentation and data production — analytics produces the numbers the dashboard arranges.
+  - prompt: "Write the monthly board report with commentary on why churn rose."
+    route_to: reporting
+    why: A narrative document with prose, not a live at-a-glance screen.
+  - prompt: "Project our MRR for the next 4 quarters under three scenarios."
+    route_to: forecasting
+    why: Predicting a metric forward, not displaying current status.
+  - prompt: "Build a self-serve BI semantic layer so anyone can slice revenue by any dimension."
+    route_to: business-intelligence
+    why: Exploration / semantic modeling platform, not a fixed at-a-glance screen.
+  - prompt: "Read out our pricing A/B test — is variant B's lift significant?"
+    route_to: ab-testing
+    why: Experiment readout / variant significance, not dashboard layout.
+
+capability:
+  - scenario: >
+      Given a raw list of 14 candidate metrics for a SaaS exec team — including vanity
+      ones like total signups, total page views, and total followers — produce a
+      dashboard.yaml manifest plus a one-screen layout.
+    must_include:
+      - Applies the Decision Test and cuts or converts vanity metrics (total signups → activation rate; page views → conversion rate by source; total followers → follower-growth rate).
+      - Final manifest has 5-9 tiles with exactly one tile flagged north_star true.
+      - Every tile carries a comparison (target | prior | benchmark), an owner, a refresh cadence, and a non-empty decision field.
+      - Correct chart per metric shape (trend → line, target-vs-actual → bullet, category comparison → sorted bar, headline → big_number); no pie >5 slices and no gauge/dial.
+      - A layout block placing the north-star top-left with a Z or F scan and grouped tiles.
+      - Valid YAML that passes scripts/verify.sh (parses, budget, one north-star, required keys, no banned charts).
