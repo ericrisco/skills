@@ -1,0 +1,70 @@
+name: release
+
+# Publishes rsc-universal to npm and forces a new version on every push to main.
+# Manual runs (workflow_dispatch) let you pick patch / minor / major.
+#
+# The version-bump commit carries "[skip ci]" so it does NOT re-trigger this
+# workflow (no publish loop).
+#
+# Requires repo secret NPM_TOKEN (npm automation token). Needs main to allow
+# the GITHUB_TOKEN to push (no protection rule blocking Actions, or use a PAT).
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      bump:
+        description: 'Version bump'
+        type: choice
+        options: [patch, minor, major]
+        default: patch
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+permissions:
+  contents: write      # push the version-bump commit + tag
+  id-token: write      # npm provenance via OIDC
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          registry-url: 'https://registry.npmjs.org'
+
+      - run: npm ci
+
+      # --- gates: never publish a broken catalog -------------------------------
+      - name: validate frontmatter + recommends
+        run: npm run validate
+      - name: manifest is current
+        run: npm run manifest:check
+      - name: tests
+        run: npm test
+      - name: eval-lint
+        run: bash scripts/eval-lint.sh
+
+      # --- bump version (auto-patch on push; chosen bump on manual run) ---------
+      - name: Configure git identity
+        run: |
+          git config user.name "Eric Risco"
+          git config user.email "erisco@icloud.com"
+      - name: Bump version
+        run: npm version "${{ github.event.inputs.bump || 'patch' }}" -m "chore(release): %s [skip ci]"
+
+      # --- publish + push the bump back ----------------------------------------
+      - name: Publish to npm
+        run: npm publish --provenance --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - name: Push version commit + tag
+        run: git push --follow-tags origin main

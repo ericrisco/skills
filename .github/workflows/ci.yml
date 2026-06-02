@@ -17,6 +17,8 @@ jobs:
         run: npm run manifest:check
       - name: tests
         run: npm test
+      - name: eval-lint
+        run: bash scripts/eval-lint.sh
       - name: cleanup gate (no marketplace residue in the live catalog)
         run: |
           ! grep -rIn -E "marketplace|/plugin install|sync-bundles|npx skills" . \
