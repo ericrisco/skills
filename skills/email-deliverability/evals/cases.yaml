@@ -1,0 +1,45 @@
+skill: email-deliverability
+
+should_trigger:
+  - prompt: "Our transactional emails started going to spam in Gmail right after their big update. SPF is set. What's wrong?"
+    why: "Flagship symptom: inbox placement regression tied to the Gmail bulk-sender enforcement, with the SPF-passes-but-still-spam alignment trap."
+  - prompt: "DMARC keeps failing in the headers even though SPF passes — how do I make them agree?"
+    why: "Non-obvious core: DMARC fails on alignment, not on a missing SPF record. The fix is Return-Path / DKIM d= alignment, the skill's central distinction."
+  - prompt: "We just bought a fresh domain for outreach. How do I warm it up so we don't get blacklisted on the first send?"
+    why: "Warmup is a named decision flow here. Distinguishes new-domain (warm) from same-IP-regression (don't warm)."
+  - prompt: "Do we legally need one-click unsubscribe to keep sending marketing mail to gmail addresses, and how fast must we honor it?"
+    why: "Bulk-sender requirement: List-Unsubscribe-Post one-click honored within 2 days; transactional exempt. Specific rule the skill owns."
+  - prompt: "Los correos nos caen en spam y el SPF está bien configurado, ¿qué revisamos?"
+    why: "Spanish phrasing of the flagship alignment problem — must fire across language, routes to DMARC alignment + reputation checks."
+  - prompt: "Postmaster Tools shows our domain reputation dropped to Bad and we're getting 421 deferrals. What's the recovery path?"
+    why: "Reputation + deferral diagnosis. Non-obvious that 421 is throttling and the fix is volume/complaint reduction, not resending harder."
+  - prompt: "How do I get our company logo and that blue checkmark to show up next to our emails in Gmail?"
+    why: "BIMI/VMC is in scope. Non-obvious that the logo depends on DMARC already being at enforcement and on a VMC/CMC certificate, not on a copy or sending change."
+
+should_not_trigger:
+  - prompt: "Wire up Resend in our Node app with a sendEmail() seam and idempotent retries for password-reset mail."
+    route_to: "email-connector"
+    why: "Putting mail on the wire through a provider SDK — the send path, not the reputation behind it. email-connector owns the transport and suppression list."
+  - prompt: "Write me three subject-line variants and an A/B plan to lift open rates on our weekly digest."
+    route_to: "newsletter"
+    why: "Copy and engagement optimization, not authentication or reputation DNS. newsletter owns subject/open/click."
+  - prompt: "Build a 6-step cold outreach sequence with personalized first lines for this lead list."
+    route_to: "cold-outreach"
+    why: "Prospecting sequence design. Deliverability constrains it but the deliverable here is the sequence, which is cold-outreach."
+  - prompt: "Do we have lawful basis under GDPR to email this list, and how long can we retain the addresses?"
+    route_to: "gdpr-privacy"
+    why: "Consent and retention law, not unsubscribe mechanics or DNS. The legal basis behind the list is gdpr-privacy."
+  - prompt: "Define our company-wide policy for how long we keep customer contact data and who can access it."
+    route_to: "data-policy"
+    why: "Data governance / retention policy as the deliverable, not inbox placement. data-policy, not deliverability."
+
+capability:
+  - scenario: "A SaaS sends ~8,000 marketing emails/day to mostly Gmail recipients. They report messages now bounce with 550 5.7.26 or land in spam; SPF passes but headers show dmarc=fail. Diagnose and give a concrete remediation plan."
+    must_include:
+      - "Identify the root cause as a DMARC alignment failure (SPF passing on a Return-Path that does not match the From: domain), not a missing record"
+      - "Prescribe aligning at least one of SPF (custom Return-Path on the sending domain) or DKIM (domain-keyed d= selector via the provider)"
+      - "Note the 5,000/day Gmail-Yahoo bulk-sender threshold applies: SPF + DKIM + DMARC at minimum p=none, with at least one aligned"
+      - "Require one-click unsubscribe (List-Unsubscribe + List-Unsubscribe-Post) honored within 2 days on the marketing mail"
+      - "Set a spam-complaint target below 0.1% with 0.3% as the enforcement cliff, watched in Postmaster Tools"
+      - "Stage DMARC policy none -> quarantine -> reject while reading rua reports, rather than jumping straight to reject"
+      - "Treat BIMI as out of scope for this fix: it requires DMARC already at enforcement and does not change placement, so do not propose it as the spam remedy"

@@ -1,0 +1,42 @@
+skill: scaling
+
+should_trigger:
+  - prompt: "We're launching on Product Hunt Monday — will our app survive the traffic?"
+    why: "Core spike-survival / capacity question; the canonical reason to reach for scaling."
+  - prompt: "Postgres is throwing `too many clients already` in production."
+    why: "Connection-pool exhaustion under concurrency — the pooler lever (Lever 2), a non-obvious surface that reads like a DB error but is a capacity decision."
+  - prompt: "Should I add caching or a read replica to handle our growth?"
+    why: "Direct lever-choice between Lever 1 and Lever 3; scaling exists to order these."
+  - prompt: "The site is snappy when I test it but crawls once real users hit it at the same time."
+    why: "Non-obvious: sounds like latency but it's a concurrency bottleneck — performance for one user, scaling for many at once."
+  - prompt: "Prepara un test de carga con objetivos de p95 antes del lanzamiento."
+    why: "Spanish — load testing with p95 SLO targets to prove capacity before go-live (k6 + thresholds)."
+  - prompt: "Aguantarem el pic de trànsit del llançament o cau el servidor?"
+    why: "Catalan — explicit traffic-spike survival question, the heart of the skill."
+
+should_not_trigger:
+  - prompt: "This one endpoint takes 3s — find the N+1 and make it fast."
+    route_to: performance
+    why: "Single-request latency / profiling for one user, not concurrency capacity."
+  - prompt: "Make my Redis rate limiter race-free and fix the cache stampede."
+    route_to: redis
+    why: "Cache/queue *correctness* and concurrency semantics, not the whether/where decision scaling makes."
+  - prompt: "Set up streaming replication and the archive_command on Postgres."
+    route_to: postgresdb
+    why: "DB-internal wiring of the replica; scaling decides to add one, postgresdb implements it."
+  - prompt: "Build a Grafana dashboard and p95 alerts for our API."
+    route_to: monitoring
+    why: "Observability / dashboards. Scaling consumes USE signals but doesn't build the collectors."
+  - prompt: "Write the Dockerfile and rolling-deploy config to ship the service."
+    route_to: deployment
+    why: "Packaging and shipping instances; scaling decides how many and when to autoscale, deployment ships them."
+
+capability:
+  - scenario: "Our SaaS expects ~10x traffic next week after a press feature. Stack is a Node API on two small instances behind a load balancer, a single Postgres primary (no pooler), and a CDN for static assets only. Sessions live in app memory. What do we do, in what order, to be ready — and how do we know it'll hold?"
+    must_include:
+      - "Measure first via the USE method (utilization/saturation/errors per tier) and read p95/p99 not the mean before adding anything."
+      - "Caching as the first lever — cache the expensive repeated reads, target >80% hit ratio, and warn about the cold-cache miss storm hitting the origin."
+      - "Put PgBouncer in transaction mode in front of the single primary, with the sizing constraint (pools × default_pool_size < max_connections − ~15; pool ≈ 1.5–2× vCores) — directly addresses the no-pooler risk under 10x."
+      - "Add a read replica ONLY if measurement shows reads dominate and the primary is read-saturated, with the read-after-write/replica-lag caveat (route post-write reads to primary)."
+      - "Make the app stateless (move in-memory sessions out) before scaling instances horizontally, and autoscale on the binding saturation metric, not CPU alone."
+      - "Prove the target with a k6 load test against a prod-like / staging environment (not localhost), gated on thresholds like http_req_duration p(95)<500 and http_req_failed rate<0.01, climbing the smoke→load→stress→spike ladder to find the knee."

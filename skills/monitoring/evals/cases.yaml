@@ -1,0 +1,47 @@
+skill: monitoring
+
+should_trigger:
+  - prompt: "Set up uptime monitoring and alert me if the site goes down."
+    why: Core uptime trigger — the external probe layer of the stack.
+  - prompt: "Add /healthz and /readyz endpoints and have something probe them."
+    why: Health-endpoint contract; liveness vs readiness split is core to this skill.
+  - prompt: "We get paged at 3am for CPU spikes that self-resolve — fix our alerting."
+    why: Non-obvious. Alert fatigue / symptom-based tuning; the cause-not-symptom anti-pattern.
+  - prompt: "Create an on-call rotation with escalation and a public status page."
+    why: On-call basics — rotation, escalation policy, status page.
+  - prompt: "Alert on our SLO error-budget burn rate instead of raw error count."
+    why: Non-obvious. Multi-window multi-burn-rate alerting is a named technique here.
+  - prompt: "An untested alert isn't an alert — how do I prove my pages actually land?"
+    why: Non-obvious. The verify-it-works section; trigger synthetic failure, confirm page + escalation.
+  - prompt: "Monta monitorització d'uptime i que m'avisi si l'API torna 5xx."
+    why: Catalan trigger for uptime + symptom-based 5xx alerting.
+
+should_not_trigger:
+  - prompt: "Add OpenTelemetry tracing and a metrics dashboard for span latency."
+    route_to: observability
+    why: Instrumentation/telemetry — the inside view of what the app emits, not whether it's alive.
+  - prompt: "Add retry and a circuit breaker so failed calls degrade gracefully."
+    route_to: error-handling
+    why: Handling the failure in code, not detecting and escalating it operationally.
+  - prompt: "Add a HEALTHCHECK to my Dockerfile and a rollback step in CI."
+    route_to: deployment
+    why: Release-gating healthcheck + rollback, not the continuous external probe after release.
+  - prompt: "Our app falls over at 10x traffic — set up autoscaling and load shedding."
+    route_to: scaling
+    why: Capacity/survival, not detection of failure.
+  - prompt: "Renew and provision the SSL cert and fix the DNS records for the domain."
+    route_to: domains-dns
+    why: Cert/DNS provisioning; monitoring only watches expiry, it doesn't provision.
+
+capability:
+  - scenario: >
+      I have a FastAPI service on a Hetzner VPS behind Cloudflare. Set up monitoring,
+      alerts, and on-call so I find out before customers do.
+    must_include:
+      - Splits liveness (/livez, restart-if-fail) from readiness (/readyz, pull-from-rotation-if-fail) and states the cheap-probe rule (<100ms, don't cascade every downstream).
+      - Picks a concrete tool with dated rationale (e.g. Uptime Kuma self-host on the VPS vs UptimeRobot if no infra), not a vague "use a monitor."
+      - Monitors the critical user journey via a synthetic check plus cert and domain expiry, not just GET /.
+      - Defines a symptom/SLO alert with two windows (burn-rate, long + short), not a bare CPU/memory threshold.
+      - Sets up an escalation policy (primary + secondary + manager, ack timeout) and links every alert to a runbook.
+      - Says to test the alert end-to-end (trigger a synthetic failure, confirm the page lands and escalation hops).
+      - Avoids recommending Opsgenie for a new setup (EOL 2027-04-05); suggests PagerDuty / incident.io / Better Stack / Grafana Cloud IRM instead.

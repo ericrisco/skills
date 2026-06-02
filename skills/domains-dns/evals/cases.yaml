@@ -1,0 +1,47 @@
+skill: domains-dns
+
+should_trigger:
+  - prompt: "Point example.com and www to my Vercel project with valid HTTPS"
+    why: Core task — apex flattening + www CNAME + auto-TLS; the canonical use of this skill.
+  - prompt: "Users get NET::ERR_CERT_AUTHORITY_INVALID on my site but it loads fine for me, fix it"
+    why: Non-obvious symptom of an incomplete (leaf-only) TLS chain; this skill owns chain debugging.
+  - prompt: "I need a CAA record so only Let's Encrypt can issue certificates for my domain"
+    why: CAA issuance gating is a DNS record concern named directly in the cookbook; non-obvious for many.
+  - prompt: "El certificado SSL caducó y no se renueva solo, ¿cómo lo automatizo?"
+    why: Spanish; expired cert + auto-renewal — the 2026 lifetime reality and ACME automation core to this skill.
+  - prompt: "Migrate DNS from GoDaddy to Cloudflare without downtime"
+    why: Nameserver cutover sequence (lower TTL, pre-stage, flip NS, verify) is a dedicated section here.
+  - prompt: "dig +trace still shows the old IP after I changed the A record yesterday"
+    why: Non-obvious propagation/TTL/authoritative-vs-cache diagnosis owned by the verify playbook.
+  - prompt: "Publish the SPF, DKIM and DMARC records for example.com"
+    why: Boundary case that DOES belong here — the DNS rows that back email, not reputation tuning.
+
+should_not_trigger:
+  - prompt: "My emails keep landing in spam, improve inbox placement and warm up the domain"
+    route_to: email-deliverability
+    why: Reputation, placement, and warmup — not the DNS rows; that is deliverability, not record authoring.
+  - prompt: "Set up a Cloudflare Worker with KV and caching rules"
+    route_to: cloudflare
+    why: Platform/edge feature work, not cross-platform DNS+TLS records.
+  - prompt: "Deploy and autoscale my Node app behind a load balancer"
+    route_to: deployment
+    why: What runs and how it's released, not the name that resolves to it.
+  - prompt: "Add uptime monitoring and cert-expiry alerting for production"
+    route_to: monitoring
+    why: Ongoing alerting practice, not one-time correct setup + verification.
+  - prompt: "Configure my Vercel project's build command and output directory"
+    route_to: vercel
+    why: Platform build configuration, not attaching/resolving the domain.
+
+capability:
+  - scenario: >
+      A user owns a naked domain registered at a registrar and wants both the apex and www serving
+      on Netlify with valid auto-renewing HTTPS, locked so only Let's Encrypt may issue certs.
+    must_include:
+      - Diagnoses in resolution order (name → NS delegation → records → TLS), top-down.
+      - Refuses a CNAME at the apex and uses ALIAS/flattening or hard A/AAAA at the apex instead.
+      - Picks one canonical host (apex or www) and 301-redirects the other.
+      - Provides a CAA record `0 issue "letsencrypt.org"` and notes the separate `issuewild` tag for wildcards.
+      - States the 2026 short-lifetime reality (200d now → 47d by 2029) and relies on platform/ACME auto-renew, not manual certs.
+      - Gives verification commands — `dig +short`/`dig +trace`, `openssl s_client -servername`, `curl -vI`.
+      - Lowers TTL before any cutover and verifies authoritatively, not via browser cache.
