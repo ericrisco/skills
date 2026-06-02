@@ -1,7 +1,7 @@
 {
   "version": "0.1.0",
   "counts": {
-    "skills": 205
+    "skills": 231
   },
   "skills": [
     {
@@ -22,6 +22,25 @@
         "data-cleaning",
         "python",
         "reporting"
+      ],
+      "profiles": []
+    },
+    {
+      "id": "accessibility",
+      "description": "Use when making a web UI conform to WCAG 2.2 Level AA — fixing axe-core violations, a low Lighthouse a11y score, adding keyboard support, focus management, ARIA roles/labels, skip links, live regions, accessible names, or checking contrast and tap-target size. Triggers: 'make this accessible', 'fix the contrast', 'keyboard navigation is broken', 'screen reader can't read this', 'axe says button-name / color-contrast', 'the modal doesn't trap focus', 'tab order is wrong', 'our tap targets are smaller than 24px', 'fes-ho accessible', 'el lector de pantalla no lee los errores'. NOT general performance / LCP tuning (that is performance), NOT setting up the Jest/RTL test runner itself (that is testing-web).",
+      "tags": [
+        "wcag",
+        "accessibility",
+        "a11y",
+        "aria",
+        "axe-core"
+      ],
+      "recommends": [
+        "testing-web",
+        "e2e-testing",
+        "design",
+        "react",
+        "performance"
       ],
       "profiles": []
     },
@@ -62,7 +81,8 @@
       ],
       "recommends": [
         "building-agents",
-        "prompt-engineering"
+        "prompt-engineering",
+        "observability"
       ],
       "profiles": []
     },
@@ -157,6 +177,7 @@
       ],
       "recommends": [
         "typescript",
+        "testing-web",
         "secure-coding"
       ],
       "profiles": []
@@ -181,6 +202,7 @@
         "api-design",
         "data-scraper",
         "secure-coding",
+        "error-handling",
         "structured-extraction"
       ],
       "profiles": []
@@ -206,7 +228,8 @@
         "nodejs",
         "secure-coding",
         "webhooks",
-        "api-connector-builder"
+        "api-connector-builder",
+        "code-review"
       ],
       "profiles": []
     },
@@ -228,6 +251,7 @@
         "content-engine",
         "brand-voice",
         "landing-copy",
+        "technical-writing",
         "case-studies"
       ],
       "profiles": []
@@ -283,7 +307,8 @@
         "stripe",
         "notion-connector",
         "google-workspace",
-        "whatsapp-telegram"
+        "whatsapp-telegram",
+        "error-handling"
       ],
       "profiles": []
     },
@@ -317,7 +342,8 @@
       ],
       "recommends": [
         "postgresdb",
-        "secure-coding"
+        "secure-coding",
+        "monitoring"
       ],
       "profiles": []
     },
@@ -332,13 +358,16 @@
         "scripting"
       ],
       "recommends": [
+        "github-actions",
+        "error-handling",
+        "docker",
         "secure-coding"
       ],
       "profiles": []
     },
     {
       "id": "bookkeeping",
-      "description": "Use when a small business needs clean, audit-ready books — standing up a chart of accounts, recording a transaction and unsure which account or which side (debit vs credit), a bank feed full of uncategorized lines, a month-end ledger that won't reconcile to the bank, or choosing cash vs accrual. Triggers: 'set up a chart of accounts', 'where does this transaction post', 'which side is a debit when I pay rent', 'my books don't tie out to the bank', '300 transactions sitting uncategorized', 'cash or accrual accounting', 'how long do I keep receipts', 'categoriza los movimientos del banco', 'mi contabilidad está hecha un desastre', 'cuadra el libro con el extracto', 'comptabilitat feta un desastre'. The loop is record → classify → reconcile so the numbers downstream skills read are trustworthy. NOT analyzing runway/burn/P&L or the monthly finance cadence (that is finance-ops), NOT issuing a customer invoice (that is invoicing), NOT setting a price (that is pricing), NOT future projections (that is financial-model).",
+      "description": "Use when a small business needs clean, audit-ready books — standing up a chart of accounts, recording a transaction and unsure which account or which side (debit vs credit), a bank feed full of uncategorized lines, a month-end ledger that won't reconcile to the bank, or choosing cash vs accrual. Triggers: 'set up a chart of accounts', 'where does this transaction post', 'which side is a debit when I pay rent', 'my books don't tie out to the bank', '300 transactions sitting uncategorized', 'cash or accrual accounting', 'how long do I keep receipts', 'categoriza los movimientos del banco', 'mi contabilidad está hecha un desastre', 'cuadra el libro con el extracto', 'comptabilitat feta un desastre'. The loop is record → classify → reconcile so the numbers are trustworthy. NOT analyzing runway/burn/P&L or the monthly finance cadence (that is finance-ops), NOT issuing a customer invoice (that is invoicing), NOT setting a price (that is pricing), NOT future projections (that is financial-model).",
       "tags": [
         "bookkeeping",
         "double-entry",
@@ -576,7 +605,8 @@
         "proposals",
         "sales-pipeline",
         "calendar-scheduling",
-        "e-signature"
+        "e-signature",
+        "technical-writing"
       ],
       "profiles": []
     },
@@ -597,9 +627,48 @@
       "recommends": [
         "deployment",
         "nextjs",
+        "domains-dns",
         "postgresdb",
         "redis",
         "secure-coding"
+      ],
+      "profiles": []
+    },
+    {
+      "id": "code-review",
+      "description": "Use when you have a concrete diff, branch, or GitHub PR to judge on its own merits and there is no rsc-SDD spec/plan/constitution chain to key off — the standalone, spec-less giving pass behind the executable /code-review. Triggers: 'review this PR before I merge', 'revisa este diff', 'revísame el PR', 'què està malament en aquest canvi', 'tear apart the contractor's branch', 'is this PR safe to merge', 'is this dependency bump safe', '/code-review --comment 1432', 'high-signal review of this change'. Scales coverage by effort (low/medium = fewer high-confidence findings; high/max = broader, may surface uncertain ones labelled [question]); read-only by default, posts comments only with --comment and edits only with --fix. NOT the SDD review gate keyed to 02-DOCS/wiki/sdd/ that also processes incoming comments and pushes back (that is review).",
+      "tags": [
+        "code-review",
+        "pr-review",
+        "quality",
+        "correctness"
+      ],
+      "recommends": [
+        "review",
+        "secure-coding",
+        "verify"
+      ],
+      "profiles": []
+    },
+    {
+      "id": "codebase-onboarding",
+      "description": "Use when you land in an unfamiliar or inherited codebase and must get productive fast — map the entry points, the request/data flow, who owns the business logic, the hidden side effects (cron, webhooks, workers, listeners) and the hotspot files, before you touch anything. Triggers: 'I just cloned this repo and don't know where anything is', 'I inherited this project, map it before I change something', 'where does the business logic actually live', 'what happens behind the scenes when a request hits /checkout', 'which files are the dangerous ones nobody understands', 'acabo de heredar este repo y no sé por dónde empezar, mápamelo', 'mapea este codebase'. NOT a deep correctness/security audit of one module (that is analyze).",
+      "tags": [
+        "onboarding",
+        "codebase",
+        "code-mapping",
+        "legacy-code",
+        "architecture",
+        "reverse-engineering",
+        "hotspots"
+      ],
+      "recommends": [
+        "analyze",
+        "debug",
+        "decision-records",
+        "harness",
+        "init",
+        "knowledge-ops"
       ],
       "profiles": []
     },
@@ -743,6 +812,47 @@
       "profiles": []
     },
     {
+      "id": "context-budget",
+      "description": "Use when a long-horizon task is filling the context window and you must decide what to keep, offload, drop, or hand off — large refactors and migrations that won't fit one window, multi-hour research/agent runs, planning a harness that survives across fresh sessions, or deciding when to compact and whether to spawn a subagent. Triggers: 'we're 80% through context, compact before it breaks', 'context is 80% full', 'make this survive a fresh window', 'this conversation is getting huge', 'should I spawn a subagent for this huge log read or just inline it', 'the agent keeps re-reading the same files and forgetting decisions it made earlier', 'se está llenando el contexto, ¿qué guardo y qué tiro?', 'compacta abans que peti'. NOT dollar spend or budget caps (that is cost-tracking), NOT fetching context via embeddings (that is rag).",
+      "tags": [
+        "context-window",
+        "token-budget",
+        "compaction",
+        "context-rot",
+        "long-running-agents",
+        "handoff",
+        "subagents"
+      ],
+      "recommends": [
+        "cost-tracking",
+        "rag",
+        "parallel",
+        "building-agents",
+        "harness"
+      ],
+      "profiles": []
+    },
+    {
+      "id": "continuous-learning",
+      "description": "Use when something went wrong, got corrected, surprised you, or otherwise taught the workspace something and you want it to stick — a retro or postmortem after an incident or sprint, the same agent mistake corrected 2+ times, a wrong assumption that just surfaced, a resolved bug worth never repeating, or scattered notes-to-self that need a durable home. Triggers: 'run a retro', 'capture this lesson', 'write this down so we don't repeat it', 'you keep doing X — make it stop for good', 'harvest the corrections and notes-to-self into wherever they belong', 'guarda esta lección para que no vuelva a pasar', 'apúntalo para no repetir el error'. NOT capturing a forward design choice with alternatives (that is decision-records).",
+      "tags": [
+        "learning",
+        "retro",
+        "postmortem",
+        "feedback-loop",
+        "knowledge",
+        "meta"
+      ],
+      "recommends": [
+        "decision-records",
+        "author-skill",
+        "debug",
+        "harness",
+        "knowledge-ops"
+      ],
+      "profiles": []
+    },
+    {
       "id": "contracts",
       "description": "Use when drafting or reviewing everyday business contracts and clauses in plain language — NDAs, MSAs, SOWs, consulting/contractor agreements, and the boilerplate that allocates risk (liability caps, indemnity, force majeure, termination, governing law); symptoms include a counterparty's paper you must redline, a one-sided clause, or a draft a founder can't read. Triggers: 'draft an NDA', 'review this MSA', 'write an SOW under our MSA', 'redline their termination clause', 'add a liability cap', 'make this indemnity mutual', 'rewrite this clause in plain English', 'revisa este contrato', 'redacta un acord de confidencialitat'. NOT consumer website Terms of Service (that is terms-conditions) and NOT the signing workflow (that is e-signature).",
       "tags": [
@@ -780,8 +890,11 @@
       "recommends": [
         "hetzner",
         "digitalocean",
+        "docker",
         "postgresdb",
-        "backups"
+        "backups",
+        "domains-dns",
+        "github-actions"
       ],
       "profiles": []
     },
@@ -805,6 +918,23 @@
         "stripe",
         "aws-essentials",
         "gcp-essentials"
+      ],
+      "profiles": []
+    },
+    {
+      "id": "course-builder",
+      "description": "Use when you must turn a vague \\\"I want to teach X\\\" into a defensible course/curriculum skeleton — writing measurable learning outcomes, designing assessment that proves them, sequencing modules, scoping a workshop/bootcamp/cohort/onboarding track, or building an outcome×module×assessment alignment matrix. Triggers: 'structure my course', 'turn these topics into a curriculum', 'write learning outcomes / objectives', 'design the final project and quizzes', 'map my modules to outcomes', 'is my course actually aligned?', 'my course just ends with no real endpoint — what should they be able to DO?', 'estructura el temario de mi curso', 'define los resultados de aprendizaje', 'dissenya el pla docent', 'quina avaluació demostra cada objectiu'. NOT making a concept land emotionally (that is course-storytelling).",
+      "tags": [
+        "course",
+        "curriculum",
+        "instructional-design",
+        "learning-outcomes",
+        "assessment"
+      ],
+      "recommends": [
+        "course-storytelling",
+        "presentations",
+        "sop-builder"
       ],
       "profiles": []
     },
@@ -870,6 +1000,7 @@
         "csat"
       ],
       "recommends": [
+        "technical-writing",
         "client-onboarding",
         "retention",
         "chatbot",
@@ -1005,6 +1136,29 @@
       ]
     },
     {
+      "id": "decision-records",
+      "description": "Use when a consequential, hard-to-reverse choice was just made or is about to be — database, framework, auth model, vendor, API style, deployment target — and future-you will ask why, with the answer buried in chat; capture it as a numbered, immutable ADR with the context that forced the choice, the real options weighed with their trade-offs, the decision, and consequences both ways. Also when a prior decision is being reversed and must be superseded without erasing history, or when onboarding keeps re-litigating a settled choice. Triggers: 'write up why we picked Postgres over DynamoDB so we stop arguing', 'record the switch to tRPC but keep the old REST decision in history', 'documenta por qué elegimos Hetzner y qué alternativas descartamos con pros y contras', 'registra la decisió i les alternatives que vam descartar'. NOT the meeting recap with action items and owners (that is meeting-notes), NOT the project-wide standing principles and stack canon (that is constitution).",
+      "tags": [
+        "decision-records",
+        "adr",
+        "architecture-decisions",
+        "rationale",
+        "decision-log",
+        "madr",
+        "knowledge-ops"
+      ],
+      "recommends": [
+        "meeting-notes",
+        "constitution",
+        "sop-builder",
+        "knowledge-ops",
+        "codebase-onboarding",
+        "plan",
+        "specify"
+      ],
+      "profiles": []
+    },
+    {
       "id": "deployment",
       "description": "Use when containerizing an app, writing a Dockerfile, setting up GitHub Actions CI/CD, choosing a deploy target, or deploying to Coolify, Vercel, or a Hetzner VPS — multi-stage builds (FastAPI/uv, Go/distroless, Next.js standalone, Flutter web, Postgres), BuildKit build secrets, image scanning (trivy/hadolint), OIDC to registries (no long-lived secrets), least-privilege GITHUB_TOKEN, zero-downtime/rolling deploys, env/secrets flow GitHub→Coolify, healthchecks, rollback, and a hosting decision matrix (Vercel vs Hetzner+Coolify vs a third option). Trigger phrases: 'dockerize', 'write a Dockerfile', 'CI pipeline', 'GitHub Actions', 'deploy', 'ship it', 'where should I host this', 'Coolify', 'Vercel', 'Hetzner', 'VPS', 'docker-compose for local dev'.",
       "tags": [
@@ -1051,6 +1205,10 @@
       "recommends": [
         "deployment",
         "postgresdb",
+        "docker",
+        "domains-dns",
+        "monitoring",
+        "scaling",
         "hetzner"
       ],
       "profiles": []
@@ -1070,7 +1228,26 @@
         "postgresdb",
         "secure-coding",
         "deployment",
+        "testing-py",
         "api-design"
+      ],
+      "profiles": []
+    },
+    {
+      "id": "docker",
+      "description": "Use when authoring or auditing a Dockerfile/Containerfile, shrinking a bloated image, hardening a container that runs as root, choosing a base image, or wiring a Compose dev loop with hot reload. Triggers: 'dockerize this app', 'my node image is 1.2GB make it smaller', 'the build cache keeps busting', 'harden this Dockerfile, trivy flags it', 'docker compose watch for local dev', 'distroless vs alpine vs slim', 'la imagen pesa demasiado', 'el build de docker tarda siglos'. NOT the CI/CD pipeline or deploy-to-host (that is deployment), NOT k8s autoscaling/HPA (that is scaling), NOT app-level SQL injection or secrets-in-code (that is secure-coding).",
+      "tags": [
+        "docker",
+        "containers",
+        "dockerfile",
+        "compose",
+        "image-security"
+      ],
+      "recommends": [
+        "deployment",
+        "secure-coding",
+        "scaling",
+        "github-actions"
       ],
       "profiles": []
     },
@@ -1091,6 +1268,30 @@
         "spreadsheet-ops",
         "rag",
         "data-scraper"
+      ],
+      "profiles": []
+    },
+    {
+      "id": "domains-dns",
+      "description": "Use when pointing a custom domain at a host, fixing broken HTTPS, choosing apex vs www, or publishing DNS rows — registering/delegating a name, writing A/AAAA/CNAME/ALIAS/MX/TXT/CAA/SRV records, standing up auto-renewing TLS, or cutting nameservers over without downtime. Triggers: 'point example.com at Vercel', 'set up DNS for the domain', 'NET::ERR_CERT_AUTHORITY_INVALID', 'CNAME flattening / ALIAS at the apex', 'dig +trace still shows the old IP', 'need a CAA record for Let's Encrypt', 'publish the SPF/DKIM/DMARC/MX rows', 'apuntar el dominio', 'el certificado caducó y no renueva', 'configurar els registres DNS'. NOT inbox placement / warmup / spam-rate tuning (that is email-deliverability), NOT what runs behind the name (that is deployment).",
+      "tags": [
+        "dns",
+        "tls",
+        "ssl",
+        "domains",
+        "https",
+        "acme",
+        "certbot",
+        "dig",
+        "caa",
+        "nameservers"
+      ],
+      "recommends": [
+        "email-deliverability",
+        "deployment",
+        "monitoring",
+        "cloudflare",
+        "vercel"
       ],
       "profiles": []
     },
@@ -1187,6 +1388,25 @@
       "profiles": []
     },
     {
+      "id": "e2e-testing",
+      "description": "Use when writing or stabilizing browser end-to-end tests with Playwright — driving real navigation, forms, logins, and multi-step user journeys through an actual browser, picking durable locators, or killing tests that pass locally but flake in CI. Covers getByRole/getByTestId locator choice, web-first assertions, storageState auth via setup projects, retries/trace config, sharding, and the 2026 flakiness playbook. Triggers: 'write a Playwright test', 'my e2e tests flake in CI but pass locally', 'set up storageState so I don't log in every test', 'getByRole vs CSS selector', 'shard Playwright across machines', 'trace on retry', 'strict mode resolved to 2 elements', 'els tests d'extrem a extrem fallen aleatòriament al pipeline', 'los tests e2e fallan a veces'. NOT in-process component/unit web tests (that is testing-web), NOT pytest suites (that is testing-py), NOT a11y audits as the goal (that is accessibility), NOT building the CI pipeline itself (that is github-actions).",
+      "tags": [
+        "playwright",
+        "e2e",
+        "browser-testing",
+        "flakiness",
+        "ci"
+      ],
+      "recommends": [
+        "testing-web",
+        "accessibility",
+        "performance",
+        "github-actions",
+        "debug"
+      ],
+      "profiles": []
+    },
+    {
       "id": "electron",
       "description": "Use when building, hardening, or shipping a cross-platform desktop app with Electron — wiring the main/renderer/preload process model, exposing OS capabilities to a web UI over typed IPC, locking down an insecure shell, or packaging with code signing and auto-update. Triggers: 'build a desktop app for Mac/Windows/Linux from my web app', 'let my renderer read a file safely', 'audit my Electron security (nodeIntegration, sandbox, CSP)', 'my preload exposes ipcRenderer and the renderer can require(\\\"fs\\\")', 'Squirrel.Mac won\\\\'t auto-update my app', 'migrate off @electron/remote and BrowserView', 'empaquetar mi app de escritorio para Windows y Mac con firma de código y auto-actualización', 'empaquetar app d\\\\'escriptori amb auto-actualització'. NOT a smaller Rust-backed shell on the OS native webview (that is tauri).",
       "tags": [
@@ -1202,6 +1422,7 @@
         "tauri",
         "react",
         "nodejs",
+        "github-actions",
         "secure-coding"
       ],
       "profiles": []
@@ -1221,7 +1442,8 @@
       ],
       "recommends": [
         "phoenix",
-        "postgresdb"
+        "postgresdb",
+        "docker"
       ],
       "profiles": []
     },
@@ -1249,14 +1471,14 @@
     },
     {
       "id": "email-deliverability",
-      "description": "Use when mail you send lands in spam, gets rejected, or fails the Gmail/Yahoo bulk-sender checks, and you must fix authentication and reputation rather than the sending code — setting SPF/DKIM/DMARC DNS records so they align, raising a cold domain through warmup, keeping the spam-complaint rate under threshold, adding one-click unsubscribe, and reading why 'soft' rejections and Postmaster Tools say you are throttled. Triggers: 'our emails go to spam since the Gmail update', 'DMARC fails even though SPF passes', 'how do I warm up a new sending domain', 'do I need one-click unsubscribe to send to gmail', '550 5.7.26 unauthenticated', 'los correos caen en spam y el SPF está bien', 'configurar SPF DKIM DMARC para que no nos marquen como spam'. NOT putting transactional/bulk email on the wire through a provider API (that is email-connector).",
+      "description": "Use when mail you send lands in spam, gets rejected, or fails the Gmail/Yahoo bulk-sender checks, and you must fix authentication and reputation rather than the sending code — setting SPF/DKIM/DMARC DNS records so they align, raising a cold domain through warmup, keeping the spam-complaint rate under threshold, adding one-click unsubscribe, getting the brand logo and verified checkmark to show via BIMI, and reading why 'soft' rejections and Postmaster Tools say you are throttled. Triggers: 'our emails go to spam since the Gmail update', 'DMARC fails even though SPF passes', 'how do I warm up a new sending domain', 'do I need one-click unsubscribe to send to gmail', '550 5.7.26 unauthenticated', 'how do I get our logo and the blue checkmark to show in Gmail with BIMI', 'los correos caen en spam y el SPF está bien', 'configurar BIMI i el logo verificat al correu'. NOT putting transactional/bulk email on the wire through a provider API (that is email-connector).",
       "tags": [
         "email",
         "deliverability",
         "spf",
         "dkim",
         "dmarc",
-        "inbox-placement",
+        "bimi",
         "sender-reputation",
         "bulk-sender"
       ],
@@ -1293,6 +1515,29 @@
       "profiles": []
     },
     {
+      "id": "error-handling",
+      "description": "Use when designing how code recognizes, recovers from, and reports failure — typed error taxonomies, retry/backoff/timeout policy, circuit breakers, React/Next error boundaries, and the user message + operator log line. Triggers: 'add retries with backoff', 'set up an error boundary', 'standardize our error types', 'stop swallowing exceptions', 'this catch block hides the real error', 'degrade gracefully when the payment provider is down', 'why does our retry storm take the database down', 'maneja los errores sin tragarte la excepción', 'afegeix reintents amb backoff i tallacircuits'. NOT finding why one specific thing broke (that is debug), NOT wiring logs/metrics/traces (that is observability), NOT the on-the-wire error envelope contract (that is api-design).",
+      "tags": [
+        "error-handling",
+        "resilience",
+        "retry",
+        "circuit-breaker",
+        "error-boundary",
+        "typed-errors",
+        "fault-tolerance"
+      ],
+      "recommends": [
+        "debug",
+        "observability",
+        "monitoring",
+        "api-design",
+        "secure-coding",
+        "testing-web",
+        "nextjs"
+      ],
+      "profiles": []
+    },
+    {
       "id": "expo",
       "description": "Use when building, shipping, or hot-patching a React Native app with Expo — EAS Build/Submit/Update, eas.json build profiles, config plugins, prebuild/CNG, the managed workflow, confirming you are on the New Architecture (mandatory since SDK 55). Triggers: 'eas build', 'eas.json', 'config plugin', 'expo prebuild', 'my OTA update isn't showing up on devices', 'runtime version mismatch', 'how do I add a permission without editing Xcode/Gradle', 'newArchEnabled is gone from app.json', 'com publico una actualització OTA sense passar per la store', 'subir la app a la Play Store con EAS'. NOT generic React Native components/navigation/native-module authoring (that is react-native), NOT a Dart mobile app (that is flutter).",
       "tags": [
@@ -1305,6 +1550,7 @@
       ],
       "recommends": [
         "react-native",
+        "github-actions",
         "ship",
         "deployment",
         "secure-coding"
@@ -1440,8 +1686,11 @@
         "scaling"
       ],
       "recommends": [
+        "docker",
+        "scaling",
         "postgresdb",
-        "railway"
+        "railway",
+        "domains-dns"
       ],
       "profiles": []
     },
@@ -1503,9 +1752,12 @@
       ],
       "recommends": [
         "aws-essentials",
+        "docker",
+        "github-actions",
         "secure-coding",
         "postgresdb",
         "deployment",
+        "monitoring",
         "backups"
       ],
       "profiles": []
@@ -1534,6 +1786,45 @@
         "compliance",
         "secure-coding",
         "email-deliverability"
+      ],
+      "profiles": []
+    },
+    {
+      "id": "git-workflow",
+      "description": "Use when naming or scoping a branch, writing or fixing a commit message, untangling history (rebase vs merge vs squash), or cutting a versioned release — the portable git-convention layer that works on any repo. Triggers: 'name this branch', 'is this commit message conventional?', 'rebase or merge before the PR?', 'squash these wip commits into one', 'my git log is a mess', 'tag a release', 'write release notes', 'what version should this release be?', 'clean up history before review', 'limpia el historial antes del PR', '¿qué versión le toca a esta release?', 'deja los commits en formato convencional'. Covers Conventional Commits 1.0.0, SemVer tags, branch hygiene, force-push safety, and gh pr/release mechanics. NOT the I'm-done land-it decision and pre-ship checklist (that is ship), NOT setting up an isolated checkout before coding (that is worktrees), NOT CI/CD release automation in GitHub Actions (that is deployment).",
+      "tags": [
+        "git",
+        "version-control",
+        "conventional-commits",
+        "semver",
+        "pull-request"
+      ],
+      "recommends": [
+        "ship",
+        "worktrees",
+        "deployment",
+        "github-actions"
+      ],
+      "profiles": []
+    },
+    {
+      "id": "github-actions",
+      "description": "Use when authoring or fixing GitHub Actions CI/CD — workflows under .github/workflows, jobs, the runner matrix, dependency caching, secrets and OIDC cloud deploys, environments and approval gates, reusable and composite workflows. Triggers: 'write a CI workflow', 'my GitHub Actions builds are slow / add caching', 'run the tests on a matrix of node versions', 'deploy to AWS without storing access keys' (OIDC), 'every push spawns a run and the old ones keep finishing' (concurrency), 'pin my actions / supply-chain hardening after the tj-actions thing', 'munta el desplegament continu amb GitHub Actions cap a producció', 'per què el GITHUB_TOKEN té permisos d'escriptura per defecte'. NOT writing the Dockerfile or image build strategy (that is docker), NOT the branching/merge model (that is git-workflow), NOT release readiness or the changelog (that is ship).",
+      "tags": [
+        "github-actions",
+        "ci-cd",
+        "workflows",
+        "oidc",
+        "caching"
+      ],
+      "recommends": [
+        "docker",
+        "git-workflow",
+        "ship",
+        "deployment",
+        "secure-coding",
+        "aws-essentials",
+        "vercel"
       ],
       "profiles": []
     },
@@ -1634,8 +1925,11 @@
       ],
       "recommends": [
         "coolify",
+        "docker",
         "secure-coding",
-        "backups"
+        "domains-dns",
+        "backups",
+        "monitoring"
       ],
       "profiles": []
     },
@@ -1673,7 +1967,8 @@
       "recommends": [
         "fastapi",
         "django",
-        "secure-coding"
+        "secure-coding",
+        "accessibility"
       ],
       "profiles": []
     },
@@ -1864,6 +2159,29 @@
       "profiles": []
     },
     {
+      "id": "knowledge-ops",
+      "description": "Use when an already-running 02-DOCS/ wiki needs day-to-day gardening — too many half-finished articles, a 600-line page that covers three unrelated topics, a note with no obvious home, orphan pages nothing links to, stale answers and superseded articles piling up, or two articles that contradict each other. This is the judgment layer over harness's automation: decide what is worth capturing (default: nothing), where it goes, how to title/split/merge it, build the See Also web, and prune to _archive (never delete). Triggers: 'limpia mi wiki', 'organiza mis notas', 'esto dónde va en la wiki', 'ordena la base de conocimiento', 'split this bloated article', 'where should this note live', 'scores.json says these three are orphans — fix the cross-links', 'prune the stale and superseded stuff'. NOT building, bootstrapping or sweeping the wiki engine (that is harness).",
+      "tags": [
+        "knowledge-ops",
+        "wiki",
+        "02-docs",
+        "knowledge-base",
+        "curation",
+        "cross-linking",
+        "pruning",
+        "knowledge-meta"
+      ],
+      "recommends": [
+        "harness",
+        "decision-records",
+        "meeting-notes",
+        "sop-builder",
+        "research-ops",
+        "codebase-onboarding"
+      ],
+      "profiles": []
+    },
+    {
       "id": "kotlin-android",
       "description": "Use when building or fixing a native Android app in Kotlin + Jetpack Compose with the UDF layered architecture (ViewModel/StateFlow, Hilt, Room, Retrofit, coroutines, type-safe Navigation, Gradle/AGP setup). Triggers: a Compose screen that recomposes every frame or loses state on rotation, wiring ViewModel state into the UI, an offline-first repository, a Hilt DI graph, a Room DAO, build.gradle.kts/version-catalog and AGP/Kotlin floors, 'cómo expongo el estado del ViewModel con StateFlow', 'la pantalla Compose se recompone en cada frame', 'mi app Android pierde el estado al rotar'. NOT shared Android+iOS UI from one Kotlin codebase (that is compose-multiplatform).",
       "tags": [
@@ -1879,7 +2197,9 @@
       "recommends": [
         "compose-multiplatform",
         "spring-boot",
-        "java"
+        "java",
+        "testing-web",
+        "github-actions"
       ],
       "profiles": []
     },
@@ -1943,7 +2263,8 @@
         "mysql",
         "redis",
         "api-design",
-        "secure-coding"
+        "secure-coding",
+        "testing-web"
       ],
       "profiles": []
     },
@@ -1982,7 +2303,8 @@
       "recommends": [
         "api-connector-builder",
         "webhooks",
-        "analytics"
+        "analytics",
+        "knowledge-ops"
       ],
       "profiles": []
     },
@@ -2066,7 +2388,8 @@
         "linkedin-content",
         "linkedin-outreach",
         "linkedin-api",
-        "content-engine"
+        "content-engine",
+        "decision-records"
       ],
       "profiles": []
     },
@@ -2089,6 +2412,7 @@
         "cost-tracking",
         "agent-eval",
         "rag",
+        "observability",
         "parallel"
       ],
       "profiles": []
@@ -2187,7 +2511,8 @@
         "medium-writing",
         "medium-publishing",
         "content-engine",
-        "seo-geo"
+        "seo-geo",
+        "decision-records"
       ],
       "profiles": []
     },
@@ -2227,6 +2552,7 @@
         "business-ops"
       ],
       "recommends": [
+        "decision-records",
         "sop-builder",
         "project-ops",
         "calendar-scheduling",
@@ -2253,6 +2579,7 @@
         "replicate",
         "runpod",
         "fastapi",
+        "docker",
         "python",
         "llm-pipeline"
       ],
@@ -2271,6 +2598,25 @@
       "recommends": [
         "secure-coding",
         "harness"
+      ],
+      "profiles": []
+    },
+    {
+      "id": "monitoring",
+      "description": "Use when setting up uptime/health monitoring, alerts, or on-call basics for a service already in production and you need to know it's down before customers do. Triggers: 'set up uptime monitoring', 'alert me if the site goes down', 'add /healthz and /readyz and probe them', 'we get paged at 3am for CPU spikes that self-resolve — fix alert fatigue', 'alert on our SLO error-budget burn rate not raw error count', 'an untested alert isn't an alert', 'create an on-call rotation with escalation and a status page', 'monta monitorització d'uptime i avísa'm si l'API torna 5xx', 'avísame si la web se cae'. NOT instrumenting logs/metrics/traces or wiring OpenTelemetry (that is observability).",
+      "tags": [
+        "monitoring",
+        "uptime",
+        "alerting",
+        "on-call",
+        "sre"
+      ],
+      "recommends": [
+        "observability",
+        "deployment",
+        "error-handling",
+        "domains-dns",
+        "scaling"
       ],
       "profiles": []
     },
@@ -2332,7 +2678,8 @@
         "nodejs",
         "typescript",
         "api-design",
-        "prisma-orm"
+        "prisma-orm",
+        "testing-web"
       ],
       "profiles": []
     },
@@ -2350,7 +2697,9 @@
       "recommends": [
         "vercel",
         "cloudflare",
-        "nextjs"
+        "nextjs",
+        "domains-dns",
+        "github-actions"
       ],
       "profiles": []
     },
@@ -2428,6 +2777,7 @@
         "nestjs",
         "typescript",
         "api-design",
+        "error-handling",
         "postgresdb"
       ],
       "profiles": []
@@ -2448,6 +2798,25 @@
         "automation-flows",
         "spreadsheet-ops",
         "secure-coding"
+      ],
+      "profiles": []
+    },
+    {
+      "id": "observability",
+      "description": "Use when instrumenting a service from the inside so an incident can be explained from telemetry alone — wiring OpenTelemetry logs, metrics and traces, standing up a Collector, exporting via OTLP, and defining telemetry-driven alerts. Triggers: 'add OpenTelemetry to this service', 'we can't tell why requests are slow across services — add distributed tracing', 'replace our print/console.log with structured logs correlated to traces', 'stand up an OTel Collector and export to Grafana/Datadog/Honeycomb', 'instrument our LLM calls so each request is a span with token counts', 'define RED metrics and a burn-rate alert from the telemetry', 'instrumenta el servei amb OpenTelemetry i exporta a Grafana', 'añade trazas distribuidas y métricas'. NOT outside-in uptime probes, on-call rotation, or who-gets-paged (that is monitoring).",
+      "tags": [
+        "observability",
+        "opentelemetry",
+        "tracing",
+        "metrics",
+        "structured-logging"
+      ],
+      "recommends": [
+        "monitoring",
+        "error-handling",
+        "performance",
+        "cost-tracking",
+        "docker"
       ],
       "profiles": []
     },
@@ -2526,6 +2895,31 @@
       "profiles": []
     },
     {
+      "id": "performance",
+      "description": "Use when one page or route is slow for a single user and the fix has to start with a measurement — failing Core Web Vitals (LCP, INP, CLS), a bloated JS bundle, too many re-renders, slow hydration, or a profiler showing where the time actually goes. Triggers: 'my LCP is 4 seconds', 'the page feels janky, typing lags', 'First Load JS is huge', 'INP is failing in Search Console', the non-obvious 'we import the whole library for one function' and 'a use client boundary is shipping the server tree to the browser', and Catalan/Spanish 'la pàgina carrega lenta i no passa els Core Web Vitals' / 'el bundle pesa demasiado, hay que analizarlo antes de tocar nada'. NOT surviving a concurrent traffic spike with caches, replicas and load tests (that is scaling), NOT fixing the slow SQL query or N+1 itself (that is postgresdb).",
+      "tags": [
+        "performance",
+        "core-web-vitals",
+        "lcp",
+        "inp",
+        "cls",
+        "bundle-size",
+        "profiling",
+        "react",
+        "web-vitals"
+      ],
+      "recommends": [
+        "scaling",
+        "postgresdb",
+        "redis",
+        "nextjs",
+        "react",
+        "observability",
+        "monitoring"
+      ],
+      "profiles": []
+    },
+    {
       "id": "phoenix",
       "description": "Use when building an Elixir web app with Phoenix — contexts, Ecto schemas/changesets/migrations, LiveView, channels, generators and Phoenix-flavored tests — or wiring up the boundary between domain logic and the web layer. Triggers: 'mix phx.new', 'phx.gen.live', 'phx.gen.auth', 'build a LiveView CRUD', 'Ecto changeset', 'Phoenix channel / PubSub', 'how do I structure a context', non-obvious 'my LiveView re-renders the whole list every time one row is added', 'every post fires a separate query for its author' (N+1), Catalan 'crea un context Comandes i un LiveView per gestionar-les amb acces per usuari', Spanish 'autenticacion sin contrasena con phx.gen.auth / como separo el contexto del controlador'. NOT pure OTP — GenServers, supervision trees, releases with no web/Ecto layer (that is elixir).",
       "tags": [
@@ -2540,7 +2934,8 @@
       ],
       "recommends": [
         "elixir",
-        "postgresdb"
+        "postgresdb",
+        "docker"
       ],
       "profiles": []
     },
@@ -2613,6 +3008,7 @@
         "db-migrations",
         "prisma-orm",
         "drizzle-orm",
+        "github-actions",
         "postgresdb"
       ],
       "profiles": []
@@ -2769,6 +3165,7 @@
       ],
       "recommends": [
         "tasks",
+        "decision-records",
         "meeting-notes",
         "sop-builder",
         "dashboard"
@@ -2866,6 +3263,7 @@
       "recommends": [
         "ruby",
         "postgresdb",
+        "testing-web",
         "deployment",
         "db-migrations"
       ],
@@ -2891,7 +3289,9 @@
         "coolify",
         "postgresdb",
         "db-migrations",
-        "deployment"
+        "domains-dns",
+        "deployment",
+        "docker"
       ],
       "profiles": []
     },
@@ -2908,7 +3308,8 @@
       ],
       "recommends": [
         "typescript",
-        "design"
+        "design",
+        "testing-web"
       ],
       "profiles": []
     },
@@ -2929,7 +3330,8 @@
         "react",
         "flutter",
         "design",
-        "debug"
+        "debug",
+        "performance"
       ],
       "profiles": []
     },
@@ -2952,6 +3354,7 @@
         "postgresdb",
         "vector-db",
         "clickhouse-analytics",
+        "scaling",
         "nodejs",
         "fly-io"
       ],
@@ -2992,7 +3395,11 @@
       ],
       "recommends": [
         "deployment",
-        "postgresdb"
+        "postgresdb",
+        "docker",
+        "domains-dns",
+        "github-actions",
+        "scaling"
       ],
       "profiles": []
     },
@@ -3014,7 +3421,8 @@
         "runpod",
         "huggingface",
         "webhooks",
-        "cost-tracking"
+        "cost-tracking",
+        "docker"
       ],
       "profiles": []
     },
@@ -3058,7 +3466,31 @@
         "email-connector",
         "spreadsheet-ops",
         "google-workspace",
-        "notion-connector"
+        "notion-connector",
+        "github-actions"
+      ],
+      "profiles": []
+    },
+    {
+      "id": "research-ops",
+      "description": "Use when someone hands you an open question to find out the truth about — a tech choice, a regulation, a 'what's actually true about X' — and the answer must survive scrutiny: every non-obvious claim dated and sourced, source disagreements surfaced not averaged away, and the deliverable is a cited memo you could defend in a room. Also when refreshing a stale research memo. Triggers: 'research whether A or B is better in 2026 with sources', 'give me a memo I can defend in Monday's meeting', 'settle this argument, is X actually true, cite your sources', 'what's the state of Y with citations', 'investiga a fondo X y cítame las fuentes con fecha', 'fes una recerca a fons amb fonts datades i nivell de confiança'. NOT sizing a market with TAM/SAM/SOM (that is market-research), NOT a standing cadence watch on named rivals (that is competitor-watch).",
+      "tags": [
+        "research-ops",
+        "deep-research",
+        "source-credibility",
+        "citations",
+        "verification",
+        "synthesis",
+        "knowledge-meta"
+      ],
+      "recommends": [
+        "market-research",
+        "competitor-watch",
+        "data-scraper",
+        "knowledge-ops",
+        "decision-records",
+        "structured-extraction",
+        "technical-writing"
       ],
       "profiles": []
     },
@@ -3139,6 +3571,7 @@
       ],
       "recommends": [
         "rails",
+        "testing-web",
         "secure-coding"
       ],
       "profiles": []
@@ -3160,6 +3593,7 @@
         "modal",
         "replicate",
         "huggingface",
+        "docker",
         "llm-pipeline",
         "cost-tracking",
         "ollama"
@@ -3203,6 +3637,30 @@
         "proposals",
         "client-onboarding",
         "spreadsheet-ops"
+      ],
+      "profiles": []
+    },
+    {
+      "id": "scaling",
+      "description": "Use when traffic is growing or about to spike and the system bends under concurrency — deciding what to add and in what order (cache, connection pool, async queue, read replica, more instances) and proving it with a load test instead of guessing. Triggers: 'will we survive the launch spike', 'fine for me but dies under load', 'too many clients already', 'add caching or a read replica?', 'set RPS and p95 targets and load-test before go-live', the non-obvious 'DB connections are maxed out', and Catalan/Spanish 'aguantarem el pic de trànsit del llançament' / 'prepara un test de carga con objetivos de p95'. NOT making one slow request faster or profiling an N+1 (that is performance), NOT race-free Redis caches/locks/queue semantics (that is redis).",
+      "tags": [
+        "scaling",
+        "capacity",
+        "load-testing",
+        "caching",
+        "read-replicas",
+        "pgbouncer",
+        "k6",
+        "devops"
+      ],
+      "recommends": [
+        "performance",
+        "redis",
+        "postgresdb",
+        "monitoring",
+        "deployment",
+        "backups",
+        "fly-io"
       ],
       "profiles": []
     },
@@ -3262,6 +3720,24 @@
       "profiles": []
     },
     {
+      "id": "security-scan",
+      "description": "Use when running automated security scanners over a repo or app and turning the raw output into a triaged, ranked, gate-able report: scan for vulnerabilities before shipping, audit dependencies/lockfiles for known CVEs, find secrets committed to the tree or git history, run SAST, or wire scanners into CI. Triggers: 'scan this repo for vulnerabilities', 'check my package-lock for CVEs', 'did anyone commit AWS keys', 'scan git history for leaked keys', 'my lockfile has a transitive CVE', 'is aquasecurity/trivy-action@latest safe', 'set up Semgrep/gitleaks to fail CI', 'escanea el repo en busca de vulnerabilidades', 'audita las dependencias', 'analitza les dependències'. NOT threat-modeling, OWASP design reasoning, or authoring the fix (that is secure-coding).",
+      "tags": [
+        "security",
+        "sast",
+        "sca",
+        "secrets",
+        "scanning",
+        "owasp"
+      ],
+      "recommends": [
+        "secure-coding",
+        "github-actions",
+        "verify"
+      ],
+      "profiles": []
+    },
+    {
       "id": "seo-geo",
       "description": "Use when you need one existing page to rank in Google AND get cited by AI answer engines (ChatGPT Search, Perplexity, Gemini/AI Overviews, Copilot) — auditing a URL for on-page SEO, structured-data/JSON-LD schema, GEO citation levers, Core Web Vitals, crawlability, and AI-bot access in robots.txt. Triggers: 'audit this page for SEO', 'why isn't this ranking', 'get us cited in ChatGPT/Perplexity', 'optimize for AI search', 'add schema markup', 'write the JSON-LD', 'should we block GPTBot', 'our Core Web Vitals are failing', 'audita el SEO de esta página', 'optimitza per a cerca amb IA', 'afegeix schema a aquest article'. NOT writing the article body (that is article-writing), NOT keyword research or content strategy (that is content-engine).",
       "tags": [
@@ -3277,7 +3753,9 @@
         "content-engine",
         "article-writing",
         "landing-copy",
+        "performance",
         "nextjs",
+        "accessibility",
         "analytics"
       ],
       "profiles": []
@@ -3415,6 +3893,25 @@
       "profiles": []
     },
     {
+      "id": "skill-scout",
+      "description": "Use when about to do a task and a specialized skill probably exists but is not loaded, when a task feels harder than it should because generic reasoning is doing a domain skill's job, or when auditing a workspace's skill coverage for holes. Triggers: 'is there a skill for this?', 'what skill am I missing?', 'should I install a skill before doing this?', 'audit my .claude/skills against what this repo does', 'this feels like reinventing something we already have a skill for', 'qué skill me falta', 'quina skill em falta'. Names the absent skill and emits an install command, or routes to author-skill when none exists. NOT routing among skills you already have (that is suggest), and NOT writing the skill when none exists (that is author-skill).",
+      "tags": [
+        "skill-discovery",
+        "capability-gap",
+        "meta",
+        "recommendations",
+        "coverage-audit"
+      ],
+      "recommends": [
+        "suggest",
+        "author-skill",
+        "context-budget",
+        "continuous-learning",
+        "knowledge-ops"
+      ],
+      "profiles": []
+    },
+    {
       "id": "social-publisher",
       "description": "Use when planning a posting schedule, building a multi-platform content calendar, or reshaping one source asset into channel-native posts across X, LinkedIn, Instagram, Threads, Bluesky, TikTok, Facebook, or YouTube — deciding cadence, best-time slots, per-platform char/format limits, and producing a dated CSV/JSON calendar a scheduler can import. Use when the same caption flopped after being cross-posted everywhere, when reach drops after a posting gap, or when checking API publish caps before programmatic posting. Triggers: 'build me a posting schedule for next week', 'turn this blog into a week of posts', 'give me a CSV calendar I can import into Buffer', 'how often and what time should we post Reels vs LinkedIn', 'I posted the same text on every platform and it tanked', 'planificar el calendario de publicaciones', 'reaprovechar aquest post a tots els canals'. NOT the brand voice the posts speak in (that is brand-voice) and NOT the editorial strategy of what to make (that is content-engine).",
       "tags": [
@@ -3446,6 +3943,7 @@
       ],
       "recommends": [
         "vercel",
+        "testing-web",
         "design"
       ],
       "profiles": []
@@ -3465,6 +3963,7 @@
         "meeting-notes",
         "project-ops",
         "compliance",
+        "technical-writing",
         "automation-flows",
         "people-ops"
       ],
@@ -3686,6 +4185,8 @@
         "flutter",
         "react-native",
         "expo",
+        "testing-web",
+        "github-actions",
         "ship"
       ],
       "profiles": []
@@ -3722,7 +4223,29 @@
         "rust",
         "electron",
         "react",
-        "secure-coding"
+        "secure-coding",
+        "github-actions"
+      ],
+      "profiles": []
+    },
+    {
+      "id": "technical-writing",
+      "description": "Use when writing or fixing user-facing technical docs — a README, a getting-started tutorial, a how-to guide, API/CLI/config reference — and the page tries to teach, explain, and list every parameter at once, a tutorial branches into choose-your-own-adventure, a reference is padded with opinions, a README reads like a sales pitch, code samples are stale or untested, or weasel words (simply, just, easy, seamless) crept in. Triggers: 'write a README for my CLI', 'turn these notes into a step-by-step getting-started guide', 'document this REST endpoint's params and error codes', 'my docs page tries to do everything and confuses people', 'split this into tutorial vs how-to', 'this README reads like a sales pitch', 'add a Vale lint to block simply/just in our /docs', 'escriu un README clar per aquesta llibreria', 'documenta esta API con una guía paso a paso'. NOT an SEO blog article (that is article-writing), and NOT the content calendar or pipeline (that is content-engine).",
+      "tags": [
+        "documentation",
+        "technical-writing",
+        "diataxis",
+        "readme",
+        "docs-as-code",
+        "developer-docs"
+      ],
+      "recommends": [
+        "article-writing",
+        "content-engine",
+        "course-storytelling",
+        "translation-l10n",
+        "brand-voice",
+        "accessibility"
       ],
       "profiles": []
     },
@@ -3750,6 +4273,72 @@
       "profiles": []
     },
     {
+      "id": "testing-go",
+      "description": "Use when writing or running Go tests — table-driven cases, named subtests, parallel isolation, fakes instead of mock frameworks, coverage profiles, benchmarks, and fuzzing. Triggers: 'write Go tests', 'table-driven test', 'go test -cover', 'benchmark this function', 'testing.B.Loop', 'test concurrent goroutines deterministically', flaky parallel subtest uses wrong case data, golden files, 'mockear una interfaz en Go', 'cobertura de tests en Go', 'testar goroutines sense esperar 5 segons'. NOT general Go code or modules (that is go), NOT pytest fixtures (that is testing-py), NOT browser user flows (that is e2e-testing).",
+      "tags": [
+        "go",
+        "testing",
+        "table-driven-tests",
+        "benchmarks",
+        "coverage",
+        "synctest",
+        "mocks",
+        "fuzzing"
+      ],
+      "recommends": [
+        "go",
+        "secure-coding",
+        "testing-py",
+        "e2e-testing"
+      ],
+      "profiles": []
+    },
+    {
+      "id": "testing-py",
+      "description": "Use when writing or fixing Python tests with pytest and the suite is green but bugs still ship, when you must mock an external dependency and aren't sure where to patch, when coverage looks high but catches nothing, or when adding property-based tests for parsers/encoders/invariants. Triggers: 'write pytest tests', 'how do I mock this call', 'why does my mock pass when the code is broken', 'coverage is high but useless', 'patch where it's used', 'add Hypothesis property tests', 'fixture scope leaking state between tests', 'tests en Python', 'cómo mockeo esta llamada', 'la cobertura no detecta nada', 'tests de propietats'. NOT browser end-to-end flows (that is e2e-testing), NOT JS/TS unit tests (that is testing-web), NOT Go tests (that is testing-go).",
+      "tags": [
+        "pytest",
+        "python",
+        "testing",
+        "coverage",
+        "hypothesis",
+        "mocking",
+        "fixtures",
+        "property-based"
+      ],
+      "recommends": [
+        "python",
+        "code-review",
+        "github-actions",
+        "e2e-testing"
+      ],
+      "profiles": []
+    },
+    {
+      "id": "testing-web",
+      "description": "Use when writing or fixing frontend unit, component, or custom-hook tests with Vitest or Jest plus Testing Library — rendering a React/Vue/Svelte component in jsdom, testing a hook in isolation, killing 'not wrapped in act' warnings, or migrating a Jest suite to Vitest. Triggers: 'test this component', 'renderHook for my useCountdown', 'getBy vs findBy, my query is flaky', 'An update to X was not wrapped in act warning', 'mock fetch in a Vitest test', 'set up Vitest with React Testing Library', 'test mi componente de carrito', 'provar un hook amb renderHook'. NOT real-browser multi-page journeys (that is e2e-testing), NOT pytest suites (that is testing-py), NOT axe/contrast/keyboard auditing (that is accessibility).",
+      "tags": [
+        "testing",
+        "frontend",
+        "vitest",
+        "jest",
+        "testing-library",
+        "react",
+        "hooks",
+        "component-testing",
+        "jsdom"
+      ],
+      "recommends": [
+        "e2e-testing",
+        "accessibility",
+        "testing-py",
+        "react",
+        "nextjs",
+        "debug"
+      ],
+      "profiles": []
+    },
+    {
       "id": "tiktok-api",
       "description": "Use when connecting a real TikTok account to code via the Content Posting API + Display API + Business Account API — OAuth v2 (Login Kit), chunked video publish (FILE_UPLOAD / PULL_FROM_URL with init → PUT → status poll), and pulling views / watch time / full_video_watched_rate / impression sources — then logging that performance into 02-DOCS/wiki/shortform/ as a dated feedback log. Triggers: 'publish a video to my TikTok account via the API and poll until it's live', 'my TikTok access token dies after 24 hours so the cron breaks', 'the Display API won't give me watch time / full_video_watched_rate', 'publish init returns url_ownership_unverified for my PULL_FROM_URL', 'rate_limit_exceeded — 6 requests per minute', 'append this week's FYP vs profile impression sources to the wiki', 'subir vídeos a TikTok por API y guardar las métricas del canal en el wiki', 'treure la retenció i el watch time de TikTok cap al wiki'. NOT what-to-post or how-to-package it (that is shortform-strategy / shortform-packaging).",
       "tags": [
@@ -3773,7 +4362,8 @@
         "instagram-api",
         "youtube-api",
         "api-connector-builder",
-        "automation-flows"
+        "automation-flows",
+        "knowledge-ops"
       ],
       "profiles": []
     },
@@ -3800,6 +4390,27 @@
         "llm-pipeline",
         "prompt-engineering",
         "embeddings-search"
+      ],
+      "profiles": []
+    },
+    {
+      "id": "translation-l10n",
+      "description": "Use when adding a second or Nth language to a web/app product, wiring i18n plumbing (extract strings, ICU messages, locale routing), fixing broken plurals or dates, or making a UI survive other languages (RTL, text expansion). Triggers: 'ship the app in French and Arabic', 'set up next-intl routing with generateStaticParams', 'our Russian plurals always show the singular', 'German text overflows the buttons', 'dates still show American format for Spanish users', 'the Arabic layout is mirrored wrong', 'traducir la app al árabe y montar el glosario', 'necessito localitzar el producte'. NOT defining the brand's tone in one language (that is brand-voice).",
+      "tags": [
+        "i18n",
+        "l10n",
+        "internationalization",
+        "localization",
+        "translation",
+        "rtl",
+        "icu-messageformat"
+      ],
+      "recommends": [
+        "brand-voice",
+        "nextjs",
+        "seo-geo",
+        "accessibility",
+        "content-engine"
       ],
       "profiles": []
     },
@@ -3879,7 +4490,8 @@
       ],
       "recommends": [
         "deployment",
-        "nextjs"
+        "nextjs",
+        "domains-dns"
       ],
       "profiles": []
     },
@@ -4020,6 +4632,7 @@
       "recommends": [
         "php",
         "secure-coding",
+        "performance",
         "mysql",
         "shopify"
       ],
@@ -4055,7 +4668,8 @@
       "recommends": [
         "social-publisher",
         "api-connector-builder",
-        "automation-flows"
+        "automation-flows",
+        "knowledge-ops"
       ],
       "profiles": []
     },
@@ -4120,7 +4734,8 @@
         "youtube-ideation",
         "youtube-packaging",
         "youtube-api",
-        "content-engine"
+        "content-engine",
+        "decision-records"
       ],
       "profiles": []
     },
