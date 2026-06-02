@@ -101,6 +101,19 @@ If the body creeps past ~400 lines, that is the signal to extract a reference �
 - **evals/** — always. `cases.yaml` + `README.md`. A skill with no evals is unverifiable and does not ship.
 - **scripts/verify.sh** — only when the skill produces a *checkable artifact* (code, config, copy with a ban-list). **Process skills** — those judged on the safety rails they install in the agent's behavior, like the SDD-phase skills or this one — do **not** ship a `verify.sh`; their evals carry a capability scenario instead.
 
+## Orientation footer (required in every new skill)
+
+Every new skill MUST end with the orientation footer so the harness never leaves the user in seco. Append verbatim:
+
+````markdown
+
+## Orientación (siempre)
+
+Cierra cada turno con el **bloque-brújula** (📍 dónde estás · ✅ qué hiciste · 🧭 por qué · ➡️ siguiente, terminando en pregunta), calibrado al dial de `02-DOCS/wiki/harness/user-profile.md`. **Nunca termines en seco.** Protocolo completo: skill `orient` → `skills/orient/references/orientation-contract.md`. (Defiere a `suggest` el "¿instalo la skill que falta?".)
+````
+
+The full protocol lives once in the `orient` skill; the footer only references it.
+
 ## The authoring workflow
 
 Run in order. Each step gates the next.
