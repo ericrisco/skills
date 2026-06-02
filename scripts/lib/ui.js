@@ -63,18 +63,22 @@ export async function banner() {
     say('  231 skills · one CLI · zero bloat');
     return;
   }
+  const W = Math.max(...ART.map((l) => l.length));
   stdout.write('\x1b[?25l'); // hide cursor
   say('');
-  // 1) reveal top-down
-  for (let i = 0; i < ART.length; i++) {
-    say(gradientLine(ART[i], i, 0));
-    await sleep(55);
+  // 1) letters slide in left → right, column by column
+  let first = true;
+  for (let w = 1; w <= W; w++) {
+    if (!first) stdout.write(`\x1b[${ART.length}A`);
+    first = false;
+    stdout.write(ART.map((l, i) => `\x1b[2K${gradientLine(l.slice(0, w), i, 0)}`).join('\n') + '\n');
+    await sleep(20);
   }
-  // 2) flowing color wave through the wordmark
+  // 2) one flowing color wave to settle
   for (let phase = 1; phase <= ART.length; phase++) {
     stdout.write(`\x1b[${ART.length}A`);
     stdout.write(ART.map((l, i) => `\x1b[2K${gradientLine(l, i, phase)}`).join('\n') + '\n');
-    await sleep(60);
+    await sleep(45);
   }
   say(C.dim('  231 skills · one CLI · zero bloat'));
   stdout.write('\x1b[?25h'); // show cursor
