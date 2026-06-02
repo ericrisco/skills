@@ -65,23 +65,29 @@ assistant proposes new skills on its own from then on.
 
 ```
 $ rsc
-Hi 👋 What do you want to do?
-> a web store with a database, and keep the books
+👋 rsc — the skill catalog for your assistant.
 
-Here's what I've lined up for you:
-   • Your store (fast, ready for Google)        → nextjs, design, seo-geo
-   • Store your data reliably                   → postgresdb
-   • Charge customers and invoice them          → stripe, invoicing
-   • Keep the accounts                           → bookkeeping, finance-ops
-   • Put it online                               → vercel
-Shall I set it up? (yes / no) > yes
-
-✅ Done. Open your editor and start asking for things in your own words.
-   💡 When a task needs something more, I'll offer it.
+What do you want to do?          ↑↓ move · enter select
+❯ Base install — the essentials (orient + suggest + harness + init)
+  Base + Spec-Driven Development — specify → plan → implement → ship
+  Pick skills by hand, by area
+  Describe my project and let rsc choose
 ```
 
-It detects your stack from the repo, maps your words to outcomes, installs the
-matching skills, then suggests what usually comes next.
+Pick **by area** and you get a checkbox list — **↑↓ to move, space to toggle,
+enter to confirm**:
+
+```
+Languages:                       ↑↓ move · space toggle · a all · enter confirm
+❯ ◉ typescript
+  ◯ python
+  ◉ go
+  ◯ rust
+```
+
+It auto-detects your IDE and stack, installs only what you chose, then prints the
+exact next steps for **Claude Code / Cursor / Codex / Gemini** — and from there
+keeps proposing the skills a task needs.
 
 ---
 
