@@ -1,0 +1,55 @@
+skill: press-kit
+
+# Prompts that MUST load `press-kit`. The skill owns the journalist-facing
+# announcement (the press release) AND the media kit a reporter pulls from
+# (boilerplate, fact sheet, bios, asset manifest, contact block, pitch email).
+# It does NOT source the reporter list (lead-gen), write the multi-touch pitch
+# cadence (cold-outreach), define the brand tone-of-voice (brand-voice), or run
+# the owned launch campaign (marketing).
+should_trigger:
+  - prompt: "Write a press release announcing our Series A funding round."
+    why: "Core job: the journalist-facing announcement in newsroom format — a funding release with amount, lead investor, and use of funds."
+
+  - prompt: "Put together a media kit for our online newsroom."
+    why: "Core kit assembly: boilerplate, fact sheet, bios, asset manifest, contact block hosted as an online newsroom."
+
+  - prompt: "Our last press release got zero coverage — make this one quotable."
+    why: "Non-obvious. No keyword 'media kit'; the symptom (no pickup, not quotable) is exactly the form-over-pitch and soundbite problem this skill fixes."
+
+  - prompt: "Write the boilerplate and a fact sheet for our company."
+    why: "Direct request for two named sub-artifacts the skill defines — the <=100-word 'About' and the fast-fact block."
+
+  - prompt: "We announce Tuesday but want to give two outlets early access — set an embargo on this."
+    why: "Embargo handling — the exact EMBARGOED UNTIL line with timezone and the 1:1-to-relationships rule are this skill's territory."
+
+  - prompt: "Redacta una nota de prensa per al llançament del producte i munta el dossier de premsa per als periodistes."
+    why: "Catalan for 'write a press release for the product launch and assemble the press kit for journalists' — a direct request for both core artifacts."
+
+should_not_trigger:
+  - prompt: "Find me 50 tech journalists who cover fintech to send this to."
+    route_to: lead-gen
+    why: "Sourcing and qualifying the reporter/outlet list to send to is lead-gen, not writing the artifact they receive."
+
+  - prompt: "Write a 5-email cold pitch sequence with follow-ups to these reporters."
+    route_to: cold-outreach
+    why: "A multi-touch outbound cadence to many recipients is cold-outreach; press-kit writes the single release and the one carrying email, not the sequence."
+
+  - prompt: "Define our brand's tone of voice and the words we never use."
+    route_to: brand-voice
+    why: "The tone-of-voice spec and lexicon the release should obey is brand-voice; press-kit consumes those rules, it does not author them."
+
+  - prompt: "Write a 2,000-word SEO blog post on why our category matters."
+    route_to: article-writing
+    why: "Long-form owned thought-leadership content for search is article-writing, not a journalist-facing announcement."
+
+capability:
+  - scenario: "Given a one-paragraph product-launch brief (company, product, what it does, availability), produce a complete press release."
+    must_include:
+      - "A header line: 'FOR IMMEDIATE RELEASE' (or an 'EMBARGOED UNTIL [date time timezone]' line)."
+      - "A dateline in 'CITY, ST, Month DD, YYYY —' form immediately before the lede."
+      - "A 5-W lede in the first paragraph, ~40 words, that stands alone (who/what/when/where/why)."
+      - "At least one quote that is a usable soundbite attributed to a named person + title — no 'thrilled/excited to announce', no 'game-changer'."
+      - "An 'About [Company]' boilerplate paragraph of <=100 words."
+      - "A Media Contact block with a name and a real email address."
+      - "A closing '###' (or '-30-') end marker on its own line."
+      - "Total length under ~500 words / one page, inverted pyramid (most newsworthy first)."

@@ -1,0 +1,45 @@
+skill: seo-geo
+
+should_trigger:
+  - prompt: "Audit this blog post for SEO and tell me why it isn't ranking."
+    why: "Core on-page audit of an existing artifact — title/meta/H1/intent/schema/CWV — squarely this skill."
+  - prompt: "We want to get cited in ChatGPT and Perplexity answers. What do we change on the page?"
+    why: "GEO core: the Princeton citation levers + AI-bot access, applied to a concrete page."
+  - prompt: "Write the JSON-LD schema for this product page."
+    why: "Structured data — Product + Offer, with the dead-type guard. The skill emits the block."
+  - prompt: "Should we block GPTBot in our robots.txt, or will that kill our AI visibility?"
+    why: "Non-obvious: looks like a generic devops/robots question, but the training-vs-search-bot trade-off and its citation consequence is exactly seo-geo's AI-crawler-control territory."
+  - prompt: "Audita el SEO de esta página y dime si pasamos Core Web Vitals."
+    why: "Spanish; core technical + on-page audit including the CWV p75 thresholds."
+  - prompt: "Afegeix schema a aquest article del blog perquè surti com a rich result."
+    why: "Catalan; structured-data request for an Article page, with the ship-live-not-dead-types decision."
+  - prompt: "Our page has FAQ schema but we get no rich result anymore — is the markup broken?"
+    why: "Non-obvious: the markup isn't broken, FAQPage rich results are deprecated (health/gov only since 2023, gone May 2026). The skill knows the type is dead and what to do instead."
+
+should_not_trigger:
+  - prompt: "Do keyword research and build a topic cluster plan for our blog."
+    route_to: "content-engine"
+    why: "Upstream strategy — deciding what to write and which terms to target — not optimizing an existing page."
+  - prompt: "Write the actual 1500-word article for this topic."
+    route_to: "article-writing"
+    why: "Long-form body draft; seo-geo optimizes a page, it does not author the prose."
+  - prompt: "Our LCP is 5s — profile the React render and fix the slow hydration."
+    route_to: "performance"
+    why: "Render-path / hydration debugging; seo-geo only measures CWV at p75 and flags, then hands off."
+  - prompt: "Wire up Next.js generateMetadata and the app-router sitemap.ts route."
+    route_to: "nextjs"
+    why: "Framework plumbing of the metadata API; seo-geo decides the meta values, nextjs wires them."
+  - prompt: "Audit our checkout flow for keyboard navigation and color contrast."
+    route_to: "accessibility"
+    why: "WAI-ARIA / contrast / keyboard a11y, a different audit discipline than search visibility."
+
+capability:
+  - scenario: "Given a real article URL (a title, an intro paragraph, a few H2s, no JSON-LD, and unknown Core Web Vitals), produce an SEO+GEO audit with concrete fixes."
+    must_include:
+      - "A rewritten <title> ≤60 chars and meta description ≤160, with the primary query near the front."
+      - "An answer-first rewrite note: the primary query is answered in the first ~40–200 words."
+      - "Valid Article/BlogPosting JSON-LD with required props (headline, author, datePublished, image) and NO dead schema type (no FAQPage/Course/etc.)."
+      - "At least two GEO levers applied (statistic, quotation, cited source, or fluency) tied explicitly to the Princeton findings, with the keyword-stuffing-doesn't-help caveat."
+      - "Core Web Vitals stated as p75 field thresholds (LCP ≤2.5s, INP ≤200ms, CLS ≤0.1) with a measure-then-hand-to-performance note and the lab-vs-CrUX distinction."
+      - "A robots.txt note on AI-bot access: don't block OAI-SearchBot/PerplexityBot if citations are wanted; llms.txt is not a visibility signal."
+      - "An explicit handoff statement naming the owners (content-engine / article-writing / performance / nextjs) for out-of-scope work."

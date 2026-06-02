@@ -1,0 +1,60 @@
+skill: review-management
+
+# review-management owns the PUBLIC review and the AGGREGATE reputation it rolls
+# up to: earning reviews legally (FTC-clean request flow), replying on-voice within
+# the 24-48h SLA, deciding reply-vs-flag, and the cross-surface scorecard (Google
+# Business Profile, Trustpilot, App Store, Google Play). It does NOT handle private
+# 1:1 tickets (customer-support), churn/save plays (retention), ranking beyond
+# reviews (seo-geo), authoring the voice (brand-voice), or scheduling posts
+# (social-publisher).
+should_trigger:
+  - prompt: "A customer left us a 2-star Google review complaining about wait times — draft a reply."
+    why: "Core job: an on-voice public reply to a specific negative, within the 48h SLA, own-it-and-move-offline shape."
+
+  - prompt: "We want more Trustpilot reviews but only have 12 — set up a request flow."
+    why: "Earn-reviews flow: Trustpilot Invitation API, 24-48h timing, channel choice, FTC-clean no-gating ask."
+
+  - prompt: "Are we allowed to only ask our happy customers to leave reviews?"
+    why: "Non-obvious: the user doesn't name reviews-management, they ask a compliance question. The FTC gating rule lives here and the answer must be a clear NO."
+
+  - prompt: "Someone posted an obviously fake 1-star — can we get it removed or just reply?"
+    why: "The reply-vs-flag decision is owned here: flag only for fake/off-topic/conflict/policy, else reply."
+
+  - prompt: "Respon aquesta ressenya d'una estrella d'un client emprenyat."
+    why: "Catalan phrasing for a public 1-star reply — same skill regardless of language; the negative-review sequence applies."
+
+  - prompt: "Build me a dashboard of our rating and response rate across Google and the App Store."
+    why: "The reputation scorecard (rating, volume, velocity, recency, response-rate, sentiment-by-theme) across surfaces is owned here."
+
+  - prompt: "How do I post a developer reply to a Google review programmatically — what endpoint and scope?"
+    why: "Non-obvious wiring trigger: the GBP v4 updateReply PUT endpoint + business.manage scope + verified-location gate are the load-bearing facts this skill holds."
+
+should_not_trigger:
+  - prompt: "A customer emailed support angry about a refund — write the reply."
+    route_to: customer-support
+    why: "Private 1:1 channel against an SLA; no future prospect reads it. The public-vs-private line routes this to support."
+
+  - prompt: "Our churn is up; build a save play for at-risk accounts."
+    route_to: retention
+    why: "A bad review may signal churn, but the save play / win-back sequence is retention's job."
+
+  - prompt: "Make our location page rank in the Google local pack."
+    route_to: seo-geo
+    why: "Ranking levers beyond reviews — schema, on-page, GEO, local-pack signals — are seo-geo."
+
+  - prompt: "Define our brand's tone of voice so replies sound consistent."
+    route_to: brand-voice
+    why: "This skill consumes the voice guide; brand-voice authors it (traits, word bank, tone matrix)."
+
+  - prompt: "Turn this 5-star review into an Instagram carousel and schedule it."
+    route_to: social-publisher
+    why: "Repurposing + scheduling the post is social-publisher; review-management only owns the reply to the review itself."
+
+capability:
+  - scenario: "We got a specific, fair 1-star Google review about a botched install. Reply on-voice, tell me whether to flag it, and what to put in our review-request flow so this doesn't tank our rating."
+    must_include:
+      - "A reply that names the specific issue (the botched install), owns it, moves the customer to a private channel, states a concrete fix, and shows no defensiveness or public arguing."
+      - "An explicit 'do NOT flag this — it is a legitimate negative' with the flag-only-for-{fake / off-topic / conflict-of-interest / policy-violation} rule."
+      - "The 24-48h response SLA stated for the reply (within 24h helps ranking; reply to every review within 48h)."
+      - "An FTC-clean request flow: ask EVERY customer (no gating), within 24-48h of the transaction, via SMS and/or email with a direct link to the public review form."
+      - "Rationale citing the ~+0.7-star average lift from a developer/business response AND the FTC gating penalty of up to $53,088 per violation."

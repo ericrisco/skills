@@ -1,0 +1,58 @@
+skill: ads
+
+# Prompts that MUST load `ads`. The skill owns the paid-media BUY on Google and
+# Meta: campaign structure, platform-fit creative, budget/scaling, and the
+# break-even/incremental ROAS decision. It does NOT own the landing page
+# (landing-copy), the voice (brand-voice), the experiment stats (ab-testing), or
+# the channel-mix decision (marketing).
+should_trigger:
+  - prompt: "Set up our Google Ads from scratch for a DTC skincare brand."
+    why: "Standing up account structure (which campaign types, budget split, signal) is the skill's core job."
+
+  - prompt: "Our Performance Max campaign spends a fortune but barely converts — what's wrong with the structure?"
+    why: "Diagnosing and restructuring a PMax campaign (asset groups, learning phase, signal) is owned here."
+
+  - prompt: "Platform says 4.2x ROAS but the bank account disagrees — are we actually profitable?"
+    why: "Non-obvious: reads like a finance/bookkeeping question, but it's incrementality vs break-even ROAS on a paid buy — the skill's ROAS gate."
+
+  - prompt: "How much should each Meta campaign get per day, and how fast can I scale the winners?"
+    why: "Daily budget floors (50x CPA) and the <=20%/week scaling rule are the budget-and-scaling section, even though the skill is never named."
+
+  - prompt: "Qué ROAS necesito en Google Search para no perder dinero con un margen del 45%?"
+    why: "Spanish break-even ROAS math (1 ÷ margin) — a core deliverable, phrased in Spanish without the skill name."
+
+  - prompt: "La campanya de Meta no converteix des que vam activar el Consent Mode v2 — què s'ha trencat?"
+    why: "Catalan: conversions dropped after Consent Mode v2 — the measurement-setup gate (Advanced consent + Enhanced Conversions + CAPI) is owned here."
+
+should_not_trigger:
+  - prompt: "Write the landing page these ads point to."
+    route_to: landing-copy
+    why: "The destination page is the click target, not the ad-surface buy; landing-copy owns the page words."
+
+  - prompt: "Design an A/B test with proper sample size and statistical significance for our checkout."
+    route_to: ab-testing
+    why: "Experiment methodology — power, sample size, significance — is ab-testing's domain, not the media buy."
+
+  - prompt: "Should we even invest in paid this quarter, or focus on content and SEO?"
+    route_to: marketing
+    why: "The whether-to-run-paid / channel-mix decision sits one level up in marketing; ads only executes the paid buy inside that plan."
+
+  - prompt: "Build the dashboard that tracks our ad spend and revenue over time."
+    route_to: dashboard
+    why: "Constructing the reporting surface is dashboard's job; ads sets up the conversion signal but doesn't build the read-out."
+
+  - prompt: "Define the tone and voice our ad copy should speak in across every channel."
+    route_to: brand-voice
+    why: "The voice system the copy must obey is brand-voice; ads writes ad-surface copy that conforms to it."
+
+capability:
+  - scenario: "Given a product (gross margin 50%, target CPA $40) and the goal of scaling Meta acquisition, produce a launch plan."
+    must_include:
+      - "Picks a Meta surface (Advantage+ vs manual) with a one-line why tied to conversion-data volume / creative count."
+      - "Computes break-even ROAS = 1 ÷ 0.50 = 2.0x and sets a target ROAS at or above break-even (states scaling-mode 2x-3x or profit-mode higher explicitly)."
+      - "Derives the daily budget floor from ~50x target CPA (≈$2,000/day) or a staged ramp toward it."
+      - "States an existing-customer budget cap of 20-30% on Advantage+ and why (else delivery drifts to cheap retargeting)."
+      - "Asks for 15-20+ creative variations within platform char/count limits (no overflow)."
+      - "Includes a measurement-setup note: Consent Mode v2 (Advanced) + Enhanced Conversions + Meta CAPI."
+      - "Names incrementality / blended MER (not platform ROAS) as the scale-vs-kill decision, and the <=20%/week scaling rule."
+      - "Hands off destination to landing-copy, voice to brand-voice, experiment stats to ab-testing, reporting to analytics/dashboard."

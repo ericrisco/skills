@@ -1,0 +1,48 @@
+skill: market-research
+
+should_trigger:
+  - prompt: "How big is the market for AI legal-research tools in Spain?"
+    why: Core sizing request — "how big is the market for X" is the central trigger.
+  - prompt: "Sanity-check this TAM before our seed raise — does $2B hold up?"
+    why: Non-obvious; cross-checking an existing number IS the triangulation core, not deck design or modeling.
+  - prompt: "Cut our addressable market into segments and tell me which one to attack first."
+    why: Segmentation plus naming the beachhead — Job 2 of this skill.
+  - prompt: "Is there actually demand for a B2B carbon-accounting product, or are we imagining it?"
+    why: Demand-signal validation of a market hypothesis — Job 3, secondary-then-primary.
+  - prompt: "Should we size this top-down from the industry report or bottom-up from our customers?"
+    why: Non-obvious; the top-down-vs-bottom-up choice and triangulation gate are this skill's method, not a generic data pull.
+  - prompt: "¿Qué tamaño tiene el mercado de software de reservas para restaurantes y cuál es el TAM/SAM/SOM?"
+    why: Spanish trigger for the full sizing job — TAM/SAM/SOM explicitly requested.
+  - prompt: "Quina mida té el mercat d'apps de reserves i hi ha demanda real?"
+    why: Catalan trigger combining market size and demand validation — both core jobs.
+
+should_not_trigger:
+  - prompt: "Profile Competitor X — their pricing tiers, feature gaps, and recent product launches."
+    route_to: competitor-watch
+    why: A named-rival dossier with moves over time, not market-as-a-whole understanding.
+  - prompt: "Build me a list of 200 SaaS companies in fintech with the VP Eng contact for each."
+    route_to: lead-gen
+    why: An actionable list of named accounts/contacts to sell to, not a sized market.
+  - prompt: "Turn this market sizing into the opportunity slide for our deck."
+    route_to: pitch-deck
+    why: Presenting an already-produced sizing as a slide, not producing the sizing.
+  - prompt: "Build the 3-year revenue model off our SOM."
+    route_to: financial-model
+    why: Modeling forward revenue/costs off the SOM, not sizing the market.
+  - prompt: "Forecast next year's demand from our last 24 months of sales data."
+    route_to: forecasting
+    why: A single-series statistical forecast from existing history, not market sizing or signal validation.
+
+capability:
+  - scenario: >
+      Product idea: a B2B scheduling tool for dental clinics in Spain. Assumed ACV is
+      €1,200/clinic/year. You have access to web research. Produce a market memo.
+    must_include:
+      - TAM, SAM and SOM all present with numeric values, and SOM <= SAM <= TAM nesting holds.
+      - BOTH a top-down figure (industry/segment source) AND a bottom-up figure (ACV × ICP account count), with an explicit convergence/divergence note.
+      - A segment table cutting the market by firmographic/behavioral/JTBD axes with exactly one named beachhead.
+      - At least one demand signal cited, with the Google-Trends-is-relative caveat respected (no Trends curve treated as absolute size).
+      - A sources table where every load-bearing figure has a citation/URL AND an access or publication date.
+      - SAM and SOM derived from stated reasons (reach, language/geography, competition, capacity) — not assumed as flat 20%/10% of TAM.
+      - No named competitor products treated as dossiers; competition appears only as a SOM-shrinking force.
+      - An explicit hand-off note (pitch-deck for the slide, financial-model for revenue, lead-gen for the list, competitor-watch for rivals).

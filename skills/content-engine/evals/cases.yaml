@@ -1,0 +1,62 @@
+skill: content-engine
+
+# Prompts that MUST load `content-engine`. The skill owns the editorial CALENDAR
+# (built top-down from pillars) and the production PIPELINE that moves slots through
+# stages, plus the atomization PLAN. It does NOT write the pieces (article-writing,
+# newsletter, video-shorts), publish them (social-publisher), do keyword/cluster
+# research (seo-geo), or codify voice (brand-voice).
+should_trigger:
+  - prompt: "Build me a content calendar for next quarter."
+    why: "Core calendar ask — a dated, slotted editorial plan is exactly what this skill produces."
+
+  - prompt: "Set up our content production pipeline with a brief template and stages."
+    why: "Core pipeline ask — stage gates, the canonical brief, and WIP limits are the skill's second machine."
+
+  - prompt: "Turn this pillar blog post into everything — plan all the derivatives and where each goes."
+    why: "Non-obvious: looks like a writing ask but it's the atomization PLAN and routing (1:10), not the writing — owned here, then routed out."
+
+  - prompt: "móntame un calendario de contenidos y un pipeline para el equipo."
+    why: "Spanish phrasing for 'build me a content calendar and a pipeline for the team' — the core calendar+pipeline request."
+
+  - prompt: "Our content is chaos, nobody knows what to post when — give us a system."
+    why: "Non-obvious symptom phrasing with no calendar/pipeline word; the cure (documented cadence + stage gate + calendar of record) is exactly this skill."
+
+  - prompt: "What should we post and when? Define our pillars and cadence for the next quarter."
+    why: "Pillar definition + cadence + the dated plan is the top-down calendar build this skill owns."
+
+should_not_trigger:
+  - prompt: "Write the actual 1,500-word blog post about user activation."
+    route_to: article-writing
+    why: "Producing one long-form artifact is article-writing; content-engine writes the brief and owns the slot, not the prose."
+
+  - prompt: "Schedule and publish these posts to LinkedIn and X this week."
+    route_to: social-publisher
+    why: "The act of distributing/queuing to platforms is social-publisher; content-engine plans the slot, it does not ship it."
+
+  - prompt: "Do keyword research and build the topic clusters for our SEO."
+    route_to: seo-geo
+    why: "Keyword/cluster research and ranking strategy decide inputs the calendar consumes; that research is seo-geo, not the calendar."
+
+  - prompt: "Define our brand tone of voice and a do/don't word list."
+    route_to: brand-voice
+    why: "Codifying voice/tone and sample words is brand-voice; content-engine grounds in that artifact, it does not create it."
+
+  - prompt: "Remind me to post every Tuesday at 9am."
+    route_to: calendar-scheduling
+    why: "A one-off recurring reminder is calendar-scheduling, not an editorial calendar built from pillars."
+
+capability:
+  - scenario: >
+      We're a 4-person B2B SaaS team. We have a brand study and content pillars in
+      02-DOCS but no calendar and no pipeline. Build a Q3 editorial calendar and a
+      production pipeline.
+    must_include:
+      - "Grounds in the 02-DOCS brand study and pillars (or STOPs and routes to brand-voice / seo-geo if missing) before building"
+      - "Uses 4–6 pillars mapped to 3–5 clusters each, top-down (no bottom-up pile of post ideas)"
+      - "Applies the cadence baseline: ~1 flagship/month + 4–8 supporting/week + ~1 proof/month"
+      - "Honors the slot-mix rule: ~70/20/10, 20–30% slots left open/reactive, 15–25% capacity for updates"
+      - "Emits a CSV calendar artifact with the required columns (date,pillar,cluster,format,owner,stage,brief_link,atomization,mix)"
+      - "Provides a canonical brief per flagship slot (objective, persona, pillar/cluster, angle, format, owner, target keyword, success metric, atomization intent)"
+      - "Defines the pipeline stages with entry/exit gates and WIP limits matched to a small (2–5) team"
+      - "Includes an atomization plan of ≥10 derivatives per flagship, each routed to the correct sibling"
+      - "Routes writing to article-writing/newsletter/video-shorts and shipping to social-publisher — nothing is written or published in-skill"

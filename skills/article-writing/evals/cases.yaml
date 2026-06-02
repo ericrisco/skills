@@ -1,0 +1,47 @@
+skill: article-writing
+
+# Prompts that MUST load `article-writing`. The skill owns the DRAFT and the
+# on-page surface of ONE long-form article — not topic selection, not the
+# calendar, not the voice spec, not landing pages.
+should_trigger:
+  - prompt: "Write a 1,500-word blog post on how to compost in an apartment."
+    why: "Core job — drafting one long-form article from a topic at a set depth."
+  - prompt: "Rewrite this intro so the answer comes first instead of warming up for three paragraphs."
+    why: "Non-obvious — the answer-first lede is this skill's signature; no SEO keyword language but squarely in scope."
+  - prompt: "Add an FAQ section and FAQPage schema to my published article."
+    why: "On-page surface ownership — FAQ block + Article/FAQPage JSON-LD ship with the piece."
+  - prompt: "Escriu un article de blog sobre teletreball i productivitat optimitzat per SEO."
+    why: "Catalan phrasing for drafting an SEO-optimized blog article — same core job in another language."
+  - prompt: "This draft reads like AI wrote it and it's padded — tighten it to the depth the topic needs."
+    why: "Fluff/AI-tell + intent-depth pass; no explicit 'article' word but the deliverable is one tightened draft."
+  - prompt: "Restructure this rambling post into clear question-shaped H2s and H3s."
+    why: "Non-obvious — heading hierarchy as a question map is owned here, framed as editing not writing."
+
+# Prompts that must NOT load `article-writing` — each routes to a real sibling.
+should_not_trigger:
+  - prompt: "Find the best keywords and check which topics can actually rank for my site."
+    route_to: seo-geo
+    why: "Keyword research and topic/strategy selection — deciding WHAT to write, not drafting it."
+  - prompt: "Build me a 3-month editorial calendar with topic clusters."
+    route_to: content-engine
+    why: "Calendar and pipeline across many pieces, not the draft of a single article."
+  - prompt: "Define our brand tone of voice and a reusable writing style guide."
+    route_to: brand-voice
+    why: "The reusable voice spec the article is written IN, not one article."
+  - prompt: "Write the homepage hero and CTA section to convert visitors."
+    route_to: landing-copy
+    why: "A conversion landing page (hero/offer/CTA), not a long-form article."
+
+# At least one capability scenario, graded by rubric against a produced draft.
+capability:
+  - scenario: "Draft a ~1,500-word article from the target query 'how to choose a standing desk', producing the prose plus its full on-page surface."
+    must_include:
+      - "Answer-first lede that fully answers the query in the first ~200 words (best desk type + the deciding specs), before any windup."
+      - "Question-shaped H2/H3 hierarchy with exactly one H1 matching the query."
+      - "Title tag 50-60 chars with the primary keyword in the first ~30-35 chars."
+      - "Meta description 140-160 chars, value-first."
+      - "A short, keyword-bearing slug."
+      - "An FAQ block of real questions plus matching Article/BlogPosting + FAQPage JSON-LD (JSON-LD only) describing the visible content."
+      - "3-5 contextual internal-link slots with descriptive anchor text (not 'click here')."
+      - "Depth matched to informational intent (~1,500-2,000 words) with no AI-tell padding — passes the banlist."
+      - "An E-E-A-T signal: named author and/or cited credible sources, plus first-hand experience or original data."

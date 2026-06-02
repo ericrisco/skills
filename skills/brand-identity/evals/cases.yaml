@@ -1,0 +1,43 @@
+skill: brand-identity
+
+should_trigger:
+  - prompt: "Build our brand identity — logo brief, colors, fonts, the whole brand book."
+    why: "The core ask: all four deliverable parts (logo, color, type, usage) named explicitly. Exact center of the skill."
+  - prompt: "Pick a color palette and document the hex, rgb, and cmyk values for our brand."
+    why: "Color-system core; the four-channel value requirement (HEX/RGB/CMYK/OKLCH) is the skill's contract for colors."
+  - prompt: "Define our type system: primary and secondary typefaces with a scale and weights."
+    why: "Type-system core — 2-3 typefaces, scale, weights, pairing rationale are exactly this skill's bar."
+  - prompt: "We've got random fonts and hex codes scattered across files — consolidate them into one system."
+    why: "Non-obvious rebrand/consolidation trigger: no 'brand book' wording, but unifying ad-hoc colors/fonts into a system is precisely the rebrand path."
+  - prompt: "Necesito una identidad de marca y la guia de marca con normas de uso del logo."
+    why: "Spanish/Catalan trigger naming brand identity, brand guidelines, and logo usage rules — all owned here."
+  - prompt: "Export a design-tokens.json with our brand colors so the dev team stops eyeballing the palette."
+    why: "Non-obvious: phrased as a tokens export, but emitting the W3C design-tokens.json hand-off contract is this skill's machine-readable deliverable."
+
+should_not_trigger:
+  - prompt: "Make this landing page look premium — pick the layout, motion, and ship the Tailwind."
+    route_to: design
+    why: "Applied UI layer (layout, motion, real code) consumes the brand foundation; it is not the foundation itself."
+  - prompt: "Write our tone of voice and a tagline for the homepage."
+    route_to: brand-voice
+    why: "Verbal identity — words and tone — not the visual system."
+  - prompt: "Write the hero headline and the CTA copy for our pricing page."
+    route_to: marketing
+    why: "Page words / conversion copy, not the logo/color/type system."
+  - prompt: "Put together a press kit with our logos and boilerplate for journalists."
+    route_to: press-kit
+    why: "Media packaging of finished assets, not defining the brand system."
+  - prompt: "Design the investor pitch deck slides for our seed round."
+    route_to: presentations
+    why: "Deck composition/visuals, not the brand foundation the deck would draw from."
+
+capability:
+  - scenario: "We're a fintech startup 'Ledgerly'. Create our brand identity foundation."
+    must_include:
+      - "A logo brief with the full variation set (primary / stacked / mark-only / monochrome), a clear-space rule tied to the mark's cap/x-height, minimum sizes (e.g. ~24px digital / ~10mm print), and a file + favicon export matrix (SVG primary, PNG/ICO fallbacks, apple-touch 180, android 192/512, site.webmanifest)."
+      - "Color roles assigned (2-3 primary, 2-3 secondary, a neutral ramp, exactly one accent), each color carrying HEX + RGB + CMYK + OKLCH — not HEX alone."
+      - "At least one documented text-on-background pair meeting WCAG 2 AA (>= 4.5:1 normal text / 3:1 large), stated as an explicit pair (fg on bg with the ratio), and a note that logo/brand-name text is exempt under WCAG 1.4.3 while typed taglines are not."
+      - "A type system of 2-3 typefaces max with a modular scale, named weights, and a one-line pairing rationale (plus a variable-font note)."
+      - "A W3C-format design-tokens.json (2025.10) emitted with light/dark roles via group inheritance / $extends and OKLCH values, mapped to CSS custom properties / Tailwind v4 @theme."
+      - "Usage/misuse rules (no stretching, no off-palette color, require the mono variation on busy backgrounds) plus an explicit hand-off note to design as the skill that applies the tokens."
+      - "A pointer to run scripts/verify.sh on the emitted design-tokens.json to confirm roles, hex coverage, and AA contrast before claiming done."

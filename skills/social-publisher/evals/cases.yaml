@@ -1,0 +1,55 @@
+skill: social-publisher
+
+# Prompts that MUST load `social-publisher`. The skill owns distribution MECHANICS:
+# cadence, best-time slots, per-platform native reshaping, and a dated schedulable
+# calendar artifact. It does NOT define brand voice (brand-voice), pick topics
+# (content-engine), write the source article (article-writing), or edit the video
+# (video-shorts).
+should_trigger:
+  - prompt: "Build me a posting schedule for next week across LinkedIn, X and Instagram."
+    why: "Core job — a multi-platform cadence + calendar is exactly the deliverable this skill produces."
+
+  - prompt: "Turn this blog post into posts for all our channels."
+    why: "Repurposing one source asset into channel-native variants is the skill's central mechanic."
+
+  - prompt: "Reaprovechar aquest article a Instagram, X i LinkedIn."
+    why: "Catalan for 'repurpose this article to IG, X and LinkedIn' — direct repurposing request in another language."
+
+  - prompt: "I posted the same caption on every platform and it flopped — help."
+    why: "Non-obvious. User names the symptom (identical cross-post) not the skill; the fix is native per-channel reshaping, this skill's signature move."
+
+  - prompt: "How often and what time should we post Reels vs LinkedIn?"
+    why: "Cadence + best-time slots per platform — the cadence-grid section owns this."
+
+  - prompt: "Give me a CSV content calendar I can import into Buffer."
+    why: "Explicit request for the schedulable artifact this skill exists to emit."
+
+should_not_trigger:
+  - prompt: "Define our brand's tone of voice for social so every post sounds like us."
+    route_to: brand-voice
+    why: "Defining the verbal identity the posts must speak in is brand-voice; this skill shapes posts but does not invent the voice."
+
+  - prompt: "Script this Reel — I need the hook and the cut structure."
+    route_to: video-shorts
+    why: "Writing/editing the short-form video itself is video-shorts; social-publisher schedules and reshapes captions, not the edit."
+
+  - prompt: "Reply to and moderate the comments on our last post."
+    route_to: community
+    why: "Engaging, replying, and moderation is community; this skill ends at scheduling, not conversation."
+
+  - prompt: "What topics and themes should our content cover this quarter?"
+    route_to: content-engine
+    why: "The editorial strategy of WHAT to make is content-engine; social-publisher decides when/where/how-often to distribute what already exists."
+
+capability:
+  - scenario: >
+      Given one ~1,200-word blog post plus the brand's handles, produce a one-week
+      multi-platform content calendar (LinkedIn, X, Instagram, Bluesky) that
+      repurposes the post into native variants and is ready to schedule.
+    must_include:
+      - "Per-platform NATIVE variants — not the same text pasted across channels (thread vs narrative post vs carousel vs short thread)."
+      - "A cadence that respects 2026 frequency norms (e.g. LinkedIn 3–5x/week, X 3–5x/day, IG 3–5x/week)."
+      - "Best-time slots provided as starting hypotheses WITH the explicit 'validate against the account's own analytics' caveat."
+      - "A schedulable table/CSV with the required columns (date, time, timezone, platform, format, source_asset_id, hook, body, status) and a draft→scheduled status."
+      - "Flags any platform publish-limit or approval gate that affects the plan (e.g. IG rolling-24h cap, X pay-per-use, LinkedIn partner gate, TikTok audit)."
+      - "Does NOT invent a brand voice — assumes/uses an existing voice or routes to brand-voice; does NOT pick new topics (routes to content-engine)."
