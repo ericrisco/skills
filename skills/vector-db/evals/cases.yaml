@@ -1,0 +1,45 @@
+skill: vector-db
+
+should_trigger:
+  - prompt: "Set up a Qdrant collection with metadata filtering for our docs."
+    why: "Core store design — collection schema plus a payload-indexed filter field is squarely vector-db."
+  - prompt: "My similarity search ignores my category filter and recall is bad."
+    why: "Reads like a bug but is a store-config issue (post-filter / unindexed filter / low ef_search); the symptom phrasing is non-obvious and never names a vector DB."
+  - prompt: "We need to move off Pinecone to pgvector to cut cost."
+    why: "Migration between stores, including metric/index/quantization re-design, is explicitly in scope."
+  - prompt: "Add hybrid search with RRF to our Weaviate setup."
+    why: "Hybrid dense+sparse plus a fusion strategy is a named vector-db section."
+  - prompt: "crear una colección en Qdrant con cuantización binaria para ahorrar RAM"
+    why: "Spanish trigger covering quantization/cost — binary quantization tradeoff is core scope."
+  - prompt: "ef_search is 40 and recall is only 0.7, how do I tune the HNSW index?"
+    why: "Non-obvious tuning phrasing; recall-vs-latency knob tuning against a baseline is owned here."
+  - prompt: "My filtered pgvector query keeps returning fewer than k rows when I add a WHERE on tenant_id."
+    why: "Classic pgvector 0.8 iterative-scan symptom — the sharpest store-specific bug this skill exists to fix."
+
+should_not_trigger:
+  - prompt: "Which embedding model and chunk size should I use for these PDFs?"
+    route_to: "embeddings-search"
+    why: "Producing/chunking vectors is the technique layer, not the store."
+  - prompt: "Build the full RAG pipeline: retrieve, rerank, prompt, and generate an answer."
+    route_to: "rag"
+    why: "End-to-end pipeline orchestration and its eval, not the data layer underneath it."
+  - prompt: "My Postgres is slow, help me read this EXPLAIN and add the right indexes."
+    route_to: "postgresdb"
+    why: "General Postgres performance with no vector column involved is postgresdb's surface."
+  - prompt: "Cache these API responses in Redis with a 5-minute TTL."
+    route_to: "redis"
+    why: "Redis as a cache, not as a vector store."
+  - prompt: "Set up Supabase auth and row-level security for my app."
+    route_to: "supabase"
+    why: "Supabase platform features, not its pgvector usage."
+
+capability:
+  - scenario: "Design a pgvector setup for 2M OpenAI text-embedding-3-small (1536-dim) vectors with a tenant_id filter. Search is slow and sometimes returns fewer than k rows when filtering."
+    must_include:
+      - "cosine index (vector_cosine_ops / <=>) to match the embedding model"
+      - "HNSW with sensible m and ef_construction (ef_construction >= 2*m) plus query-time hnsw.ef_search"
+      - "hnsw.iterative_scan (0.8) so the selective tenant_id filter stops returning fewer than k rows"
+      - "an index on tenant_id (B-tree or partition) so the filter is cheap"
+      - "a recall-measurement step against an exact/brute-force baseline before shipping"
+      - "halfvec mentioned as an optional ~2x storage cut at near-identical recall"
+      - "routes embedding-model and chunking questions to embeddings-search"

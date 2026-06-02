@@ -1,0 +1,41 @@
+skill: duckdb
+
+should_trigger:
+  - prompt: "I have a directory full of monthly parquet files and I want to sum revenue by region across all of them. What's the fastest way without setting up infrastructure?"
+    why: "Core case: analytical aggregate over a folder of Parquet files in place, explicitly 'without infrastructure' — DuckDB's killer read_parquet-glob feature."
+  - prompt: "My pandas groupby on a 5GB dataframe takes forever and sometimes runs out of memory. Is there a faster way to do this aggregation?"
+    why: "Replacing a slow/OOM pandas groupby/merge with a vectorized out-of-core engine is a named when-to-use; the user never says DuckDB."
+  - prompt: "Necesito analizar un CSV gigante de varios GB en mi portátil sin levantar un servidor de base de datos. ¿Qué uso?"
+    why: "Spanish phrasing for ad-hoc analytics on a large CSV on a single machine with no server — exactly DuckDB's niche."
+  - prompt: "I want to run SQL directly over a dataframe inside my Jupyter notebook without exporting it first. Possible?"
+    why: "Embedded analytics in a notebook via replacement scan over an in-scope frame — a core embedded-OLAP use case."
+  - prompt: "Can I query these parquet files straight from our S3 bucket and aggregate them, without downloading them to disk first?"
+    why: "Non-obvious: most people download first; DuckDB reads s3:// in place via httpfs with row-group pushdown. Tests intent over keywords."
+  - prompt: "I need an out-of-core aggregate that spills to disk because the join result won't fit in RAM, but I don't want to stand up Spark or a cluster."
+    why: "Non-obvious single-node out-of-core spilling workload that explicitly rejects distributed infra — DuckDB scales up, not out."
+
+should_not_trigger:
+  - prompt: "Build a production analytics API that serves dashboards to hundreds of concurrent users with sub-second queries all day."
+    route_to: "clickhouse-analytics"
+    why: "Many concurrent users + always-on production serving is the single-writer/single-process boundary DuckDB explicitly cedes to ClickHouse."
+  - prompt: "Set up the database for my web app to store users, orders, and handle lots of small writes with foreign keys and a connection pool."
+    route_to: "postgresdb"
+    why: "Transactional OLTP app database with many small writes and FKs — row-store territory, not columnar OLAP."
+  - prompt: "What's the correct syntax for a SQL window function using ROW_NUMBER with PARTITION BY and ORDER BY?"
+    route_to: "sql"
+    why: "Engine-agnostic SQL language question, not an engine choice; belongs to the generic sql skill."
+  - prompt: "I need to embed a small transactional database inside my mobile/edge app for local reads and writes that syncs later."
+    route_to: "sqlite-turso"
+    why: "Embedded single-file TRANSACTIONAL store at the edge — same niche as DuckDB but opposite (OLTP) workload."
+  - prompt: "Build a similarity search over our document embeddings to find the nearest vectors for a query."
+    route_to: "vector-db"
+    why: "Vector/embedding search as the core workflow is vector-db's job even though DuckDB ships a VSS extension."
+
+capability:
+  - scenario: "User has a folder of monthly Parquet files at `sales/2025-*.parquet`, each with columns region, amount, ts. They want to aggregate total revenue by region across ALL files and write the result to `summary.parquet`, with no infrastructure."
+    must_include:
+      - "Reads the files with a glob in place — read_parquet('sales/2025-*.parquet') or FROM 'sales/2025-*.parquet' — no intermediate pandas/Polars load step"
+      - "Aggregates with GROUP BY (ideally GROUP BY ALL) and an aggregate function like sum(amount) AS revenue"
+      - "Exports with COPY (query) TO 'summary.parquet' (FORMAT parquet) rather than writing a CSV or pickling a dataframe"
+      - "Uses DuckDB (pip install duckdb / duckdb.sql or the CLI) and does not stand up a server or a cluster"
+      - "Optionally notes only the needed columns are scanned (columnar pushdown) and/or pins the version, without over-engineering"

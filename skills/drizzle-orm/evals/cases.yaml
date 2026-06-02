@@ -1,0 +1,47 @@
+skill: drizzle-orm
+
+should_trigger:
+  - prompt: "Set up Drizzle ORM with Postgres and write the users schema"
+    why: Core setup — install, drizzle.config.ts, pgTable schema; the skill's primary job.
+  - prompt: "drizzle-kit generate is producing a conflicting migration, how do I resolve it?"
+    why: Migration-conflict / commutativity detection is drizzle-kit-specific; squarely this skill.
+  - prompt: "My db.query.posts.findMany returns posts without the author relation"
+    why: Non-obvious — the fix is relations + `with` + passing { schema }/{ relations } to drizzle().
+  - prompt: "Should I use drizzle push or generate+migrate for production?"
+    why: Non-obvious workflow decision the skill resolves (push=prototyping only).
+  - prompt: "Vull definir l'esquema amb Drizzle i tipus type-safe a TypeScript"
+    why: Catalan trigger for schema-as-code + $inferSelect/$inferInsert types.
+  - prompt: "Migrar de Prisma a Drizzle porque quiero algo más ligero para edge"
+    why: Spanish; boundary-adjacent but still Drizzle (target ORM is Drizzle, edge driver choice).
+  - prompt: "How do I wire Drizzle to Neon over HTTP from a Cloudflare Worker?"
+    why: Driver entrypoint selection (neon-http, edge caveats) is in this skill's scope.
+
+should_not_trigger:
+  - prompt: "Generate a Prisma client from schema.prisma"
+    route_to: prisma-orm
+    why: Prisma DSL + codegen client is the rival ORM, not Drizzle.
+  - prompt: "Plan a zero-downtime expand/contract migration strategy"
+    route_to: db-migrations
+    why: ORM-agnostic migration strategy, not Drizzle's drizzle-kit workflow.
+  - prompt: "Tune Postgres indexes and read an EXPLAIN ANALYZE plan"
+    route_to: postgresdb
+    why: Engine-level indexing/plan reading; Drizzle only expresses these from TS.
+  - prompt: "Set up my Neon project and configure connection pooling"
+    route_to: neon
+    why: Platform/account setup, not the Drizzle ORM layer.
+  - prompt: "Write a raw SQL window-function query for a report"
+    route_to: sql
+    why: Raw SQL authoring unattached to Drizzle's query builder.
+
+capability:
+  - scenario: >
+      Add a `posts` table related to `users`, write a type-safe query loading each user with their
+      posts, and produce the migration to apply it.
+    must_include:
+      - "pgTable for posts with a foreign key (.references(() => users.id))"
+      - "relations defined via relations() OR defineRelations()"
+      - "{ schema } (v1) or { relations } (v2) passed to drizzle()"
+      - "db.query.users.findMany({ with: { posts: true } })"
+      - "drizzle-kit generate then migrate (NOT push) for the migration"
+      - "row types derived with $inferSelect / $inferInsert"
+      - "matching dialect 'postgresql' in drizzle.config.ts and pgTable helper"

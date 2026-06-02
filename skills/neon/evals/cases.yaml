@@ -1,0 +1,45 @@
+skill: neon
+
+should_trigger:
+  - prompt: "Connecting to Neon from a Cloudflare Worker — should I use neon() or Pool?"
+    why: Core driver/transport decision for an edge runtime; the heart of this skill.
+  - prompt: "Set up a database branch per pull request so previews get isolated data."
+    why: Per-PR copy-on-write branching workflow, Neon's signature platform feature.
+  - prompt: "I keep getting 'too many connections' from my Vercel function hitting Neon."
+    why: Non-obvious foot-gun — pooled endpoint and module-scope Pool leak, not an engine issue.
+  - prompt: "The first request after the app's been idle a while is super slow against our Neon DB."
+    why: Non-obvious symptom phrasing for scale-to-zero cold start (5-min idle resume).
+  - prompt: "Conexión serverless a Postgres en Neon: ¿qué connection string uso para las migraciones?"
+    why: Spanish; pooled-vs-direct rule (migrations need the direct, non -pooler string).
+  - prompt: "Vull una branca de base de dades per cada PR amb neonctl i que s'esborri al tancar."
+    why: Catalan; per-PR branching with neonctl and teardown — directly in scope.
+
+should_not_trigger:
+  - prompt: "Design the schema and pick indexes for my orders table in Postgres."
+    route_to: postgresdb
+    why: Engine craft — provider-agnostic schema and indexing, identical on any Postgres 16.
+  - prompt: "Write the Drizzle schema and a migration for my Neon DB."
+    route_to: drizzle-orm
+    why: ORM authoring; Neon only supplies the driver adapter line, not the query/schema API.
+  - prompt: "Set up auth and storage with realtime subscriptions for my app."
+    route_to: supabase
+    why: Different BaaS owning auth/storage/realtime, not the Neon serverless-Postgres layer.
+  - prompt: "Deploy my Next.js app to Vercel with preview deployments."
+    route_to: vercel
+    why: Deployment target and platform config, not the database connection or branching.
+  - prompt: "Plan a backup and point-in-time recovery strategy for production."
+    route_to: backups
+    why: Backup discipline; Neon's branch-as-restore is mentioned but the strategy belongs to backups.
+
+capability:
+  - scenario: >
+      Wire a Next.js app deployed on Vercel to Neon. The agent must choose connection strings,
+      pick the right driver per access pattern, handle a multi-step atomic operation safely from a
+      serverless function, and outline per-PR branch isolation in CI.
+    must_include:
+      - Uses the pooled (-pooler) string for app runtime and the direct (non -pooler) string for migrations.
+      - HTTP neon() for one-shot read paths (edge/serverless, single round-trip).
+      - WebSocket Pool created AND closed inside the request handler, never at module scope.
+      - Uses sql.transaction([...]) or a WebSocket Pool for the multi-step atomic operation, not HTTP single statements expecting interactivity.
+      - Per-PR branch via neonctl or the Neon API with teardown on PR close.
+      - Defers schema and index design to postgresdb rather than redoing engine craft.
