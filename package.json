@@ -13,7 +13,8 @@
     "manifest:check": "node scripts/build-manifest.js --check",
     "validate": "node scripts/build-manifest.js --validate",
     "test": "node --test",
-    "coverage": "c8 --reporter=text node --test"
+    "coverage": "c8 --reporter=text node --test",
+    "prepublishOnly": "npm run manifest && npm run validate"
   },
   "dependencies": {
     "@iarna/toml": "^2.2.5",
@@ -23,5 +24,12 @@
   "devDependencies": {
     "c8": "^10.1.3"
   },
-  "files": ["scripts", "targets", "schema", "skills", "manifest.json"]
+  "files": ["scripts", "targets", "schema", "skills", "manifest.json"],
+  "keywords": ["agent-skills", "claude-code", "cursor", "codex", "gemini", "cli", "skills", "ai"],
+  "license": "MIT",
+  "author": "Eric Risco",
+  "homepage": "https://github.com/ericrisco/skills#readme",
+  "repository": { "type": "git", "url": "git+https://github.com/ericrisco/skills.git" },
+  "bugs": { "url": "https://github.com/ericrisco/skills/issues" },
+  "publishConfig": { "access": "public" }
 }
