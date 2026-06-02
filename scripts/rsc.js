@@ -87,8 +87,8 @@ function printNextSteps(target, ids) {
   }
   say(`   ${n++}. From there, work in your own words. orient + suggest stay always-on:`);
   say('      they keep you oriented after each step and propose the missing skill (you confirm, it installs).');
-  say('\n   Add something by hand anytime:    npx rsc add <skill>');
-  say('   Browse the catalog / get picks:   npx rsc consult "whatever you need"');
+  say('\n   Add something by hand anytime:    npx @ericrisco/rsc add <skill>');
+  say('   Browse the catalog / get picks:   npx @ericrisco/rsc consult "whatever you need"');
   say('────────────────────────────────────────────────────────');
 }
 
@@ -108,12 +108,12 @@ async function wizard() {
   else if (choice === 'sdd') ids = skillsForProfile(m, 'core');
   else if (choice === 'manual') ids = await manualSelect();
   else if (choice === 'describe') ids = await describeFlow();
-  else { say("Didn't catch that. Run again: npx rsc"); return; }
+  else { say("Didn't catch that. Run again: npx @ericrisco/rsc"); return; }
 
   // The floor is always installed: the compass + the detector.
   ids = [...new Set(['orient', 'suggest', ...ids])];
   if (ids.length <= 2 && choice !== 'base') {
-    say('\nNo skills were chosen. Anytime: npx rsc');
+    say('\nNo skills were chosen. Anytime: npx @ericrisco/rsc');
     return;
   }
 
@@ -121,7 +121,7 @@ async function wizard() {
   say(`\nI'll install ${ids.length} skills into ${target}:`);
   say('   ' + ids.join(', '));
   if (!yes(await ask('\nInstall it? (yes / no) > '))) {
-    say('No problem. Anytime: npx rsc');
+    say('No problem. Anytime: npx @ericrisco/rsc');
     return;
   }
   await applyInstall({ skillIds: ids, target });
@@ -166,7 +166,7 @@ async function main() {
         say(JSON.stringify(registryStatus(), null, 2));
         return;
       }
-      say('Use: npx rsc registry refresh | registry status');
+      say('Use: npx @ericrisco/rsc registry refresh | registry status');
       return;
     }
     case 'uninstall': {
@@ -177,7 +177,7 @@ async function main() {
     }
     default:
       say(`rsc: unknown command '${cmd}'.`);
-      say('Use: npx rsc | add <id...> | install --profile <p> | consult "<text>" | list | registry refresh | doctor | uninstall <id>');
+      say('Use: npx @ericrisco/rsc | add <id...> | install --profile <p> | consult "<text>" | list | registry refresh | doctor | uninstall <id>');
   }
 }
 
