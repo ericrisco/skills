@@ -66,14 +66,25 @@ const GRADE_SCHEMA = {
 }
 
 phase('Load')
-const loaded = await agent(
-  `Read two files and return structured data — do not summarize, return content verbatim where asked.\n` +
-  `1. skills/${skillId}/SKILL.md — return its full text as "skillBody".\n` +
-  `2. skills/${skillId}/evals/cases.yaml — under the "capability:" key is a list. For each entry return ` +
-  `{scenario: <the "scenario" string verbatim>, mustInclude: [<each string under that entry's "must_include">]}.\n` +
-  `Return {skillId: "${skillId}", skillBody, scenarios}. If either file is missing, return skillBody "" and scenarios [].`,
-  { label: `load:${skillId}`, phase: 'Load', schema: LOAD_SCHEMA, agentType: 'Explore' },
-)
+const injected = (typeof args === 'object' && args && Array.isArray(args.scenarios)) ? args.scenarios : null
+
+const loaded = injected
+  ? await (async () => {
+      const body = await agent(
+        `Read skills/${skillId}/SKILL.md and return its full text as "skillBody". ` +
+        `Return {skillId: "${skillId}", skillBody, scenarios: []}.`,
+        { label: `load-body:${skillId}`, phase: 'Load', schema: LOAD_SCHEMA, agentType: 'Explore' },
+      )
+      return { skillId, skillBody: (body && body.skillBody) || '', scenarios: injected }
+    })()
+  : await agent(
+      `Read two files and return structured data — do not summarize, return content verbatim where asked.\n` +
+      `1. skills/${skillId}/SKILL.md — return its full text as "skillBody".\n` +
+      `2. skills/${skillId}/evals/cases.yaml — under the "capability:" key is a list. For each entry return ` +
+      `{scenario: <the "scenario" string verbatim>, mustInclude: [<each string under that entry's "must_include">]}.\n` +
+      `Return {skillId: "${skillId}", skillBody, scenarios}. If either file is missing, return skillBody "" and scenarios [].`,
+      { label: `load:${skillId}`, phase: 'Load', schema: LOAD_SCHEMA, agentType: 'Explore' },
+    )
 
 if (!loaded || !Array.isArray(loaded.scenarios) || loaded.scenarios.length === 0) {
   return { skillId, scenarios: [], error: 'no-capability-scenarios' }
