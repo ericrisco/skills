@@ -1,0 +1,27 @@
+{
+  "name": "rsc-universal",
+  "version": "0.1.0",
+  "description": "Eric Risco's agent-skills catalog as a granular, self-recommending CLI installer.",
+  "type": "module",
+  "bin": {
+    "rsc": "scripts/rsc.js",
+    "rsc-install": "scripts/install-apply.js"
+  },
+  "engines": { "node": ">=18" },
+  "scripts": {
+    "manifest": "node scripts/build-manifest.js",
+    "manifest:check": "node scripts/build-manifest.js --check",
+    "validate": "node scripts/build-manifest.js --validate",
+    "test": "node --test",
+    "coverage": "c8 --reporter=text node --test"
+  },
+  "dependencies": {
+    "@iarna/toml": "^2.2.5",
+    "ajv": "^8.18.0",
+    "sql.js": "^1.14.1"
+  },
+  "devDependencies": {
+    "c8": "^10.1.3"
+  },
+  "files": ["scripts", "targets", "schema", "skills", "manifest.json"]
+}
