@@ -1,0 +1,42 @@
+skill: kpi-framework
+
+should_trigger:
+  - prompt: "What should we even be measuring for our new product?"
+    why: No agreed metric exists yet — the core 'choose what to measure' trigger.
+  - prompt: "We track 40 KPIs and none of them lead anywhere — help us pick what actually matters."
+    why: KPI sprawl with no leading metric; needs one north star plus a driver set. Non-obvious framing — the symptom is too many metrics, not too few.
+  - prompt: "Is 'signups' a leading or lagging indicator for us?"
+    why: Leading-vs-lagging classification of an output metric, the input/output distinction at the heart of the skill.
+  - prompt: "Set an activation-rate target that won't get gamed."
+    why: Non-obvious — pairs target-setting with Goodhart's Law and guardrail design, not just a number.
+  - prompt: "quins KPIs triem per al nostre producte SaaS?"
+    why: Catalan trigger — 'which KPIs do we pick for our SaaS product', the metric-selection decision.
+  - prompt: "Audit our dashboard metrics for vanity numbers and tell us which ones are un-actionable."
+    why: Vanity-metric and actionability audit of existing KPIs — the reject/classify side of the skill.
+
+should_not_trigger:
+  - prompt: "Build the dashboard that displays our north-star metric."
+    route_to: dashboard
+    why: Displaying a chosen metric is a display/build task; kpi-framework only decides which metric.
+  - prompt: "Instrument the activation event in our app and set up the funnel."
+    route_to: analytics
+    why: Event instrumentation and funnels are analytics implementation, downstream of the metric decision.
+  - prompt: "Write the monthly metrics report for the board."
+    route_to: reporting
+    why: Producing the recurring narrative around numbers is reporting, not choosing the numbers.
+  - prompt: "Design an A/B test to lift our activation rate."
+    route_to: ab-testing
+    why: Designing an experiment to move an input is ab-testing; kpi-framework supplies the input to move.
+  - prompt: "Project our MRR forward 12 months given current growth."
+    route_to: forecasting
+    why: Projecting a metric over time is forecasting, not defining which metric matters.
+
+capability:
+  - scenario: "A seed-stage B2B SaaS team says 'we want more usage' and asks what they should measure. They have signups and total logins tracked, nothing else. Produce a metric definition doc."
+    must_include:
+      - One output north-star metric tied to retained/delivered value, expressed as a rate or ratio (not a raw count like total signups or total logins).
+      - 3-5 leading, directly controllable input drivers stated as concrete instrumentable events (e.g. % of new accounts reaching an activation milestone in week 1), not abstractions like 'engagement'.
+      - At least one guardrail/countermetric with the specific gaming risk it protects against named.
+      - A target for the north star with an explicit baseline, a calibrated magnitude (not 'double it'), a target date, and an owner.
+      - An explicit rejection of a vanity metric (e.g. total signups or total logins) with the reasoning for why it is rejected.
+      - A handoff note that instrumentation goes to analytics and display goes to dashboard.

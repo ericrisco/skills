@@ -1,0 +1,49 @@
+skill: ab-testing
+
+should_trigger:
+  - prompt: "How many users per arm do I need to detect a 2% lift on a 10% baseline conversion?"
+    why: Core sample-size sizing from baseline + MDE + power — the central pre-test calculation this skill owns.
+  - prompt: "Is this A/B result statistically significant? Control converted 540/10000, variant 590/10000."
+    why: Read-out of a finished proportion test — two-proportion z-test, lift, CI, p-value together.
+  - prompt: "Our test has run two weeks and still isn't significant, what do we do now?"
+    why: Non-obvious. "Inconclusive" almost always means underpowered, peeked, or an SRM — a design diagnosis, not a re-run.
+  - prompt: "Can we use CUPED to get faster results on our checkout experiment?"
+    why: Variance reduction via a pre-experiment covariate — when it helps, the formula, and when it does nothing.
+  - prompt: "We keep peeking at the dashboard and stopping the moment it hits p<0.05 — is that a problem?"
+    why: Non-obvious optional-stopping trap; peeking inflates Type-I error far above alpha. Fixed horizon or always-valid inference.
+  - prompt: "El experiment de la landing no surt significatiu, com el dissenyo bé des de zero?"
+    why: Catalan trigger — rescue an inconclusive experiment by redesigning the hypothesis/MDE/sample-size up front.
+  - prompt: "Cuántos usuarios necesito para detectar un 1.5pp de mejora con 80% de potencia?"
+    why: Spanish trigger for sample-size computation from MDE and power.
+
+should_not_trigger:
+  - prompt: "Build a dashboard tracking weekly signups and churn over time."
+    route_to: analytics
+    why: Recurring metric tracking and event instrumentation, not a controlled experiment with a hypothesis.
+  - prompt: "Define our north-star metric and the KPI tree underneath it."
+    route_to: kpi-framework
+    why: Deciding which metrics matter, not designing or analyzing a test of a change.
+  - prompt: "Forecast next quarter's revenue from the last 24 months of data."
+    route_to: forecasting
+    why: Time-series projection into the future, not a randomized comparison of two arms.
+  - prompt: "Clean and dedupe this messy events CSV before any analysis."
+    route_to: data-cleaning
+    why: Data preparation, not experiment design or read-out.
+  - prompt: "Turn last month's experiment results into a stakeholder slide deck."
+    route_to: reporting
+    why: Periodic stakeholder communication of results, not the statistical design/analysis itself.
+
+capability:
+  - scenario: >
+      Design, size, and plan the analysis for a test of a new one-click checkout button. Baseline
+      purchase conversion is 12%; the team wants to detect a +1.5pp absolute lift at 80% power and
+      alpha 0.05, with about 1,800 eligible users per day. Include a plan to speed it up with CUPED.
+    must_include:
+      - A falsifiable hypothesis with H0/H1 and exactly one primary metric (purchase conversion), plus guardrail metrics
+      - Randomization unit equals analysis unit (by user), not by session
+      - Sample-size calculation naming statsmodels proportion_effectsize and NormalIndPower / solve_power
+      - Converting n per arm to a duration in days from daily eligible traffic, rounded up to whole weeks
+      - A fixed-horizon stop rule and an explicit no-peeking warning (Type-I inflation)
+      - An SRM chi-square check before trusting the result
+      - CUPED plan with a pre-treatment covariate and the formula Y_cuped = Y - theta*(X - E[X])
+      - Reporting the result as lift + confidence interval + p-value, compared against the MDE for practical significance

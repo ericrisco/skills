@@ -1,0 +1,46 @@
+skill: reporting
+
+should_trigger:
+  - prompt: "Set up a weekly automated performance report emailed to our exec team."
+    why: "Core push report — recurring cadence, fixed audience, delivered without a human. The center of this skill."
+  - prompt: "Build a monthly PDF report for our biggest client, on a schedule."
+    why: "Recurring client-facing report + artifact format (PDF) + cadence — fetch→narrate→render→deliver pipeline."
+  - prompt: "Send the board a quarterly summary PDF every quarter, automatically."
+    why: "Cadence + formal artifact + push delivery; the quarterly board pack is a canonical reporting case."
+  - prompt: "Automatiza un informe mensual para dirección."
+    why: "Spanish for 'automate a monthly report for leadership' — recurring stakeholder report, must route here."
+  - prompt: "Munta un informe setmanal automàtic per al comitè."
+    why: "Catalan for 'build an automatic weekly report for the committee' — recurring push report."
+  - prompt: "Our Monday metrics email keeps going out with last week's numbers — make it reliable."
+    why: "Non-obvious: framed as a bug, but it is report-pipeline reliability (freshness gate, fail-loud) — squarely reporting, not a generic email fix."
+
+should_not_trigger:
+  - prompt: "Build an interactive dashboard the team can open to slice sales by region."
+    route_to: dashboard
+    why: "Pull/live surface the user opens and filters — not a push artifact on a cadence."
+  - prompt: "Which KPIs should we even be tracking for the growth team?"
+    route_to: kpi-framework
+    why: "Deciding which metrics matter / defining the metric tree — reporting consumes an agreed set, it does not adjudicate it."
+  - prompt: "Dig into why signups dropped last Tuesday."
+    route_to: analytics
+    why: "One-off investigation to answer a question, not a recurring standing artifact."
+  - prompt: "Forecast next quarter's revenue from this history."
+    route_to: forecasting
+    why: "Predicting future values / projections — reporting reports what happened, it does not predict."
+  - prompt: "Our source CSV has duplicate and malformed rows — clean it."
+    route_to: data-cleaning
+    why: "Fixing dirty source data — reporting assumes a trustworthy source and only gates on freshness, it does not clean."
+  - prompt: "Just wire up a generic cron job that runs this script nightly."
+    route_to: automation-flows
+    why: "Generic scheduling/plumbing for any job with no report shape — reporting uses a scheduler but does not teach scheduling-in-general."
+
+capability:
+  - scenario: "Set up a recurring weekly revenue report, delivered as a PDF emailed to the leadership team every Monday at 08:00, sourced from a metrics CSV."
+    must_include:
+      - "Defines a report contract: audience, cadence, sections, metric source (and who owns the numbers), channel, owner."
+      - "Separates the template from per-recipient params (one Jinja2 template scoped by params, not a forked template per recipient)."
+      - "Uses a pinned render stack (pandas → Jinja2 → WeasyPrint 68.1, Matplotlib for charts) and states the pin."
+      - "Writes a narrative/executive-summary layer (purpose + 3 takeaways + what changed vs last period), not just a raw metric table."
+      - "Schedules it via cron or GitHub Actions schedule:, and notes GH Actions cron is UTC."
+      - "Includes a freshness gate before send and a fail-loud failure alert to the named owner."
+      - "Routes KPI-definition to kpi-framework and any live-view/slice request to dashboard rather than absorbing them; defers transport to email-connector."

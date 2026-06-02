@@ -1,0 +1,3 @@
+# Evals — business-intelligence
+
+These cases are routing and capability checks, not an automated test suite. Read `cases.yaml` against the triggers and boundary in `../SKILL.md`: each `should_trigger` prompt should land on this skill, each `should_not_trigger` prompt should route to the named sibling, and the `capability` scenario lists the rubric items a good answer must include (a semantic model with entities/measure/metric/time grain plus a metric-query spec, not raw SQL). There is no runner — a human or grader judges the responses. To check the artifact-shape claims, run `../scripts/verify.sh path/to/semantic-models/` against a sample MetricFlow or Cube model; it is read-only, never connects to a warehouse, and passes clean on an empty target.

@@ -1,0 +1,43 @@
+skill: business-intelligence
+
+should_trigger:
+  - prompt: "Let our team ask revenue and churn questions in plain English and always get the same number back."
+    why: Governed self-serve analytics in natural language — the core promise of the semantic/metrics layer.
+  - prompt: "Define MRR once so every dashboard, report, and notebook computes it identically."
+    why: Single shared metric definition is exactly what this skill encodes in versioned YAML.
+  - prompt: "Connect our AI agent to the warehouse so it answers data questions without hallucinating SQL."
+    why: Non-obvious — sounds like generic agent wiring, but the answer is to expose a semantic layer via MCP/metrics API so the agent selects governed metrics.
+  - prompt: "Sales and finance report different revenue numbers and nobody can agree which is right — fix it."
+    why: Non-obvious — sounds like a data bug; the real fix is one shared metric definition in the layer, not another query.
+  - prompt: "Necesito una capa semántica para que el equipo consulte ventas por región en lenguaje natural."
+    why: Spanish — semantic layer plus natural-language querying over governed metrics.
+
+should_not_trigger:
+  - prompt: "Design the dashboard layout and decide which charts to show on our exec view."
+    route_to: dashboard
+    why: This is visual presentation and panel arrangement, not defining the trusted number.
+  - prompt: "Decide which 5 KPIs our SaaS should track this year and set their targets."
+    route_to: kpi-framework
+    why: Choosing which metrics matter and their targets is metric strategy, not technical definition.
+  - prompt: "Write me a window-function query for a running total per customer."
+    route_to: sql
+    why: Hand-written portable query craft, not building or querying a governed metrics layer.
+  - prompt: "Build a monthly board report deck that narrates the quarter's results."
+    route_to: reporting
+    why: Packaging results into a recurring narrative artifact, not the live ask-anything query layer.
+  - prompt: "Forecast next quarter's revenue from the last three years of data."
+    route_to: forecasting
+    why: Projecting future values, not reporting governed historical numbers.
+
+capability:
+  - scenario: >
+      Given an orders + customers + products warehouse schema, answer:
+      "monthly gross revenue by product category for the last 2 quarters, EU customers only."
+      Produce (a) a MetricFlow-style semantic model and (b) the metric-query spec that answers it.
+    must_include:
+      - Entities declared with join keys (order primary; customer and product foreign) so the layer owns the joins.
+      - A measure with an explicit agg (e.g. order_amount, agg sum).
+      - A metric (gross_revenue) defined over the measure, not raw SQL.
+      - A time dimension (order_date) with a declared grain (day, rolled up to month).
+      - The question decomposed into metric + group-by dimension (product_category) + time grain (month) + date range (last 2 quarters) + filter (region = EU) — not a hand-written SQL query.
+      - A note that the agent should call the metrics API / MCP tool rather than write SQL against the warehouse.

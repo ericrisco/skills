@@ -1,0 +1,47 @@
+skill: forecasting
+
+should_trigger:
+  - prompt: "We have 3 years of monthly sales — forecast the next 4 quarters."
+    why: Core horizon-plus-history time-series projection, the central task.
+  - prompt: "How many units of SKU-1182 will we sell next month?"
+    why: Single-series demand forecast at SKU granularity.
+  - prompt: "Project signups forward 12 months and give me a confidence band."
+    why: Forward extrapolation with an explicit interval request.
+  - prompt: "Half our weeks have zero sales for this part — can you still forecast demand?"
+    why: Non-obvious — intermittent/lumpy demand routes to Croston/SBA, not plain ETS, but it is squarely forecasting.
+  - prompt: "Is our sales forecast actually better than just repeating last quarter?"
+    why: Non-obvious — this is a baseline/backtest (MASE vs naive) question, the core honesty check of forecasting.
+  - prompt: "Prevé las ventas del próximo trimestre a partir del histórico mensual."
+    why: Spanish phrasing of the core next-period sales forecast.
+  - prompt: "Prediu la demanda del proper mes per producte."
+    why: Catalan phrasing of per-SKU demand forecast.
+
+should_not_trigger:
+  - prompt: "Build a 3-year P&L from our pricing and hiring assumptions."
+    route_to: financial-model
+    why: Assumption- and driver-based projection, not extrapolation of a historical time series.
+  - prompt: "Compute our blended CAC and LTV and the payback period."
+    route_to: unit-economics
+    why: Margin and unit metrics with no forward time-series component.
+  - prompt: "Given expected demand, set reorder points and safety stock."
+    route_to: inventory
+    why: Stock sizing consumes a forecast; it does not produce one.
+  - prompt: "There are duplicate and missing rows in the sales export — fix it before anything else."
+    route_to: data-cleaning
+    why: Data hygiene precedes modeling and is not forecasting itself.
+  - prompt: "Why did revenue drop in March versus February?"
+    route_to: analyze
+    why: Backward-looking explanatory analysis, not forward extrapolation.
+
+capability:
+  - scenario: >
+      Given 24 months of monthly unit sales for one product, produce a 12-month
+      forecast with an 80% prediction interval, choosing a method appropriate to
+      the data and proving it beats a naive baseline.
+    must_include:
+      - establishes a seasonal-naive (or naive) baseline before fitting any model
+      - selects a method by data shape (e.g. AutoETS for trend+season) with a one-line rationale
+      - uses rolling-origin / expanding-window cross-validation, not a single holdout
+      - reports WAPE and bias (not MAPE) and MASE vs naive, noting MASE < 1 means it beat naive
+      - outputs an artifact with ds and forecast plus lo/hi interval columns
+      - notes uncertainty and when to fall back to the naive forecast (MASE >= 1)
