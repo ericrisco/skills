@@ -80,13 +80,15 @@ assistant proposes new skills on its own from then on.
 
 ```
 $ rsc
-👋 rsc — the skill catalog for your assistant.
+ ██████╗ ███████╗ ██████╗     ← animated gradient wordmark
+ ██╔══██╗██╔════╝██╔════╝
+ ██████╔╝███████╗██║
+  231 skills · one CLI · zero bloat
 
 What do you want to do?          ↑↓ move · enter select
 ❯ Base install — the essentials (orient + suggest + harness + init)
   Base + Spec-Driven Development — specify → plan → implement → ship
   Pick skills by hand, by area
-  Describe my project and let rsc choose
 ```
 
 Pick **by area** and you get a checkbox list — **↑↓ to move, space to toggle,

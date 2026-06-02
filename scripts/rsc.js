@@ -6,7 +6,7 @@ import { rank } from './consult.js';
 import { expandRecommends, toOutcomes, hasOutcome } from './lib/recommend.js';
 import { applyInstall, listInstalled, uninstall } from './install-apply.js';
 import { doctor } from './doctor.js';
-import { ask, say, yes, select, pickFrom, banner } from './lib/ui.js';
+import { say, select, pickFrom, banner, confirm } from './lib/ui.js';
 import { refreshRegistry, registryStatus } from './lib/registry.js';
 import { DOMAINS } from './lib/domains.js';
 
@@ -45,19 +45,6 @@ async function manualSelect() {
   return [...chosen];
 }
 
-// Describe-your-project flow: rsc reads repo + words and proposes skills.
-async function describeFlow() {
-  const goal = await ask('\nTell me in one sentence what you want to build or run:\n> ');
-  const ids = await recommendIds(goal, { labeledOnly: true });
-  if (!ids.length) {
-    say("I'm not sure. Try describing it in more detail, or pick by hand (option 3).");
-    return [];
-  }
-  say('\nI recommend installing:');
-  for (const o of toOutcomes(ids)) say(`   • ${o.label}`);
-  return ids;
-}
-
 // After installing, remind the user how to actually start — per IDE — and that
 // rsc keeps recommending skills as they work. The harness/SDD *init* runs INSIDE
 // the assistant (with the user present), never blindly from this CLI.
@@ -94,20 +81,18 @@ function printNextSteps(target, ids) {
 
 async function wizard() {
   const m = loadManifest();
-  banner();
+  await banner();
   say('  the skill catalog for your assistant (Claude Code · Cursor · Codex · Gemini)\n');
   const choice = await select('What do you want to do?', [
     { key: 'base', label: 'Base install — the essentials (orient + suggest + harness + init)' },
     { key: 'sdd', label: 'Base + Spec-Driven Development — the specify → plan → implement → ship flow' },
     { key: 'manual', label: 'Pick skills by hand, by area' },
-    { key: 'describe', label: 'Describe my project and let rsc choose' },
   ]);
 
   let ids = [];
   if (choice === 'base') ids = skillsForProfile(m, 'minimal');
   else if (choice === 'sdd') ids = skillsForProfile(m, 'core');
   else if (choice === 'manual') ids = await manualSelect();
-  else if (choice === 'describe') ids = await describeFlow();
   else { say("Didn't catch that. Run again: npx @ericrisco/rsc"); return; }
 
   // The floor is always installed: the compass + the detector.
@@ -120,7 +105,7 @@ async function wizard() {
   const target = detectTarget();
   say(`\nI'll install ${ids.length} skills into ${target}:`);
   say('   ' + ids.join(', '));
-  if (!yes(await ask('\nInstall it? (yes / no) > '))) {
+  if (!(await confirm('Install it?'))) {
     say('No problem. Anytime: npx @ericrisco/rsc');
     return;
   }
