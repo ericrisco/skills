@@ -1,0 +1,50 @@
+skill: medium-strategy
+
+should_trigger:
+  - prompt: "How does the Medium Partner Program actually pay me?"
+    why: Core monetization question — the member-reading-time payout model is this skill's spine.
+  - prompt: "Should I start my own Medium publication or pitch the big ones?"
+    why: The solo-vs-own-pub-vs-pitch decision is an account-altitude call this skill owns.
+  - prompt: "My Medium stories get views but almost no distribution — how do I get Boosted?"
+    why: Distribution/Boost mechanics; non-obvious because the writer conflates views with distribution, which this skill corrects.
+  - prompt: "I want to repurpose my blog posts onto Medium without tanking my own SEO."
+    why: Canonical-import cross-posting plan; non-obvious framing (the SEO risk is the real question, not formatting).
+  - prompt: "com puc fer que els meus articles a Medium arribin a més gent i guanyin diners"
+    why: Catalan trigger covering growth + monetization at the account level.
+  - prompt: "What tags should I put on my Medium AI article to maximize reach?"
+    why: Tags as a distribution lever (popular + long-tail mix), an account-level reach decision.
+  - prompt: "Quarterly review of my Medium account — what's working and where should I double down?"
+    why: The review/double-down loop reading the wiki — distinctly portfolio altitude, not per-post.
+
+should_not_trigger:
+  - prompt: "Write the intro hook and structure for my Medium essay on burnout."
+    route_to: medium-writing
+    why: Per-article craft — producing the words, not deciding where the piece goes.
+  - prompt: "Format this draft and submit it to the Better Programming queue."
+    route_to: medium-publishing
+    why: The mechanical per-story publish/submit step, not the portfolio plan.
+  - prompt: "Build me a content calendar across Medium, LinkedIn, and my newsletter."
+    route_to: content-engine
+    why: Multi-platform calendar/repurposing; this skill is Medium-only.
+  - prompt: "Set the canonical tag and SEO meta on my own blog post."
+    route_to: seo-geo
+    why: Owned-site SEO mechanics; this skill only sets the canonical-import decision, not the site config.
+  - prompt: "Push this same post out to all my social channels at once."
+    route_to: social-publisher
+    why: Multi-network distribution fan-out, not Medium monetization strategy.
+
+capability:
+  - scenario: >
+      A writer with 12 published Medium stories, ~400 followers, getting views but
+      almost no distribution and earning ~$8/month, asks for a 90-day plan to grow
+      and monetize on Medium.
+    must_include:
+      - Reads 02-DOCS/wiki/medium/ first (or bootstraps it if empty/absent) before recommending.
+      - Explains earnings are driven by member reading time (not views/claps) and notes the $10 payout threshold.
+      - Names at least one 2025-2026 change (external +5%, 15% search budget, paywall-join bonus, or editor 25%) WITH its strategic implication.
+      - Gives a solo-vs-publication recommendation with rationale (incl. the Boost nomination-path tradeoff).
+      - A concrete Boost/distribution play — the two-step curator nomination and the 5 quality criteria.
+      - A tag/title strategy — 2-3 popular + 2-3 long-tail tags, and a search-intent title for the search budget.
+      - A cross-posting decision — canonical import to own profile vs native originals for pub pitches.
+      - Corrects the views-equals-distribution confusion.
+      - Writes a dated decision record back to 02-DOCS/wiki/medium/ with a decision, rationale, and a bet-on metric.

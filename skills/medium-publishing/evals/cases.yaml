@@ -1,0 +1,42 @@
+skill: medium-publishing
+
+should_trigger:
+  - prompt: "Cross-post my blog post to Medium without hurting my own site's SEO."
+    why: Core canonical/import case — getting a piece that lives on the user's site onto Medium without duplicate-content penalty.
+  - prompt: "The Medium import tool failed with a 403 on my article — how do I get it in?"
+    why: Non-obvious failure-mode trigger; the answer is the bot-block/static-HTML workaround, squarely this skill's mechanics.
+  - prompt: "Can I still get a Medium API token to auto-publish my posts from a script?"
+    why: Must surface the closed-API reality (no new tokens since 2025-01-01) and route to the import path. Non-obvious — the user assumes automation is possible.
+  - prompt: "Submit my draft to the Better Programming publication on Medium."
+    why: Publication submission path — self-publish vs pending-until-editor distinction.
+  - prompt: "Why do my code blocks and tables look broken after I published on Medium?"
+    why: Publish-time formatting gotchas (pseudo-Markdown editor, no tables, code-block method).
+  - prompt: "Importar mi artículo de mi web a Medium con enlace canónico para no duplicar contenido."
+    why: Spanish trigger for the canonical cross-post mechanic.
+  - prompt: "Republish this on Medium with a canonical link pointing back to my original."
+    why: Direct canonical-link request — the manual fallback or import path.
+
+should_not_trigger:
+  - prompt: "Write me a compelling Medium article about distributed systems and fix my intro."
+    route_to: medium-writing
+    why: Drafting, structuring, and headlining the piece is the writing craft, not the publish mechanics.
+  - prompt: "How often should I post on Medium and how do I grow my following and Partner Program earnings?"
+    route_to: medium-strategy
+    why: Cadence, audience growth, and monetization are distribution strategy, not getting one article onto the platform.
+  - prompt: "Schedule this same post across LinkedIn, X, and Medium from one content queue."
+    route_to: social-publisher
+    why: Cross-channel scheduling across many platforms is the multi-platform publisher, not Medium-specific mechanics.
+  - prompt: "Audit my whole site's canonical tags and fix duplicate-content issues across all pages."
+    route_to: seo-geo
+    why: Site-wide canonical/SEO auditing is general SEO; this skill only handles the Medium-side canonical mechanic.
+
+capability:
+  - scenario: "I published this article on my own blog last month. Put it on Medium without an SEO penalty, with the right tags."
+    must_include:
+      - States the Medium API is closed to new integrations (no new tokens since 2025-01-01).
+      - Chooses the import tool as the primary path for a piece that already lives on the user's site.
+      - Confirms the import auto-sets the canonical link to the origin URL and backdates from article:published_time.
+      - Gives the manual canonical fallback location (Story settings -> Customize canonical link) for when import fails.
+      - Enforces the 5-tag maximum and picks distinct topics, not keyword-stuffed variants.
+      - Flags the no-Markdown-tables and code-block formatting gotchas.
+      - Does NOT promise or attempt API automation via a newly registered token.
