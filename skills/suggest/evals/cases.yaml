@@ -1,7 +1,51 @@
-cases:
-  - prompt: "ayúdame a crear la tabla de pedidos en la base de datos"
-    expect_skill_suggested: postgresdb
-  - prompt: "quiero publicar mi web online con docker"
-    expect_skill_suggested: deployment
-  - prompt: "renombra esta variable"
-    expect_no_suggestion: true
+skill: suggest
+
+# The always-on detector. It fires when the current task would clearly benefit
+# from an rsc skill that is NOT yet installed, names it, and (with confirmation)
+# runs `npx rsc add <id>`. It should stay silent for trivial work and defer to a
+# skill that already owns the task.
+
+should_trigger:
+  - prompt: "Ayúdame a montar la tabla de pedidos en la base de datos."
+    why: "A database task with no DB skill present — the detector should propose `npx rsc add postgresdb` before diving in."
+
+  - prompt: "Quiero publicar mi web online, creo que con Docker."
+    why: "A deployment task with no deploy skill present — propose installing `deployment`."
+
+  - prompt: "Necesito una API en Python para esta app."
+    why: "Backend Python work with no stack skill present — propose installing `fastapi`."
+
+  - prompt: "Vamos a hacer la landing y que convierta bien."
+    why: "A design/conversion task with no design skill present — propose installing `design`."
+
+  - prompt: "Quiero un agente de IA que conteste sobre mis documentos."
+    why: "Agent/RAG work with no agents skill present — propose installing `building-agents`."
+
+  - prompt: "Documenta cómo funciona mi empresa y conéctalo todo."
+    why: "Company harness work with no harness skill present — propose installing `harness`. A deliberately non-code, non-obvious trigger."
+
+should_not_trigger:
+  - prompt: "Renombra esta variable a `userCount`."
+    route_to: "none"
+    why: "Trivial mechanical edit — nothing to install; the detector must stay silent and not interrupt the flow."
+
+  - prompt: "Revisa este código de login por inyección y control de acceso."
+    route_to: "secure-coding"
+    why: "A security review is squarely owned by the secure-coding skill; if it is installed the detector defers to it rather than proposing anything."
+
+  - prompt: "Optimiza esta query de Postgres que va lenta."
+    route_to: "postgresdb"
+    why: "A concrete database task owned by the postgresdb skill — the detector does not fire over a skill that already owns the work."
+
+  - prompt: "Arregla este bug del test que falla."
+    route_to: "debug"
+    why: "Root-cause debugging is the debug skill's job; no new install is implied, so the detector stays quiet."
+
+capability:
+  - scenario: "Mid-conversation, the user says 'ayúdame a guardar los pedidos en una base de datos' and no database skill is installed. Show how rsc-suggest behaves."
+    must_include:
+      - "Names the missing skill in plain language ('para esto va bien `postgresdb`, que aún no tienes')"
+      - "Asks a single short confirmation (sí/no) before doing anything — never auto-installs"
+      - "On confirmation, runs `npx rsc add postgresdb` via Bash, then continues the original task"
+      - "Checks what is already installed (npx rsc list) and never proposes a skill the user already has"
+      - "Makes at most one suggestion and does not interrupt the flow for nice-to-haves"

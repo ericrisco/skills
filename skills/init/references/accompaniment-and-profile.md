@@ -60,7 +60,7 @@ Vocabulary modifier:
 
 ## Persistence format
 
-Both files live under `02-DOCS/wiki/harness/`. `init` creates this directory even on greenfield; the rest of `02-DOCS` is built by `/rsc-core:harness`.
+Both files live under `02-DOCS/wiki/harness/`. `init` creates this directory even on greenfield; the rest of `02-DOCS` is built by the `harness` skill.
 
 ### `02-DOCS/wiki/harness/user-profile.md`
 
@@ -137,4 +137,4 @@ Add (or update) a `## Knowledge map` section that links BOTH files. Create `CLAU
 - [Decisions log](02-DOCS/wiki/harness/decisions.md) — append-only record of every significant decision and why.
 ```
 
-When `/rsc-core:harness` later builds the full wiki, it extends this same `## Knowledge map` with links to the rest of `02-DOCS/` — it does not replace the harness entries written here.
+When the `harness` skill later builds the full wiki, it extends this same `## Knowledge map` with links to the rest of `02-DOCS/` — it does not replace the harness entries written here.

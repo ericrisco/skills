@@ -1,0 +1,24 @@
+name: ci
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - run: npm ci
+      - name: validate frontmatter
+        run: npm run validate
+      - name: manifest is current
+        run: npm run manifest:check
+      - name: tests
+        run: npm test
+      - name: cleanup gate (no marketplace residue in the live catalog)
+        run: |
+          ! grep -rIn -E "marketplace|/plugin install|sync-bundles|npx skills" . \
+            --exclude-dir=node_modules --exclude-dir=.git \
+            --exclude-dir=docs --exclude-dir=skill-build --exclude-dir=.github

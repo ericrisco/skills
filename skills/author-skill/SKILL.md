@@ -1,6 +1,6 @@
 ---
 name: author-skill
-description: "Use when authoring a NEW skill or editing an existing one for the rsc catalog — writing or fixing a SKILL.md, crafting a trigger-rich third-person description that fires on the right prompts, deciding what goes in references/ vs the body, writing evals/cases.yaml + evals/README.md, or wiring a skill into the bundles. Triggers: 'write a skill', 'author a skill', 'create a new skill', 'escribe una skill', 'haz una skill nueva', 'edit this skill', 'improve this skill', 'my skill never triggers', 'my skill always fires', 'fix the description', 'the frontmatter is invalid', 'write evals for this skill', 'add this skill to a bundle', 'audit this skill against the rubric', 'progressive disclosure', 'SKILL.md too long'. Knows the rsc conventions: hybrid layout, /rsc-*: namespacing, scripts/sync-bundles.sh, the Knowledge map, real-copy bundles. NOT building runtime features (that is the SDD chain) and NOT general docs."
+description: "Use when authoring a NEW skill or editing an existing one for the rsc catalog — writing or fixing a SKILL.md, crafting a trigger-rich third-person description that fires on the right prompts, deciding what goes in references/ vs the body, writing evals/cases.yaml + evals/README.md, or wiring a skill into the catalog (tags, recommends, manifest). Triggers: 'write a skill', 'author a skill', 'create a new skill', 'escribe una skill', 'haz una skill nueva', 'edit this skill', 'improve this skill', 'my skill never triggers', 'my skill always fires', 'fix the description', 'the frontmatter is invalid', 'write evals for this skill', 'add this skill to the catalog', 'audit this skill against the rubric', 'progressive disclosure', 'SKILL.md too long'. Knows the rsc conventions: hybrid layout, tags/recommends frontmatter, manifest.json, the npx rsc CLI, the Knowledge map. NOT building runtime features (that is the SDD chain) and NOT general docs."
 tags: [skill, authoring, meta]
 recommends: []
 origin: risco
@@ -20,7 +20,7 @@ Use when:
 - Editing an existing skill: tightening the description, splitting the body into `references/`, adding a checklist or anti-patterns table.
 - A skill mis-triggers — never fires when it should, or fires on everything.
 - Writing or repairing `evals/cases.yaml` + `evals/README.md`.
-- Wiring a finished skill into a bundle and the marketplace (the rsc plumbing).
+- Wiring a finished skill into the catalog — `tags`, `recommends`, and the manifest (the rsc plumbing).
 - Auditing a skill against the rubric below before it ships.
 
 Do NOT use when (delegate or decline):
@@ -111,7 +111,7 @@ Run in order. Each step gates the next.
 4. **Write the body** in the rsc voice (see below). Tag every code/example fence with a language. Add a copy-able checklist or decision table *only where the flow actually branches* — not as decoration. Add a short anti-patterns table.
 5. **Extract references** for anything long or branch-specific.
 6. **Write the evals** — `cases.yaml` then `README.md`. → `references/eval-authoring.md`.
-7. **Wire it into the rsc plumbing** (bundle, marketplace, sync, Knowledge map). → `references/rsc-conventions.md`.
+7. **Wire it into the rsc plumbing** (`tags`, `recommends`, `npm run manifest`, Knowledge map). → `references/rsc-conventions.md`.
 8. **Self-audit against the rubric** (below). Fix every miss or justify it.
 
 ## The rsc voice
@@ -141,7 +141,7 @@ A skill ships only when every box is checked or a miss is consciously justified.
 - [ ] **evals present** — `cases.yaml` (≥5 `should_trigger` incl. non-obvious, ≥4 `should_not_trigger` each with a real-sibling `route_to`, ≥1 `capability` with a `must_include` rubric) + an honest `README.md`. `scripts/eval-lint.sh` passes — but it only checks presence and the counts (≥5/≥4/≥1) and that those keys are lists; the `route_to`-points-at-a-real-sibling, non-obvious phrasings, and `must_include` quality are yours to verify here, not the linter's.
 - [ ] **verify.sh** present iff the skill has a checkable artifact; process skills rely on evals.
 - [ ] **Sibling links resolve** — every `../x/SKILL.md` points to a skill that exists.
-- [ ] **Wired** — in a bundle map, the marketplace, and `sync-bundles.sh` re-run so `plugins/*/skills/*` are real copies (0 symlinks).
+- [ ] **Wired** — `tags` + `recommends` set, `npm run manifest` re-run, and `npm run validate` / `npm run manifest:check` pass (manifest current, no dangling recommends).
 
 Full rubric rationale and the rsc plumbing steps → `references/rsc-conventions.md`.
 

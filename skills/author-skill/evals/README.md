@@ -51,8 +51,8 @@ What a WITH-skill answer should show that a baseline misses:
   an encyclopedia and not an orphaned references folder.
 - **evals authored** to the minimums, with `route_to` siblings that actually exist.
 - **No `verify.sh` on a process skill** — rigor comes from the capability eval.
-- **rsc wiring** named: bundle map, marketplace/plugin.json, `sync-bundles.sh` real copies
-  (0 symlinks), `eval-lint.sh` passing.
+- **rsc wiring** named: `tags` + `recommends` frontmatter, `npm run manifest` regenerated,
+  `npm run validate` / `manifest:check` passing, `eval-lint.sh` passing.
 - **Original rsc voice** — no copied artifacts/phrasing from other skill ecosystems.
 
 ## Judging notes (honest caveats)

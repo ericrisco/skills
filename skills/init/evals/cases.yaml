@@ -3,7 +3,7 @@ skill: init
 # Cases for the rsc-skills "init" front door / bootstrapper.
 # init profiles the user (technical level + accompaniment dial), discovers what
 # they want to BUILD or GOVERN (code OR a non-code harness), recommends rsc
-# bundles, and hands off to /rsc-core:harness. It is NOT the scaffolder and NOT
+# skills, and hands off to the harness skill. It is NOT the scaffolder and NOT
 # a specific stack skill.
 
 should_trigger:
@@ -11,7 +11,7 @@ should_trigger:
     why: "Canonical greenfield entry with explicit uncertainty ('no sé por dónde empezar') — init's job is to gauge level, discover, and recommend before anything is built."
 
   - prompt: "I have an existing repo and I want to set up the harness on it. Where do I start?"
-    why: "Brownfield bootstrapping: pointing the rsc harness at an existing project is exactly init's front-door role (detect greenfield vs brownfield, profile, recommend bundles)."
+    why: "Brownfield bootstrapping: pointing the rsc harness at an existing project is exactly init's front-door role (detect greenfield vs brownfield, profile, recommend skills)."
 
   - prompt: "Acabo de instalar esto. ¿Qué hago primero?"
     why: "First-contact phrasing without naming any tool — init is the literal first thing you run; it should claim 'what do I do first' onboarding moments."
@@ -23,7 +23,7 @@ should_trigger:
     why: "Non-code harness (company/ops) bootstrap — init is domain-agnostic and explicitly governs non-code harnesses the same way; this is a deliberately non-obvious trigger."
 
   - prompt: "Set me up. I want to build a personal knowledge base / wiki with this."
-    why: "'Set me up' + a non-code knowledge-base goal: init profiles and recommends (likely rsc-core, possibly rsc-content) then hands off to harness — it owns the setup conversation, not a specific stack skill."
+    why: "'Set me up' + a non-code knowledge-base goal: init profiles and recommends (likely harness, possibly marketing) then hands off to harness — it owns the setup conversation, not a specific stack skill."
 
   - prompt: "Bootstrap a workspace for a research program I'm planning."
     why: "Explicit 'bootstrap a workspace' for a non-code (research) domain — init's discover+recommend+handoff flow, including the iron rule that 'project' is not assumed to mean code."
@@ -35,10 +35,10 @@ should_not_trigger:
 
   - prompt: "Run the scaffolding now — create the 01-TOOLS and 02-DOCS folders and wire up the structure."
     route_to: "harness"
-    why: "init explicitly hands off scaffolding to /rsc-core:harness. The moment the user asks to actually BUILD 01-TOOLS/02-DOCS, it is harness's job, not init's (init writes only the profile + link)."
+    why: "init explicitly hands off scaffolding to the harness skill. The moment the user asks to actually BUILD 01-TOOLS/02-DOCS, it is harness's job, not init's (init writes only the profile + link)."
 
   - prompt: "Set up a FastAPI backend with a Postgres database for my new service."
-    why: "User already knows the stack and wants a specific backend built — this is the fastapi/backend stack skill, not the level-gauging front door. init recommends bundles; it does not implement stacks."
+    why: "User already knows the stack and wants a specific backend built — this is the fastapi/backend stack skill, not the level-gauging front door. init recommends skills; it does not implement stacks."
     route_to: "fastapi"
 
   - prompt: "Help me pick and configure a deploy target — Hetzner vs Vercel vs Fly.io — and ship it."
@@ -47,7 +47,7 @@ should_not_trigger:
 
   - prompt: "Scaffold a new Next.js app with the App Router and Tailwind."
     route_to: "nextjs"
-    why: "Concrete frontend build with a named framework — the nextjs stack skill. init would only ever recommend the rsc-frontend bundle, not scaffold the app itself."
+    why: "Concrete frontend build with a named framework — the nextjs stack skill. init would only ever recommend the nextjs skill, not scaffold the app itself."
 
   - prompt: "Review this auth code for security issues like injection and broken access control."
     route_to: "secure-coding"
@@ -60,9 +60,9 @@ capability:
       - "Presents the accompaniment dial L0–L3 and, given a silent non-technical user, defaults to L3 (full accompaniment)"
       - "Persists the profile to 02-DOCS/wiki/harness/user-profile.md and an append-only 02-DOCS/wiki/harness/decisions.md, and links both from a ## Knowledge map section in root CLAUDE.md (creating CLAUDE.md if absent, additive only)"
       - "Detects greenfield vs brownfield rather than assuming, and runs DISCOVER (goals, audience, constraints, surfaces) before recommending"
-      - "Recommends specific rsc bundles matched to discovery (at minimum rsc-core; rsc-frontend / rsc-backend if app surfaces justify it) and PRINTS the exact install commands (/plugin marketplace add ericrisco/skills and /plugin install <bundle>@rsc-skills)"
-      - "Does NOT install plugins itself and does NOT scaffold 01-TOOLS/02-DOCS — it hands off to /rsc-core:harness as the final step"
-      - "Does not recommend speculative bundles (e.g. rsc-agents) unless discovery justified them"
+      - "Recommends specific rsc skills matched to discovery (at minimum harness; nextjs/flutter + design if app surfaces justify it) and PRINTS the exact install commands (npx rsc add <skill> ...)"
+      - "Does NOT install anything itself and does NOT scaffold 01-TOOLS/02-DOCS — it hands off to the harness skill as the final step"
+      - "Does not recommend speculative skills (e.g. building-agents) unless discovery justified them"
 
   - scenario: "A user with an existing multi-package repo says: 'Point the harness at my project and get me started.' Show the brownfield front-door flow."
     must_include:
@@ -70,5 +70,5 @@ capability:
       - "Detects brownfield via manifests (package.json / pyproject.toml / pubspec.yaml / go.mod / Cargo.toml), source files, legacy XX-* folders, or existing 01-TOOLS/02-DOCS, with a read-only scan that ignores node_modules/.venv/.next/.git/dist/build"
       - "Summarizes the detected stack and current state and CONFIRMS with the user instead of assuming"
       - "Writes profile + decisions log under 02-DOCS/wiki/harness/ and adds the Knowledge-map link to CLAUDE.md without deleting existing content"
-      - "Recommends bundles matched to the detected stack and prints the exact install commands, recommending only what was justified"
-      - "Hands off to /rsc-core:harness for the actual 01-TOOLS/02-DOCS scaffolding/migration rather than doing it inside init"
+      - "Recommends skills matched to the detected stack and prints the exact install commands, recommending only what was justified"
+      - "Hands off to the harness skill for the actual 01-TOOLS/02-DOCS scaffolding/migration rather than doing it inside init"

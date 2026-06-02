@@ -43,7 +43,7 @@ the skill — or these rubrics — needs work.
   (same model + rubric) across A/B to keep the comparison fair.
 - The headline differentiators for `init`: technical-level question **first**, the L0–L3
   accompaniment dial, writing **only** the profile + decisions log + CLAUDE.md Knowledge-map
-  link, and **handing off** scaffolding to `/rsc-core:harness` (never doing it itself).
+  link, and **handing off** scaffolding to `the harness skill` (never doing it itself).
 - Watch the key confusable: the built-in `/init` (CLAUDE.md architecture doc generator) is a
   different thing — the rsc `init` does discovery/profiling/recommendation, not codebase docs.
 - Run after any edit to `SKILL.md` or its `description`, since both axes are sensitive to wording.
