@@ -1,0 +1,39 @@
+skill: medium-writing
+
+should_trigger:
+  - prompt: "Write a Medium article about how we cut our build times, one that'll actually get read."
+    why: Core case — drafting one paste-ready Medium story tuned for the read ratio.
+  - prompt: "My Medium post gets thousands of views but the read ratio is terrible and nobody finishes it. Fix it."
+    why: Non-obvious symptom — high views, low completion points at a title/body gap and a weak first screen, both this skill's craft.
+  - prompt: "Give me a title, subtitle and kicker for this Medium story."
+    why: The hook system written as one coupled mechanism.
+  - prompt: "Make this Medium draft Boost-eligible and curation-worthy."
+    why: The curation-craft gate (error-free, sourced, narratively strong, not sensational, human-written).
+  - prompt: "Turn my newsletter issue into a Medium story that hooks from the first paragraph."
+    why: Adapting existing long-form into Medium-native shape with a first-screen hook.
+  - prompt: "Convierte este artículo en un post de Medium que enganche desde el primer párrafo."
+    why: Spanish phrasing for the same first-screen / hook craft.
+
+should_not_trigger:
+  - prompt: "Schedule this draft and submit it to the Better Programming publication with tags."
+    route_to: medium-publishing
+    why: Scheduling, publication submission, and tags are publishing mechanics, not story craft.
+  - prompt: "What should I write about on Medium and how often should I post?"
+    route_to: medium-strategy
+    why: Topic/niche selection and cadence are channel strategy, not the craft of one story.
+  - prompt: "Write an SEO blog post with FAQPage and Article JSON-LD schema for my own website."
+    route_to: article-writing
+    why: On-site SEO long-form with on-page schema; Medium owns its own surface so schema is irrelevant here.
+  - prompt: "Define the tone of voice for my Medium account so everything sounds consistent."
+    route_to: brand-voice
+    why: Authoring the reusable voice definition, not applying it to one story.
+
+capability:
+  - scenario: "Given a topic ('we deleted 40% of our tests and shipped faster') plus a rough, rambling draft, produce a Medium-ready package."
+    must_include:
+      - "Three title+subtitle+kicker options drawn from distinct archetypes (e.g. specific-result, contrarian, narrative-I)."
+      - "A rewritten first screen that opens on the promise within ~3 sentences and lands a concrete payoff before the first scroll, with no 'in this article' warm-up."
+      - "A scannable section-header structure (headers as scan anchors, short blocks)."
+      - "Explicit KICKER / TITLE / SUBTITLE labels so the author formats the editor's structural lines correctly."
+      - "A Boost-eligibility verdict checking sensational vs strong, sourcing, error-free, and human-written."
+      - "Prose in rsc voice with specific lived detail and no AI-tell filler."

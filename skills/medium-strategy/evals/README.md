@@ -1,0 +1,3 @@
+# Evals — medium-strategy
+
+These cases are run by the repo's skill-eval harness, not by hand. `should_trigger` and `should_not_trigger` check **routing**: given each prompt, does the harness select medium-strategy (and for the negatives, does it route to the named real sibling instead). `capability` checks a generated response against the `must_include` rubric for the 90-day-plan scenario — that the answer reads the wiki first, gets the member-reading-time payout model and a 2025-2026 change right, makes the solo-vs-publication call, and writes a dated decision record back. No network or Medium account is needed; the cases are self-contained. Run them through the eval runner as configured for this repo (the same path used for the other `skills/*/evals/cases.yaml`).
