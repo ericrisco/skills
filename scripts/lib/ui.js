@@ -57,13 +57,33 @@ function hsl(h, s = 1, l = 0.6) {
 }
 
 // One frame: rainbow per character, diagonal phase, revealed up to `cols`.
-function frame(phase, cols) {
+const SPARK = ['✦', '✧', '⋆', '✺', '·', '*'];
+const SPARK_C = ['\x1b[1;97m', '\x1b[1;93m', '\x1b[1;96m']; // bright white / yellow / cyan
+
+// `n` random twinkles as a Map "r,c" -> pre-coloured glyph string.
+function sparkles(n, rows, W) {
+  const m = new Map();
+  for (let i = 0; i < n; i++) {
+    const r = Math.floor(Math.random() * rows);
+    const c = Math.floor(Math.random() * W);
+    const g = SPARK[Math.floor(Math.random() * SPARK.length)];
+    m.set(`${r},${c}`, SPARK_C[Math.floor(Math.random() * SPARK_C.length)] + g);
+  }
+  return m;
+}
+
+// One frame: rainbow per character (or white), revealed up to `cols`, with
+// sparkles overlaid on top wherever the map has a position.
+function frame(phase, cols, sparks, white) {
   return ART.map((line, r) => {
     const chars = [...line];
     let out = '';
     for (let c = 0; c < chars.length && c < cols; c++) {
+      const sp = sparks && sparks.get(`${r},${c}`);
+      if (sp) { out += sp; continue; }
       const ch = chars[c];
       if (ch === ' ') { out += ' '; continue; }
+      if (white) { out += `\x1b[1;97m${ch}`; continue; }
       const [rr, gg, bb] = hsl((c * 5 + r * 14 + phase * 20) % 360);
       out += `\x1b[1;38;2;${rr};${gg};${bb}m${ch}`;
     }
@@ -83,27 +103,31 @@ export async function banner() {
   const W = Math.max(...ART.map((l) => [...l].length));
   stdout.write('\x1b[?25l'); // hide cursor
   say('');
-  // 1) letters slide in left → right
+  // 1) letters slide in left → right, a sparkle riding the drawing edge
   let first = true;
   for (let cols = 2; cols <= W; cols += 2) {
     if (!first) stdout.write(`\x1b[${rows}A`);
     first = false;
-    stdout.write(frame(0, cols));
+    const edge = new Map();
+    const er = Math.floor(Math.random() * rows);
+    edge.set(`${er},${Math.min(cols - 1, W - 1)}`, '\x1b[1;97m✦');
+    if (Math.random() < 0.5) edge.set(`${Math.floor(Math.random() * rows)},${Math.min(cols, W - 1)}`, '\x1b[1;93m·');
+    stdout.write(frame(0, cols, edge));
     await sleep(12);
   }
-  // 2) flowing rainbow diagonal sweeps
+  // 2) flowing rainbow diagonal sweeps with twinkling sparkles
   for (let phase = 1; phase <= 30; phase++) {
     stdout.write(`\x1b[${rows}A`);
-    stdout.write(frame(phase, W));
+    stdout.write(frame(phase, W, sparkles(4, rows, W)));
     await sleep(26);
   }
-  // 3) double white flash — the pop
+  // 3) double white flash with a sparkle burst — the pop
   for (let f = 0; f < 2; f++) {
     stdout.write(`\x1b[${rows}A`);
-    stdout.write(ART.map((l) => `\x1b[2K\x1b[1;97m${l}\x1b[0m`).join('\n') + '\n');
+    stdout.write(frame(0, W, sparkles(12, rows, W), true));
     await sleep(60);
     stdout.write(`\x1b[${rows}A`);
-    stdout.write(frame(15, W));
+    stdout.write(frame(15, W, sparkles(3, rows, W)));
     await sleep(60);
   }
   // settle on a final rainbow snapshot
