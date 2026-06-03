@@ -1,22 +1,56 @@
-import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'node:fs';
-import { dirname } from 'node:path';
+import { readFileSync, writeFileSync, existsSync, mkdirSync, copyFileSync, chmodSync } from 'node:fs';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { linkOrCopy } from './index.js';
 
 export function writeSkill(id, fromDir, toPath) {
   return linkOrCopy(fromDir, toPath);
 }
 
+// SessionStart runs a project-local session-start.sh: it cats suggest's always-on
+// body (preserving prior behavior) and appends an onboarding banner when the
+// workspace has no harness profile yet. We materialize the script next to the
+// shared base and point the hook at it. Any prior rsc SessionStart entry (the old
+// `cat …/suggest/SKILL.md` form or a previous script form) is dropped before we
+// add the current one — idempotent, and it migrates legacy hooks in place. Other
+// (non-rsc) SessionStart hooks are preserved.
 export function wireHook(paths) {
+  const scriptDest = join(paths.projectRoot, '.rsc', 'session-start.sh');
+  mkdirSync(dirname(scriptDest), { recursive: true });
+  copyFileSync(join(dirname(fileURLToPath(import.meta.url)), 'session-start.sh'), scriptDest);
+  chmodSync(scriptDest, 0o755);
+
+  const suggestMd = `${paths.skillDir('suggest')}/SKILL.md`;
+  const cmd = `bash "${scriptDest}" "${suggestMd}" "${paths.projectRoot}"`;
+
   const file = paths.hookTarget;
   const settings = existsSync(file) ? JSON.parse(readFileSync(file, 'utf8')) : {};
   settings.hooks ||= {};
   settings.hooks.SessionStart ||= [];
-  const cmd = `cat "${paths.skillDir('suggest')}/SKILL.md"`;
-  const already = JSON.stringify(settings.hooks.SessionStart).includes('skills/rsc/suggest');
-  if (!already) {
-    settings.hooks.SessionStart.push({ hooks: [{ type: 'command', command: cmd }] });
+  settings.hooks.SessionStart = settings.hooks.SessionStart.filter((e) => {
+    const s = JSON.stringify(e);
+    return !s.includes('skills/rsc/suggest') && !s.includes('.rsc/session-start.sh');
+  });
+  settings.hooks.SessionStart.push({ hooks: [{ type: 'command', command: cmd }] });
+
+  // Worklog checkpoint: PreCompact + SessionEnd run a project-local
+  // worklog-checkpoint.sh that reminds the agent to capture what we did this
+  // session into 02-DOCS/raw/worklog/ (the work-driven on-ramp). Silent when the
+  // workspace has no harness wiki. Registered idempotently on both events, with
+  // any prior rsc worklog-checkpoint entry dropped first.
+  const wlDest = join(paths.projectRoot, '.rsc', 'worklog-checkpoint.sh');
+  copyFileSync(join(dirname(fileURLToPath(import.meta.url)), 'worklog-checkpoint.sh'), wlDest);
+  chmodSync(wlDest, 0o755);
+  const wlCmd = `bash "${wlDest}" "${paths.projectRoot}"`;
+  for (const event of ['PreCompact', 'SessionEnd']) {
+    settings.hooks[event] ||= [];
+    settings.hooks[event] = settings.hooks[event].filter(
+      (e) => !JSON.stringify(e).includes('.rsc/worklog-checkpoint.sh'),
+    );
+    settings.hooks[event].push({ hooks: [{ type: 'command', command: wlCmd }] });
   }
+
   mkdirSync(dirname(file), { recursive: true });
   writeFileSync(file, JSON.stringify(settings, null, 2) + '\n');
-  return [file];
+  return [file, scriptDest, wlDest];
 }
