@@ -41,6 +41,32 @@ test('session-start: no banner when .rsc/.no-harness opt-out exists', () => {
   assert.ok(!out.includes('rsc onboarding'), 'opt-out silences the banner');
 });
 
+test('session-start: auto-ingest nudge when wiki exists and inbox has a real file', () => {
+  const root = mkdtempSync(join(tmpdir(), 'rsc-ss-'));
+  mkdirSync(join(root, '02-DOCS/wiki'), { recursive: true });
+  mkdirSync(join(root, '02-DOCS/inbox'), { recursive: true });
+  writeFileSync(join(root, '02-DOCS/inbox/invoice.pdf'), '%PDF-1.4');
+  const out = runSessionStart(root);
+  assert.ok(out.includes('rsc auto-ingest'), 'nudges the Auto-Ingest Sweep');
+});
+
+test('session-start: no auto-ingest nudge when inbox holds only README', () => {
+  const root = mkdtempSync(join(tmpdir(), 'rsc-ss-'));
+  mkdirSync(join(root, '02-DOCS/wiki'), { recursive: true });
+  mkdirSync(join(root, '02-DOCS/inbox'), { recursive: true });
+  writeFileSync(join(root, '02-DOCS/inbox/README.md'), 'drop zone');
+  const out = runSessionStart(root);
+  assert.ok(!out.includes('rsc auto-ingest'), 'README alone is not un-ingested material');
+});
+
+test('session-start: no auto-ingest nudge without a harness wiki', () => {
+  const root = mkdtempSync(join(tmpdir(), 'rsc-ss-'));
+  mkdirSync(join(root, '02-DOCS/inbox'), { recursive: true });
+  writeFileSync(join(root, '02-DOCS/inbox/invoice.pdf'), '%PDF-1.4');
+  const out = runSessionStart(root);
+  assert.ok(!out.includes('rsc auto-ingest'), 'no wiki → nothing to ingest into yet');
+});
+
 test('targetPaths exposes the project root', () => {
   const cwd = mkdtempSync(join(tmpdir(), 'rsc-cwd-'));
   const paths = targetPaths('claude', undefined, cwd);
