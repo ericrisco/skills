@@ -55,6 +55,8 @@ phase, last verdict, next steps, risks, commands and skill_resolution. This is
 not a replacement for the wiki; it is the recovery note that lets the next
 agent resume without trusting chat history.
 
+**Opt-out marker.** When a workspace has no profile yet, a freshly-installed session auto-starts `init` (via the `suggest` Onboarding gate and claude's SessionStart hook). A `.rsc/.no-harness` file is the explicit opt-out: present → never auto-start onboarding in this repo, even without a profile. `harness` treats it as canonical and never overwrites or deletes it.
+
 ### 4. Decision pattern — "siempre 3 opciones"
 
 For **any significant decision** (deploy target, database, framework, hosting, tooling…):
