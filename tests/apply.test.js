@@ -76,6 +76,49 @@ test('claude: project-local install links to .rsc base, wires hook, list/uninsta
   assert.ok(!listInstalled({ target: 'claude', cwd }).includes('fastapi'));
 });
 
+test('claude: SessionStart runs session-start.sh and materializes it executable', async () => {
+  const cwd = mkdtempSync(join(tmpdir(), 'rsc-cwd-'));
+  await applyInstall({ skillIds: ['suggest'], target: 'claude', cwd });
+
+  const settings = JSON.parse(readFileSync(join(cwd, '.claude/settings.json'), 'utf8'));
+  const cmd = settings.hooks.SessionStart[0].hooks[0].command;
+  assert.ok(cmd.includes('.rsc/session-start.sh'), 'hook runs the script');
+  assert.ok(cmd.includes('skills/rsc/suggest'), 'passes suggest SKILL.md as arg');
+
+  const script = join(cwd, '.rsc/session-start.sh');
+  assert.ok(existsSync(script), 'script materialized into .rsc/');
+  assert.ok(statSync(script).mode & 0o111, 'script is executable');
+});
+
+test('claude: re-install migrates a legacy cat-style SessionStart in place (no dupes)', async () => {
+  const cwd = mkdtempSync(join(tmpdir(), 'rsc-cwd-'));
+  mkdirSync(join(cwd, '.claude'), { recursive: true });
+  writeFileSync(join(cwd, '.claude/settings.json'), JSON.stringify({
+    hooks: { SessionStart: [{ hooks: [{ type: 'command', command: 'cat "/x/.claude/skills/rsc/suggest/SKILL.md"' }] }] },
+  }, null, 2));
+
+  await applyInstall({ skillIds: ['suggest'], target: 'claude', cwd });
+
+  const settings = JSON.parse(readFileSync(join(cwd, '.claude/settings.json'), 'utf8'));
+  assert.equal(settings.hooks.SessionStart.length, 1, 'exactly one SessionStart entry');
+  assert.ok(settings.hooks.SessionStart[0].hooks[0].command.includes('.rsc/session-start.sh'), 'migrated to script form');
+});
+
+test('claude: a user SessionStart hook is preserved through wiring', async () => {
+  const cwd = mkdtempSync(join(tmpdir(), 'rsc-cwd-'));
+  mkdirSync(join(cwd, '.claude'), { recursive: true });
+  writeFileSync(join(cwd, '.claude/settings.json'), JSON.stringify({
+    hooks: { SessionStart: [{ hooks: [{ type: 'command', command: 'echo mine' }] }] },
+  }, null, 2));
+
+  await applyInstall({ skillIds: ['suggest'], target: 'claude', cwd });
+
+  const settings = JSON.parse(readFileSync(join(cwd, '.claude/settings.json'), 'utf8'));
+  const cmds = settings.hooks.SessionStart.map((e) => e.hooks[0].command);
+  assert.ok(cmds.some((c) => c === 'echo mine'), 'user hook untouched');
+  assert.ok(cmds.some((c) => c.includes('.rsc/session-start.sh')), 'rsc hook added');
+});
+
 test('codex: appends always-on block to AGENTS.md and links the base', async () => {
   const cwd = mkdtempSync(join(tmpdir(), 'rsc-cwd-'));
   await applyInstall({ skillIds: ['suggest', 'go'], target: 'codex', cwd });
