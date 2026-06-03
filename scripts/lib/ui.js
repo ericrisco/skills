@@ -143,7 +143,7 @@ function tuiSelect(question, options) {
     const paint = makePainter();
     const render = () => paint([
       C.bold(question),
-      C.dim('  ↑↓ move · enter select'),
+      C.dim('  ↑↓ move · enter select · esc back'),
       ...options.map((o, idx) =>
         idx === i ? `${C.cyan('❯')} ${C.cyan(o.label)}` : `  ${o.label}`),
     ]);
@@ -152,7 +152,8 @@ function tuiSelect(question, options) {
       if (key.name === 'up' || key.name === 'k') { i = (i - 1 + options.length) % options.length; render(); }
       else if (key.name === 'down' || key.name === 'j') { i = (i + 1) % options.length; render(); }
       else if (key.name === 'return') { stop(); resolve(options[i].key); }
-      else if (key.name === 'escape' || (key.ctrl && key.name === 'c')) { stop(); stdout.write('\n'); process.exit(130); }
+      else if (key.name === 'escape') { stop(); resolve(null); }              // back / cancel
+      else if (key.ctrl && key.name === 'c') { stop(); stdout.write('\n'); process.exit(130); } // hard quit
     });
   });
 }
@@ -177,7 +178,7 @@ function tuiChecklist(title, items) {
       const more = items.length > VISIBLE ? C.dim(`  (${cur + 1}/${items.length})`) : '';
       paint([
         C.bold(title),
-        C.dim('  ↑↓ move · space toggle · a all · enter confirm') + more,
+        C.dim('  ↑↓ move · space toggle · a all · enter confirm · esc back') + more,
         ...rows,
       ]);
     };
@@ -188,7 +189,8 @@ function tuiChecklist(title, items) {
       else if (key.name === 'space') { sel.has(cur) ? sel.delete(cur) : sel.add(cur); render(); }
       else if (str === 'a') { if (sel.size === items.length) sel.clear(); else items.forEach((_, idx) => sel.add(idx)); render(); }
       else if (key.name === 'return') { stop(); resolve([...sel].sort((x, y) => x - y).map((idx) => items[idx].id)); }
-      else if (key.name === 'escape' || (key.ctrl && key.name === 'c')) { stop(); stdout.write('\n'); process.exit(130); }
+      else if (key.name === 'escape') { stop(); resolve(null); }              // back without changing
+      else if (key.ctrl && key.name === 'c') { stop(); stdout.write('\n'); process.exit(130); } // hard quit
     });
   });
 }
