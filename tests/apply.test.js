@@ -1,11 +1,45 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtempSync, existsSync, readFileSync, lstatSync, statSync } from 'node:fs';
+import { mkdtempSync, existsSync, readFileSync, lstatSync, statSync, writeFileSync, mkdirSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { join, dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { spawnSync } from 'node:child_process';
 import { applyInstall, listInstalled, uninstall } from '../scripts/install-apply.js';
 import { doctor } from '../scripts/doctor.js';
 import { targetPaths } from '../targets/index.js';
+
+const SESSION_START = join(dirname(fileURLToPath(import.meta.url)), '..', 'targets', 'session-start.sh');
+
+function runSessionStart(root) {
+  const suggest = join(root, 'suggest-SKILL.md');
+  writeFileSync(suggest, '# rsc-suggest — detect & install\nalways-on body\n');
+  return spawnSync('bash', [SESSION_START, suggest, root], { encoding: 'utf8' }).stdout;
+}
+
+test('session-start: emits suggest body + banner when no profile and no opt-out', () => {
+  const root = mkdtempSync(join(tmpdir(), 'rsc-ss-'));
+  const out = runSessionStart(root);
+  assert.ok(out.includes('detect & install'), 'always cats suggest body');
+  assert.ok(out.includes('rsc onboarding'), 'banner present on fresh install');
+});
+
+test('session-start: no banner once user-profile.md exists', () => {
+  const root = mkdtempSync(join(tmpdir(), 'rsc-ss-'));
+  mkdirSync(join(root, '02-DOCS/wiki/harness'), { recursive: true });
+  writeFileSync(join(root, '02-DOCS/wiki/harness/user-profile.md'), 'technical_level: technical\n');
+  const out = runSessionStart(root);
+  assert.ok(out.includes('detect & install'), 'still cats suggest body');
+  assert.ok(!out.includes('rsc onboarding'), 'no banner when profile exists');
+});
+
+test('session-start: no banner when .rsc/.no-harness opt-out exists', () => {
+  const root = mkdtempSync(join(tmpdir(), 'rsc-ss-'));
+  mkdirSync(join(root, '.rsc'), { recursive: true });
+  writeFileSync(join(root, '.rsc/.no-harness'), '');
+  const out = runSessionStart(root);
+  assert.ok(!out.includes('rsc onboarding'), 'opt-out silences the banner');
+});
 
 test('targetPaths exposes the project root', () => {
   const cwd = mkdtempSync(join(tmpdir(), 'rsc-cwd-'));
