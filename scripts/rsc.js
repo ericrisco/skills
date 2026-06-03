@@ -31,15 +31,19 @@ async function recommendIds(query, { labeledOnly = false } = {}) {
 }
 
 // Pick skills by browsing the domains, accumulating across rounds.
+// Returns the chosen skill ids, or null if the user backed out to the main menu.
 async function manualSelect() {
   const chosen = new Set();
   for (;;) {
     const opts = DOMAINS.map((d, i) => ({ key: String(i), label: `${d.title} (${d.ids.length})` }));
-    opts.push({ key: 'done', label: chosen.size ? `✅ Finish & install (${chosen.size} chosen)` : 'Finish without choosing anything' });
+    opts.push({ key: 'done', label: chosen.size ? `✅ Finish & install (${chosen.size} chosen)` : 'Finish (install nothing)' });
+    opts.push({ key: 'back', label: '← Back to the main menu' });
     const k = await select('\nWhich area do you want to install skills from?', opts);
-    if (k === 'done' || k === null) break;
+    if (k === 'back' || k === null) return null;          // esc or Back → main menu
+    if (k === 'done') break;
     const d = DOMAINS[parseInt(k, 10)];
-    (await pickFrom(`${d.title}:`, d.ids)).forEach((id) => chosen.add(id));
+    const picked = await pickFrom(`${d.title}:`, d.ids);  // null = esc → leave this area unchanged
+    if (picked) picked.forEach((id) => chosen.add(id));
     say(`   → ${chosen.size} skills chosen so far.`);
   }
   return [...chosen];
@@ -54,6 +58,7 @@ async function selectAgents() {
     label: `${t.label}  (${t.hint})${t.id === detected ? '   ⟵ detected here' : ''}`,
   }));
   const chosen = await pickFrom('Which assistants do you want to install for? (space to toggle, a = all)', items);
+  if (chosen === null) return null;          // esc → back to the main menu
   return chosen.length ? chosen : [detected];
 }
 
@@ -91,39 +96,48 @@ async function wizard() {
   const m = loadManifest();
   await banner();
   say('  the skill catalog for your assistant (Claude Code · Codex · Cursor · Gemini · Antigravity)\n');
-  const choice = await select('What do you want to do?', [
-    { key: 'base', label: 'Base install — the essentials (orient + suggest + harness + init)' },
-    { key: 'sdd', label: 'Base + Spec-Driven Development — the specify → plan → implement → ship flow' },
-    { key: 'manual', label: 'Pick skills by hand, by area' },
-  ]);
+  // Navigable loop: esc / "← Back" / "no" all return here instead of quitting.
+  for (;;) {
+    const choice = await select('What do you want to do?', [
+      { key: 'base', label: 'Base install — the essentials (orient + suggest + harness + init)' },
+      { key: 'sdd', label: 'Base + Spec-Driven Development — the specify → plan → implement → ship flow' },
+      { key: 'manual', label: 'Pick skills by hand, by area' },
+    ]);
+    if (choice === null) { say('\nOK — nothing installed. Anytime: npx @ericrisco/rsc'); return; }
 
-  let ids = [];
-  if (choice === 'base') ids = skillsForProfile(m, 'minimal');
-  else if (choice === 'sdd') ids = skillsForProfile(m, 'core');
-  else if (choice === 'manual') ids = await manualSelect();
-  else { say("Didn't catch that. Run again: npx @ericrisco/rsc"); return; }
+    let ids;
+    if (choice === 'base') ids = skillsForProfile(m, 'minimal');
+    else if (choice === 'sdd') ids = skillsForProfile(m, 'core');
+    else if (choice === 'manual') {
+      const picked = await manualSelect();
+      if (picked === null) continue;          // backed out → re-show this menu
+      ids = picked;
+    } else continue;
 
-  // The floor is always installed: the compass + the detector.
-  ids = [...new Set(['orient', 'suggest', ...ids])];
-  if (ids.length <= 2 && choice !== 'base') {
-    say('\nNo skills were chosen. Anytime: npx @ericrisco/rsc');
+    // The floor is always installed: the compass + the detector.
+    ids = [...new Set(['orient', 'suggest', ...ids])];
+    if (ids.length <= 2 && choice !== 'base') {
+      say('\nNothing chosen — back to the menu.');
+      continue;
+    }
+
+    const targets = await selectAgents();
+    if (targets === null) continue;           // esc in the assistant picker → back to menu
+    say(`\nI'll install ${ids.length} skills for: ${targets.join(', ')}`);
+    say('   ' + ids.join(', '));
+    say('   (real files live once in .rsc/skills/ — each assistant just links to them)');
+    if (!(await confirm('Install it?'))) {
+      say('Cancelled — back to the menu.');
+      continue;                                // "no" / esc → back to menu, not quit
+    }
+    for (const target of targets) {
+      await applyInstall({ skillIds: ids, target });
+      say(`   ✅ ${target}`);
+    }
+    say(`\n✅ Installed ${ids.length} skills for ${targets.length} assistant(s).`);
+    printNextSteps(targets, ids);
     return;
   }
-
-  const targets = await selectAgents();
-  say(`\nI'll install ${ids.length} skills for: ${targets.join(', ')}`);
-  say('   ' + ids.join(', '));
-  say('   (real files live once in .rsc/skills/ — each assistant just links to them)');
-  if (!(await confirm('Install it?'))) {
-    say('No problem. Anytime: npx @ericrisco/rsc');
-    return;
-  }
-  for (const target of targets) {
-    await applyInstall({ skillIds: ids, target });
-    say(`   ✅ ${target}`);
-  }
-  say(`\n✅ Installed ${ids.length} skills for ${targets.length} assistant(s).`);
-  printNextSteps(targets, ids);
 }
 
 async function main() {
