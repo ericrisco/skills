@@ -1,10 +1,51 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtempSync, existsSync, readFileSync, lstatSync, statSync } from 'node:fs';
+import { mkdtempSync, existsSync, readFileSync, lstatSync, statSync, writeFileSync, mkdirSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { join, dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { spawnSync } from 'node:child_process';
 import { applyInstall, listInstalled, uninstall } from '../scripts/install-apply.js';
 import { doctor } from '../scripts/doctor.js';
+import { targetPaths } from '../targets/index.js';
+
+const SESSION_START = join(dirname(fileURLToPath(import.meta.url)), '..', 'targets', 'session-start.sh');
+
+function runSessionStart(root) {
+  const suggest = join(root, 'suggest-SKILL.md');
+  writeFileSync(suggest, '# rsc-suggest — detect & install\nalways-on body\n');
+  return spawnSync('bash', [SESSION_START, suggest, root], { encoding: 'utf8' }).stdout;
+}
+
+test('session-start: emits suggest body + banner when no profile and no opt-out', () => {
+  const root = mkdtempSync(join(tmpdir(), 'rsc-ss-'));
+  const out = runSessionStart(root);
+  assert.ok(out.includes('detect & install'), 'always cats suggest body');
+  assert.ok(out.includes('rsc onboarding'), 'banner present on fresh install');
+});
+
+test('session-start: no banner once user-profile.md exists', () => {
+  const root = mkdtempSync(join(tmpdir(), 'rsc-ss-'));
+  mkdirSync(join(root, '02-DOCS/wiki/harness'), { recursive: true });
+  writeFileSync(join(root, '02-DOCS/wiki/harness/user-profile.md'), 'technical_level: technical\n');
+  const out = runSessionStart(root);
+  assert.ok(out.includes('detect & install'), 'still cats suggest body');
+  assert.ok(!out.includes('rsc onboarding'), 'no banner when profile exists');
+});
+
+test('session-start: no banner when .rsc/.no-harness opt-out exists', () => {
+  const root = mkdtempSync(join(tmpdir(), 'rsc-ss-'));
+  mkdirSync(join(root, '.rsc'), { recursive: true });
+  writeFileSync(join(root, '.rsc/.no-harness'), '');
+  const out = runSessionStart(root);
+  assert.ok(!out.includes('rsc onboarding'), 'opt-out silences the banner');
+});
+
+test('targetPaths exposes the project root', () => {
+  const cwd = mkdtempSync(join(tmpdir(), 'rsc-cwd-'));
+  const paths = targetPaths('claude', undefined, cwd);
+  assert.equal(paths.projectRoot, cwd);
+});
 
 test('claude: project-local install links to .rsc base, wires hook, list/uninstall work', async () => {
   const cwd = mkdtempSync(join(tmpdir(), 'rsc-cwd-'));
@@ -33,6 +74,68 @@ test('claude: project-local install links to .rsc base, wires hook, list/uninsta
   assert.ok(!existsSync(join(cwd, '.claude/skills/rsc/fastapi')), 'link removed');
   assert.ok(existsSync(join(cwd, '.rsc/skills/fastapi/SKILL.md')), 'shared base survives uninstall');
   assert.ok(!listInstalled({ target: 'claude', cwd }).includes('fastapi'));
+});
+
+test('claude: SessionStart runs session-start.sh and materializes it executable', async () => {
+  const cwd = mkdtempSync(join(tmpdir(), 'rsc-cwd-'));
+  await applyInstall({ skillIds: ['suggest'], target: 'claude', cwd });
+
+  const settings = JSON.parse(readFileSync(join(cwd, '.claude/settings.json'), 'utf8'));
+  const cmd = settings.hooks.SessionStart[0].hooks[0].command;
+  assert.ok(cmd.includes('.rsc/session-start.sh'), 'hook runs the script');
+  assert.ok(cmd.includes('skills/rsc/suggest'), 'passes suggest SKILL.md as arg');
+
+  const script = join(cwd, '.rsc/session-start.sh');
+  assert.ok(existsSync(script), 'script materialized into .rsc/');
+  assert.ok(statSync(script).mode & 0o111, 'script is executable');
+});
+
+test('claude: wires worklog checkpoint on PreCompact + SessionEnd, materialized + idempotent', async () => {
+  const cwd = mkdtempSync(join(tmpdir(), 'rsc-cwd-'));
+  await applyInstall({ skillIds: ['suggest'], target: 'claude', cwd });
+  await applyInstall({ skillIds: ['suggest'], target: 'claude', cwd }); // re-install → no dupes
+
+  const settings = JSON.parse(readFileSync(join(cwd, '.claude/settings.json'), 'utf8'));
+  for (const event of ['PreCompact', 'SessionEnd']) {
+    assert.equal(settings.hooks[event].length, 1, `exactly one ${event} entry`);
+    assert.ok(
+      settings.hooks[event][0].hooks[0].command.includes('.rsc/worklog-checkpoint.sh'),
+      `${event} runs the worklog checkpoint script`,
+    );
+  }
+
+  const script = join(cwd, '.rsc/worklog-checkpoint.sh');
+  assert.ok(existsSync(script), 'worklog-checkpoint.sh materialized into .rsc/');
+  assert.ok(statSync(script).mode & 0o111, 'worklog-checkpoint.sh is executable');
+});
+
+test('claude: re-install migrates a legacy cat-style SessionStart in place (no dupes)', async () => {
+  const cwd = mkdtempSync(join(tmpdir(), 'rsc-cwd-'));
+  mkdirSync(join(cwd, '.claude'), { recursive: true });
+  writeFileSync(join(cwd, '.claude/settings.json'), JSON.stringify({
+    hooks: { SessionStart: [{ hooks: [{ type: 'command', command: 'cat "/x/.claude/skills/rsc/suggest/SKILL.md"' }] }] },
+  }, null, 2));
+
+  await applyInstall({ skillIds: ['suggest'], target: 'claude', cwd });
+
+  const settings = JSON.parse(readFileSync(join(cwd, '.claude/settings.json'), 'utf8'));
+  assert.equal(settings.hooks.SessionStart.length, 1, 'exactly one SessionStart entry');
+  assert.ok(settings.hooks.SessionStart[0].hooks[0].command.includes('.rsc/session-start.sh'), 'migrated to script form');
+});
+
+test('claude: a user SessionStart hook is preserved through wiring', async () => {
+  const cwd = mkdtempSync(join(tmpdir(), 'rsc-cwd-'));
+  mkdirSync(join(cwd, '.claude'), { recursive: true });
+  writeFileSync(join(cwd, '.claude/settings.json'), JSON.stringify({
+    hooks: { SessionStart: [{ hooks: [{ type: 'command', command: 'echo mine' }] }] },
+  }, null, 2));
+
+  await applyInstall({ skillIds: ['suggest'], target: 'claude', cwd });
+
+  const settings = JSON.parse(readFileSync(join(cwd, '.claude/settings.json'), 'utf8'));
+  const cmds = settings.hooks.SessionStart.map((e) => e.hooks[0].command);
+  assert.ok(cmds.some((c) => c === 'echo mine'), 'user hook untouched');
+  assert.ok(cmds.some((c) => c.includes('.rsc/session-start.sh')), 'rsc hook added');
 });
 
 test('codex: appends always-on block to AGENTS.md and links the base', async () => {
@@ -86,6 +189,14 @@ test('AGENTS.md family (codex/zed/opencode/amp/jules) shares one idempotent bloc
   }
   const agents = readFileSync(join(cwd, 'AGENTS.md'), 'utf8');
   assert.equal(agents.match(/rsc-suggest:start/g).length, 1, 'block appears exactly once');
+});
+
+test('cross-target: onboarding gate text rides suggest into a non-claude target', async () => {
+  const cwd = mkdtempSync(join(tmpdir(), 'rsc-cwd-'));
+  await applyInstall({ skillIds: ['suggest'], target: 'codex', cwd });
+  const agents = readFileSync(join(cwd, 'AGENTS.md'), 'utf8');
+  assert.ok(agents.includes('Onboarding gate'), 'gate section injected cross-target');
+  assert.ok(agents.includes('.no-harness'), 'opt-out marker documented in the injected block');
 });
 
 test('unknown target throws', async () => {

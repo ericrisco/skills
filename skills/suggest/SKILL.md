@@ -24,6 +24,16 @@ Rules:
 - Never recommend something already installed (`npx @ericrisco/rsc list`).
 - One suggestion at a time. Don't interrupt the flow for nice-to-haves.
 
+## Onboarding gate (first contact)
+
+Before handling the first request of the session, check the workspace state:
+
+- If `02-DOCS/wiki/harness/user-profile.md` is **missing** AND `.rsc/.no-harness` is **missing**, the harness has never been set up here — your FIRST action is to invoke `init` (auto-onboarding), which opens with the two gauging questions (technical level + accompaniment dial). Don't wait to be asked; don't start the user's task until first contact is done.
+- If the user declines or says they don't want a harness here ("sin harness", "solo código", "no quiero esto") — create an empty `.rsc/.no-harness` and never auto-start `init` in this repo again. Confirm in one line.
+- Once `02-DOCS/wiki/harness/user-profile.md` exists, this gate is inert — never re-onboard.
+
+This is the universal layer every assistant reads. On Claude Code a SessionStart hook also prints this reminder deterministically, but the rule above is what makes it fire everywhere.
+
 ## Orientación (siempre)
 
 Cierra cada turno con el **bloque-brújula** (📍 dónde estás · ✅ qué hiciste · 🧭 por qué · ➡️ siguiente, terminando en pregunta), calibrado al dial de `02-DOCS/wiki/harness/user-profile.md`. **Nunca termines en seco.** Protocolo completo: skill `orient` → `skills/orient/references/orientation-contract.md`. (Defiere a `suggest` el "¿instalo la skill que falta?".)
