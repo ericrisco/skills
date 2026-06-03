@@ -172,6 +172,14 @@ test('AGENTS.md family (codex/zed/opencode/amp/jules) shares one idempotent bloc
   assert.equal(agents.match(/rsc-suggest:start/g).length, 1, 'block appears exactly once');
 });
 
+test('cross-target: onboarding gate text rides suggest into a non-claude target', async () => {
+  const cwd = mkdtempSync(join(tmpdir(), 'rsc-cwd-'));
+  await applyInstall({ skillIds: ['suggest'], target: 'codex', cwd });
+  const agents = readFileSync(join(cwd, 'AGENTS.md'), 'utf8');
+  assert.ok(agents.includes('Onboarding gate'), 'gate section injected cross-target');
+  assert.ok(agents.includes('.no-harness'), 'opt-out marker documented in the injected block');
+});
+
 test('unknown target throws', async () => {
   const cwd = mkdtempSync(join(tmpdir(), 'rsc-cwd-'));
   await assert.rejects(() => applyInstall({ skillIds: ['suggest'], target: 'nope', cwd }), /unknown target/);
