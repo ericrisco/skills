@@ -55,6 +55,10 @@ Before discovery, before any recommendation, write the profile to `02-DOCS` and 
 
 If `02-DOCS/` does not yet exist (greenfield), create `02-DOCS/wiki/harness/` now — just enough to hold these two files. That, plus the `CLAUDE.md` Knowledge-map link, is everything `init` writes; ALL other `01-TOOLS/` + `02-DOCS/` scaffolding is the `harness` skill's job.
 
+### Opt-out marker — `.rsc/.no-harness`
+
+A freshly-installed session auto-starts `init` while `02-DOCS/wiki/harness/user-profile.md` is absent (the `suggest` Onboarding gate + claude's SessionStart hook). If the user does not want a harness in this repo (e.g. they installed only code skills), write an empty `.rsc/.no-harness` — this permanently silences the auto-start here even before a profile exists. Completing first contact (which writes `user-profile.md`) also silences it. The marker is project-local; commit it so the "no harness here" decision is shared by the team.
+
 ### How every skill adapts to the dial
 
 Every rsc skill MUST read `user-profile.md` at the start of a session and adapt:
