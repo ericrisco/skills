@@ -105,6 +105,7 @@ export function targetPaths(target, home = homedir(), cwd = process.cwd()) {
   const rootAbs = join(cwd, ...s.root.split('/'));
   return {
     root: rootAbs,
+    projectRoot: cwd,
     skillDir: (id) => (s.skillExt ? join(rootAbs, `${id}${s.skillExt}`) : join(rootAbs, id)),
     stateFile: join(rootAbs, '.rsc-state.json'),
     hookTarget: join(cwd, ...s.hook.split('/')),
