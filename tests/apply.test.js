@@ -5,6 +5,13 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { applyInstall, listInstalled, uninstall } from '../scripts/install-apply.js';
 import { doctor } from '../scripts/doctor.js';
+import { targetPaths } from '../targets/index.js';
+
+test('targetPaths exposes the project root', () => {
+  const cwd = mkdtempSync(join(tmpdir(), 'rsc-cwd-'));
+  const paths = targetPaths('claude', undefined, cwd);
+  assert.equal(paths.projectRoot, cwd);
+});
 
 test('claude: project-local install links to .rsc base, wires hook, list/uninstall work', async () => {
   const cwd = mkdtempSync(join(tmpdir(), 'rsc-cwd-'));
