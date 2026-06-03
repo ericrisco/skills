@@ -11,7 +11,7 @@ profiles: [minimal, core, full]
 The **harness** is the control plane of a workspace. A workspace need not be code: it can be a company, an ops desk, a legal archive, a personal knowledge vault. Whatever it is, the harness is the durable apparatus that keeps it operable and legible, made of three parts:
 
 - **`01-TOOLS/<PROVIDER>/`** — the operational tooling layer. One folder per external provider, co-locating credentials (`.env`) with the scripts that consume them. Each tool ships a working `test_connection` against the real API.
-- **`02-DOCS/`** — the **Karpathy chaos→knowledge engine**: a domain-agnostic LLM wiki (`inbox/` + `raw/` + `wiki/` + `wiki/index.md` + `wiki/log.md` + `wiki/gaps.md` + `wiki/scores.json`), fully embedded in this skill. The user drops **any raw file in any format** (PDF, image, CSV, JSON, txt, html…) into `inbox/`; an **Inbox Sweep** ("the agent goes for a walk") extracts, classifies by content, cross-links, and compiles it into the wiki — see `references/ingest-formats.md` for the multiformat Fetch and `references/wiki-protocol.md` for the protocol. Topics are inferred from content (`finanzas/`, `legal/`, `crm/`…), never hardcoded to software docs. The wiki **self-improves continuously**: every Ingest, Sweep and Query triggers a Maintenance Pass (deterministic lint, score recomputation, gap detection, See Also sweep), and every N interactions a Micro-Improve runs (rewrite 1 low-scoring article, fill 1 gap, preserving old versions in `_archive/`). Deep Improve runs on explicit request or via scheduled cron. No external skill needed.
+- **`02-DOCS/`** — the **Karpathy chaos→knowledge engine**: a domain-agnostic LLM wiki (`inbox/` + `raw/` + `raw/worklog/` + `wiki/` + `wiki/index.md` + `wiki/log.md` + `wiki/gaps.md` + `wiki/scores.json` + the `.base` views), fully embedded in this skill. It feeds from **two on-ramps**: (1) the user drops **any raw file in any format** (PDF, image, CSV, JSON, txt, html…) into `inbox/`, and an **Inbox Sweep** ("the agent goes for a walk") extracts, classifies, cross-links, and compiles it; (2) a **Worklog Sweep** captures **what we do** — every meaningful session of work is itself a `raw` source (`raw/worklog/`) compiled into the wiki, fired by a `PreCompact`/`SessionEnd` hook, by an explicit milestone (a commit), or by the daily curation automation (`references/daily-curation-automation.md`). The wiki is **Obsidian-native**: wikilinks, YAML frontmatter (Properties), readable filenames, and `.base` views give a real graph + live tables — structure, **not vector DB / embeddings / RAG**. The agent writes it; the human reads it in Obsidian. See `references/wiki-protocol.md` for the protocol, `references/ingest-formats.md` for the multiformat Fetch, `references/wiki-worklog-template.md` for the work capture, and `references/obsidian-scaffolding.md` for the vault scaffolding. Topics are inferred from content (`finanzas/`, `legal/`, `crm/`…), never hardcoded. The wiki **self-improves continuously**: every Ingest, Sweep and Query triggers a Maintenance Pass (deterministic lint, score recomputation, gap detection, Related/See-Also sweep), and every N interactions a Micro-Improve runs. Deep Improve runs on explicit request or via the scheduled daily curation. No external skill needed.
 - **The Knowledge map** — the `## Knowledge map` section of the root `CLAUDE.md` that indexes the wiki (including the `harness/` topic) and is read by every other skill before it works in its area.
 
 `harness` is the **protagonist concept**. `init` is the bootstrap front door — it gauges the user, drafts the profile, and hands off the first scaffold. THIS skill (`harness`) is the **ongoing control**: it audits, migrates, scaffolds, sweeps the inbox, and keeps the wiki, the tooling and the Knowledge map honest over the life of the workspace. It also generates root `CLAUDE.md` and `AGENTS.md`, and migrates legacy `XX-*` numbered folders into the canonical layout.
@@ -100,12 +100,15 @@ harness/
 │   ├── agents-md-template.md         ← root AGENTS.md template
 │   ├── tools-readme-template.md      ← 01-TOOLS/README.md catalog template
 │   ├── audit-report-template.md      ← exact format of the audit report shown to user
-│   ├── wiki-protocol.md              ← embedded wiki protocol + Inbox Sweep + Continuous Improvement
+│   ├── wiki-protocol.md              ← embedded wiki protocol + Inbox/Worklog Sweep + Continuous Improvement
 │   ├── ingest-formats.md             ← multiformat Fetch (PDF, image, CSV, JSON, html…)
 │   ├── inbox-readme-template.md      ← the inbox/README.md drop-zone contract
 │   ├── wiki-raw-template.md          ← format for raw/<topic>/*.md
-│   ├── wiki-article-template.md     ← format for wiki/<topic>/*.md
-│   ├── wiki-index-template.md       ← format for wiki/index.md (with Score column)
+│   ├── wiki-worklog-template.md      ← format for raw/worklog/*.md (work-driven capture)
+│   ├── wiki-article-template.md     ← format for wiki/<topic>/*.md (Obsidian frontmatter + wikilinks)
+│   ├── wiki-index-template.md       ← format for wiki/index.md (machine catalog; .base = human nav)
+│   ├── obsidian-scaffolding.md      ← .base views, .gitignore, attachments, .obsidian config
+│   ├── daily-curation-automation.md ← portable scheduled compounding pass (the third trigger)
 │   ├── wiki-archive-template.md     ← format for archived query answers
 │   └── wiki-gaps-template.md        ← format for wiki/gaps.md (Knowledge Gaps log)
 ├── assets/
@@ -323,12 +326,15 @@ If any of these occur, stop and report:
 - `references/tools-readme-template.md` — `01-TOOLS/README.md` catalog template.
 - `references/audit-report-template.md` — text summary format for the in-conversation audit summary.
 - `references/audit-report-template.html` — HTML format for the full per-run audit artifact written to `02-DOCS/audits/`.
-- `references/wiki-protocol.md` — embedded protocol for the `02-DOCS/` chaos→knowledge layer (initialization, **Inbox Sweep**, ingest, query, lint, **Continuous Improvement**: Maintenance Pass, Micro-Improve, Deep Improve).
+- `references/wiki-protocol.md` — embedded protocol for the `02-DOCS/` chaos→knowledge layer (initialization, **Inbox Sweep**, **Worklog Sweep**, ingest, query, lint, **Continuous Improvement**: Maintenance Pass, Micro-Improve, Deep Improve; Obsidian-native conventions).
 - `references/ingest-formats.md` — multiformat Fetch: how any input (PDF, image, CSV/Excel, JSON/API, html, docx, email, unknown binary) becomes `raw/` markdown with the original preserved in `_originals/`.
 - `references/inbox-readme-template.md` — the `inbox/README.md` drop-zone contract shown to the user.
 - `references/wiki-raw-template.md` — format for `02-DOCS/raw/<topic>/*.md`.
-- `references/wiki-article-template.md` — format for `02-DOCS/wiki/<topic>/*.md`.
-- `references/wiki-index-template.md` — format for `02-DOCS/wiki/index.md` (with Score column).
+- `references/wiki-worklog-template.md` — format for `02-DOCS/raw/worklog/*.md` (the work-driven capture; the session as a raw source).
+- `references/wiki-article-template.md` — format for `02-DOCS/wiki/<topic>/*.md` (Obsidian frontmatter + wikilinks + `## Related`).
+- `references/wiki-index-template.md` — format for `02-DOCS/wiki/index.md` (machine catalog; the `.base` views are the human navigation).
+- `references/obsidian-scaffolding.md` — the vault scaffolding: `.base` views, `.gitignore`, `attachments/`, `.obsidian` config (no vector DB / RAG).
+- `references/daily-curation-automation.md` — portable scheduled compounding pass; on Claude Code wired via the `schedule` skill.
 - `references/wiki-archive-template.html` — HTML format for archived query answers (point-in-time, never edited).
 - `references/wiki-dashboard-template.html` — HTML format for the live wiki dashboard, regenerated by Maintenance Pass.
 - `references/wiki-deep-improve-report-template.html` — HTML format for Deep Improve run reports.
