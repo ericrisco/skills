@@ -33,7 +33,24 @@ export function wireHook(paths) {
   });
   settings.hooks.SessionStart.push({ hooks: [{ type: 'command', command: cmd }] });
 
+  // Worklog checkpoint: PreCompact + SessionEnd run a project-local
+  // worklog-checkpoint.sh that reminds the agent to capture what we did this
+  // session into 02-DOCS/raw/worklog/ (the work-driven on-ramp). Silent when the
+  // workspace has no harness wiki. Registered idempotently on both events, with
+  // any prior rsc worklog-checkpoint entry dropped first.
+  const wlDest = join(paths.projectRoot, '.rsc', 'worklog-checkpoint.sh');
+  copyFileSync(join(dirname(fileURLToPath(import.meta.url)), 'worklog-checkpoint.sh'), wlDest);
+  chmodSync(wlDest, 0o755);
+  const wlCmd = `bash "${wlDest}" "${paths.projectRoot}"`;
+  for (const event of ['PreCompact', 'SessionEnd']) {
+    settings.hooks[event] ||= [];
+    settings.hooks[event] = settings.hooks[event].filter(
+      (e) => !JSON.stringify(e).includes('.rsc/worklog-checkpoint.sh'),
+    );
+    settings.hooks[event].push({ hooks: [{ type: 'command', command: wlCmd }] });
+  }
+
   mkdirSync(dirname(file), { recursive: true });
   writeFileSync(file, JSON.stringify(settings, null, 2) + '\n');
-  return [file, scriptDest];
+  return [file, scriptDest, wlDest];
 }
