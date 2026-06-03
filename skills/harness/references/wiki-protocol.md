@@ -17,6 +17,7 @@ skill required. When the parent skill (`SKILL.md`) reaches Phase 4 step 8
 - [Ingest](#ingest) · [Fetch](#fetch-raw) · [Compile](#compile-wiki) · [Cascade Updates](#cascade-updates) · [Post-Ingest](#post-ingest)
 - [Inbox Sweep — "el agente sale a pasear"](#inbox-sweep--el-agente-sale-a-pasear)
 - [Worklog Sweep — work-driven capture](#worklog-sweep--work-driven-capture)
+- [Auto-Ingest Sweep — automatic, workspace-wide](#auto-ingest-sweep--automatic-workspace-wide)
 - [Query](#query)
 - [Lint](#lint) · [Deterministic Checks](#deterministic-checks-auto-fix) · [Heuristic Checks](#heuristic-checks-report-only)
 - [Continuous Improvement](#continuous-improvement) — Maintenance Pass / Micro-Improve / Deep Improve
@@ -172,6 +173,9 @@ exist. Create only what is missing; never overwrite existing files:
 - `02-DOCS/wiki/log.md` — heading `# Wiki Log`, empty body
 - `02-DOCS/wiki/gaps.md` — heading `# Knowledge Gaps`, empty body
 - `02-DOCS/wiki/scores.json` — `{}` (populated by the first Maintenance Pass)
+- `02-DOCS/wiki/.ingested.json` — `{}` (the Auto-Ingest Sweep's seen-ledger)
+- `02-DOCS/.rscignore` — the scan boundary for the Auto-Ingest Sweep, from
+  `ingest-ignore-defaults.md` (tracked, not gitignored)
 - `02-DOCS/wiki/reports/` directory (with `.gitkeep`) — will hold Deep Improve reports
 - `02-DOCS/audits/` directory (with `.gitkeep`) — holds per-run audit reports
   from the parent skill (`audit-YYYY-MM-DD-HHMM.html`). May already exist if
@@ -423,6 +427,62 @@ Append to `02-DOCS/wiki/log.md`:
 - **No invention.** Capture what actually happened (cite commands/outputs); do not
   embellish outcomes. "Done" requires evidence.
 - **Throttled.** No worklog for trivial turns (see Throttle above).
+
+---
+
+## Auto-Ingest Sweep — automatic, workspace-wide
+
+The Inbox Sweep processes what the user *dropped* in `inbox/`. The **Auto-Ingest
+Sweep** extends it: it also **discovers** un-ingested documents anywhere in the
+workspace and ingests them on its own — so the user never has to remember to file
+sources. It runs automatically (SessionStart nudge + daily cron; see Triggers) and
+on request.
+
+The hard rule that keeps "automatic, workspace-wide" safe: **ingesting is
+non-destructive** (read + create wiki pages + copy the original into
+`raw/<topic>/_originals/`), so it is safe to do unattended. **Moving or deleting
+anything is destructive** and always requires explicit, quoted consent.
+
+### Steps
+
+1. **inbox/** — run the Inbox Sweep on `inbox/` (unchanged).
+2. **Scan** — walk the workspace minus `.rscignore` (and minus detected app source
+   dirs). Consider only document-like files. A file is **un-ingested** when its
+   `path` is absent from `wiki/.ingested.json` OR its content hash differs.
+3. **Classify** each candidate folder:
+   - **Clearly documentary** (a folder of docs/transcripts/pdfs, no code) →
+     **auto-ingest**: Compile to `wiki/`, copy the original into
+     `raw/<topic>/_originals/` (**copy, never move** — the source stays put).
+   - **Ambiguous** (mixed, or possibly app data) → **list it and propose**; do not
+     touch it. Log it to `gaps.md` so the next pass remembers.
+4. **Record** every ingested source in `wiki/.ingested.json`.
+5. **Offer cleanup** — for a folder the sweep fully ingested, **offer** to remove it
+   once empty, with the consent quoted back from the user. **Never auto-delete**, and
+   never a folder the sweep did not itself empty.
+
+### Ledger — `wiki/.ingested.json`
+
+The seen-ledger; the single source of truth for "what we've already ingested",
+which makes the workspace scan idempotent (the Inbox Sweep alone tracks
+processed-ness only by moving files to `inbox/_processed/`).
+
+```json
+{
+  "<relpath-from-workspace-root>": { "hash": "sha256:…", "ingested": "YYYY-MM-DD", "topic": "…" }
+}
+```
+
+Un-ingested = path absent OR hash changed. `inbox/` files still move to
+`inbox/_processed/` **and** get a ledger entry. Initialized as `{}`.
+
+### Auto-Ingest safety rails
+
+- **Ledger-idempotent.** Never reprocess a source whose path+hash is recorded.
+- **Scoped by `.rscignore`.** Never scan code, build output, `01-TOOLS/`, the
+  wiki's own `raw/`+`wiki/`, or non-document files (see `ingest-ignore-defaults.md`).
+- **Copy, don't move.** Discovered originals are copied; the source is left in place.
+- **Consent for destruction.** Removing an emptied folder is quoted-consent only.
+- **Ambiguity is proposed, not grabbed.**
 
 ---
 
