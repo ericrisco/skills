@@ -90,6 +90,25 @@ test('claude: SessionStart runs session-start.sh and materializes it executable'
   assert.ok(statSync(script).mode & 0o111, 'script is executable');
 });
 
+test('claude: wires worklog checkpoint on PreCompact + SessionEnd, materialized + idempotent', async () => {
+  const cwd = mkdtempSync(join(tmpdir(), 'rsc-cwd-'));
+  await applyInstall({ skillIds: ['suggest'], target: 'claude', cwd });
+  await applyInstall({ skillIds: ['suggest'], target: 'claude', cwd }); // re-install → no dupes
+
+  const settings = JSON.parse(readFileSync(join(cwd, '.claude/settings.json'), 'utf8'));
+  for (const event of ['PreCompact', 'SessionEnd']) {
+    assert.equal(settings.hooks[event].length, 1, `exactly one ${event} entry`);
+    assert.ok(
+      settings.hooks[event][0].hooks[0].command.includes('.rsc/worklog-checkpoint.sh'),
+      `${event} runs the worklog checkpoint script`,
+    );
+  }
+
+  const script = join(cwd, '.rsc/worklog-checkpoint.sh');
+  assert.ok(existsSync(script), 'worklog-checkpoint.sh materialized into .rsc/');
+  assert.ok(statSync(script).mode & 0o111, 'worklog-checkpoint.sh is executable');
+});
+
 test('claude: re-install migrates a legacy cat-style SessionStart in place (no dupes)', async () => {
   const cwd = mkdtempSync(join(tmpdir(), 'rsc-cwd-'));
   mkdirSync(join(cwd, '.claude'), { recursive: true });
