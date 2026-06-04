@@ -11,16 +11,22 @@ export function baseDir(id, cwd = process.cwd()) {
   return join(cwd, '.rsc', 'skills', id);
 }
 
-// Point an assistant's skill folder at the shared base via a relative symlink.
-// Falls back to a real copy when the filesystem rejects symlinks (e.g. Windows
-// without privileges). Idempotent: replaces any existing link/dir at toPath.
+// Point an assistant's skill folder at the shared base. On macOS/Linux a relative
+// symlink avoids duplication. On Windows we copy real files: relative `dir`
+// symlinks require Developer Mode/admin and are not reliably followed by skill
+// discovery, so correctness wins over de-duplication. Idempotent: replaces any
+// existing link/dir at toPath.
 export function linkOrCopy(fromDir, toPath) {
   mkdirSync(dirname(toPath), { recursive: true });
   try { lstatSync(toPath); rmSync(toPath, { recursive: true, force: true }); } catch { /* nothing there */ }
-  try {
-    symlinkSync(relative(dirname(toPath), fromDir), toPath, 'dir');
-  } catch {
+  if (process.platform === 'win32') {
     cpSync(fromDir, toPath, { recursive: true });
+  } else {
+    try {
+      symlinkSync(relative(dirname(toPath), fromDir), toPath, 'dir');
+    } catch {
+      cpSync(fromDir, toPath, { recursive: true });
+    }
   }
   return [toPath];
 }
@@ -31,7 +37,7 @@ export function linkOrCopy(fromDir, toPath) {
 // is a single converted file, not a linked directory.
 const SPEC = {
   // JSON-hook + linked skill dirs
-  claude: { root: '.claude/skills/rsc', hook: '.claude/settings.json', adapter: 'claude' },
+  claude: { root: '.claude/skills', hook: '.claude/settings.json', adapter: 'claude' },
   // Converted .mdc rules
   cursor: { root: '.cursor/rules', hook: '.cursor/rules/rsc-suggest.mdc', adapter: 'cursor', skillExt: '.mdc' },
   // AGENTS.md family — all read the same root AGENTS.md

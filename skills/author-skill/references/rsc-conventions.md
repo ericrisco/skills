@@ -49,10 +49,14 @@ profiles: [core, full]           # optional: named-profile membership
 
 ## Invocation
 
-There are no bundles and no `/<bundle>:<id>` namespacing. A skill installs under
-the target's rsc namespace (e.g. `~/.claude/skills/rsc/<id>/`) and is invoked by
-its `name`. The `suggest` detector is always installed (the floor) and proposes
-installing any skill a task needs via `npx @ericrisco/rsc add <id>`.
+There are no bundles and no `/<bundle>:<id>` namespacing. Most targets install a
+skill under their own rsc folder (e.g. `.codex/rsc/<id>/`), reached from that
+assistant's instructions file. **Claude is the exception:** Claude Code only
+discovers project skills one level under `.claude/skills/`, so rsc skills install
+**flat** at `.claude/skills/<id>/SKILL.md` (a nested `.claude/skills/rsc/<id>/`
+is never discovered). A skill is invoked by its `name`. The `suggest` detector is
+always installed (the floor) and proposes installing any skill a task needs via
+`npx @ericrisco/rsc add <id>`.
 
 ## Wiring steps for a new skill
 
