@@ -388,7 +388,8 @@ generalizes the SDD session-summary convention to *any* work.
 
 - **Hook — `PreCompact` / `SessionEnd`** (Claude Code): fires right before context
   is lost or the session ends. The hook only *reminds*; the agent writes the
-  worklog (Karpathy: the LLM writes). Wired by `targets/` → `.rsc/worklog-checkpoint.sh`.
+  worklog (Karpathy: the LLM writes). Wired by `targets/` → `.rsc/worklog-checkpoint.mjs`
+  (run via `node`, so it works on Windows too).
 - **Explicit milestone**: after a commit or a shipped feature, capture a worklog.
 - **Daily curation automation**: distills any pending worklog raw on a timer (see
   Continuous Improvement and `daily-curation-automation.md`).

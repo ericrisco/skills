@@ -9,12 +9,12 @@ import { applyInstall, listInstalled, uninstall } from '../scripts/install-apply
 import { doctor } from '../scripts/doctor.js';
 import { targetPaths } from '../targets/index.js';
 
-const SESSION_START = join(dirname(fileURLToPath(import.meta.url)), '..', 'targets', 'session-start.sh');
+const SESSION_START = join(dirname(fileURLToPath(import.meta.url)), '..', 'targets', 'session-start.mjs');
 
 function runSessionStart(root) {
   const suggest = join(root, 'suggest-SKILL.md');
   writeFileSync(suggest, '# rsc-suggest — detect & install\nalways-on body\n');
-  return spawnSync('bash', [SESSION_START, suggest, root], { encoding: 'utf8' }).stdout;
+  return spawnSync('node', [SESSION_START, suggest, root], { encoding: 'utf8' }).stdout;
 }
 
 test('session-start: emits suggest body + banner when no profile and no opt-out', () => {
@@ -123,18 +123,18 @@ test('claude: project-local install links to .rsc base, wires hook, list/uninsta
   assert.ok(!listInstalled({ target: 'claude', cwd }).includes('fastapi'));
 });
 
-test('claude: SessionStart runs session-start.sh and materializes it executable', async () => {
+test('claude: SessionStart runs session-start.mjs via node (Windows-safe), materialized', async () => {
   const cwd = mkdtempSync(join(tmpdir(), 'rsc-cwd-'));
   await applyInstall({ skillIds: ['suggest'], target: 'claude', cwd });
 
   const settings = JSON.parse(readFileSync(join(cwd, '.claude/settings.json'), 'utf8'));
   const cmd = settings.hooks.SessionStart[0].hooks[0].command;
-  assert.ok(cmd.includes('.rsc/session-start.sh'), 'hook runs the script');
+  assert.ok(cmd.startsWith('node '), 'invoked via node, not bash, so it runs on Windows');
+  assert.ok(cmd.includes('.rsc/session-start.mjs'), 'hook runs the node script');
   assert.ok(cmd.includes('skills/suggest'), 'passes suggest SKILL.md as arg');
 
-  const script = join(cwd, '.rsc/session-start.sh');
+  const script = join(cwd, '.rsc/session-start.mjs');
   assert.ok(existsSync(script), 'script materialized into .rsc/');
-  assert.ok(statSync(script).mode & 0o111, 'script is executable');
 });
 
 test('claude: wires worklog checkpoint on PreCompact + SessionEnd, materialized + idempotent', async () => {
@@ -145,15 +145,13 @@ test('claude: wires worklog checkpoint on PreCompact + SessionEnd, materialized 
   const settings = JSON.parse(readFileSync(join(cwd, '.claude/settings.json'), 'utf8'));
   for (const event of ['PreCompact', 'SessionEnd']) {
     assert.equal(settings.hooks[event].length, 1, `exactly one ${event} entry`);
-    assert.ok(
-      settings.hooks[event][0].hooks[0].command.includes('.rsc/worklog-checkpoint.sh'),
-      `${event} runs the worklog checkpoint script`,
-    );
+    const cmd = settings.hooks[event][0].hooks[0].command;
+    assert.ok(cmd.startsWith('node '), `${event} invoked via node (Windows-safe)`);
+    assert.ok(cmd.includes('.rsc/worklog-checkpoint.mjs'), `${event} runs the worklog checkpoint script`);
   }
 
-  const script = join(cwd, '.rsc/worklog-checkpoint.sh');
-  assert.ok(existsSync(script), 'worklog-checkpoint.sh materialized into .rsc/');
-  assert.ok(statSync(script).mode & 0o111, 'worklog-checkpoint.sh is executable');
+  const script = join(cwd, '.rsc/worklog-checkpoint.mjs');
+  assert.ok(existsSync(script), 'worklog-checkpoint.mjs materialized into .rsc/');
 });
 
 test('claude: re-install migrates a legacy cat-style SessionStart in place (no dupes)', async () => {
@@ -167,7 +165,29 @@ test('claude: re-install migrates a legacy cat-style SessionStart in place (no d
 
   const settings = JSON.parse(readFileSync(join(cwd, '.claude/settings.json'), 'utf8'));
   assert.equal(settings.hooks.SessionStart.length, 1, 'exactly one SessionStart entry');
-  assert.ok(settings.hooks.SessionStart[0].hooks[0].command.includes('.rsc/session-start.sh'), 'migrated to script form');
+  assert.ok(settings.hooks.SessionStart[0].hooks[0].command.includes('.rsc/session-start.mjs'), 'migrated to node script form');
+});
+
+test('claude: re-install migrates bash-era .sh hooks to node .mjs (no dupes)', async () => {
+  const cwd = mkdtempSync(join(tmpdir(), 'rsc-cwd-'));
+  mkdirSync(join(cwd, '.claude'), { recursive: true });
+  writeFileSync(join(cwd, '.claude/settings.json'), JSON.stringify({
+    hooks: {
+      SessionStart: [{ hooks: [{ type: 'command', command: 'bash "/x/.rsc/session-start.sh" "/x/s" "/x"' }] }],
+      PreCompact: [{ hooks: [{ type: 'command', command: 'bash "/x/.rsc/worklog-checkpoint.sh" "/x"' }] }],
+      SessionEnd: [{ hooks: [{ type: 'command', command: 'bash "/x/.rsc/worklog-checkpoint.sh" "/x"' }] }],
+    },
+  }, null, 2));
+
+  await applyInstall({ skillIds: ['suggest'], target: 'claude', cwd });
+
+  const settings = JSON.parse(readFileSync(join(cwd, '.claude/settings.json'), 'utf8'));
+  assert.equal(settings.hooks.SessionStart.length, 1, 'no dupe SessionStart');
+  assert.ok(settings.hooks.SessionStart[0].hooks[0].command.includes('session-start.mjs'), 'SessionStart migrated to node');
+  assert.ok(!JSON.stringify(settings.hooks).includes('session-start.sh'), 'old bash session-start entry gone');
+  assert.equal(settings.hooks.PreCompact.length, 1, 'no dupe PreCompact');
+  assert.ok(settings.hooks.PreCompact[0].hooks[0].command.includes('worklog-checkpoint.mjs'), 'worklog migrated to node');
+  assert.ok(!JSON.stringify(settings.hooks).includes('worklog-checkpoint.sh'), 'old bash worklog entries gone');
 });
 
 test('claude: a user SessionStart hook is preserved through wiring', async () => {
@@ -182,7 +202,7 @@ test('claude: a user SessionStart hook is preserved through wiring', async () =>
   const settings = JSON.parse(readFileSync(join(cwd, '.claude/settings.json'), 'utf8'));
   const cmds = settings.hooks.SessionStart.map((e) => e.hooks[0].command);
   assert.ok(cmds.some((c) => c === 'echo mine'), 'user hook untouched');
-  assert.ok(cmds.some((c) => c.includes('.rsc/session-start.sh')), 'rsc hook added');
+  assert.ok(cmds.some((c) => c.includes('.rsc/session-start.mjs')), 'rsc hook added');
 });
 
 test('codex: appends always-on block to AGENTS.md and links the base', async () => {
