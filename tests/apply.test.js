@@ -9,12 +9,12 @@ import { applyInstall, listInstalled, uninstall } from '../scripts/install-apply
 import { doctor } from '../scripts/doctor.js';
 import { targetPaths } from '../targets/index.js';
 
-const SESSION_START = join(dirname(fileURLToPath(import.meta.url)), '..', 'targets', 'session-start.sh');
+const SESSION_START = join(dirname(fileURLToPath(import.meta.url)), '..', 'targets', 'session-start.mjs');
 
 function runSessionStart(root) {
   const suggest = join(root, 'suggest-SKILL.md');
   writeFileSync(suggest, '# rsc-suggest — detect & install\nalways-on body\n');
-  return spawnSync('bash', [SESSION_START, suggest, root], { encoding: 'utf8' }).stdout;
+  return spawnSync('node', [SESSION_START, suggest, root], { encoding: 'utf8' }).stdout;
 }
 
 test('session-start: emits suggest body + banner when no profile and no opt-out', () => {
@@ -73,18 +73,39 @@ test('targetPaths exposes the project root', () => {
   assert.equal(paths.projectRoot, cwd);
 });
 
+test('claude: skills install at the discoverable flat path .claude/skills/<id>/ (not nested under rsc/)', async () => {
+  const cwd = mkdtempSync(join(tmpdir(), 'rsc-flat-'));
+  await applyInstall({ skillIds: ['fastapi'], target: 'claude', cwd });
+  // Claude Code discovers project skills at .claude/skills/<name>/SKILL.md — one level.
+  // A skill nested at .claude/skills/rsc/<id>/ is NOT discovered (that was the Windows bug).
+  assert.ok(existsSync(join(cwd, '.claude/skills/fastapi/SKILL.md')),
+    'skill must sit one level under .claude/skills/ so Claude Code discovers it');
+  assert.ok(!existsSync(join(cwd, '.claude/skills/rsc/fastapi/SKILL.md')),
+    'must NOT be nested under an rsc/ subfolder');
+});
+
+test('claude: install migrates away the legacy nested .claude/skills/rsc/ layout', async () => {
+  const cwd = mkdtempSync(join(tmpdir(), 'rsc-mig-'));
+  // Simulate an old (broken) install that wrote skills under the nested rsc/ folder.
+  mkdirSync(join(cwd, '.claude/skills/rsc/oldskill'), { recursive: true });
+  writeFileSync(join(cwd, '.claude/skills/rsc/oldskill/SKILL.md'), 'stale');
+  await applyInstall({ skillIds: ['fastapi'], target: 'claude', cwd });
+  assert.ok(!existsSync(join(cwd, '.claude/skills/rsc')), 'legacy rsc/ folder removed on install');
+  assert.ok(existsSync(join(cwd, '.claude/skills/fastapi/SKILL.md')), 'new flat skill present');
+});
+
 test('claude: project-local install links to .rsc base, wires hook, list/uninstall work', async () => {
   const cwd = mkdtempSync(join(tmpdir(), 'rsc-cwd-'));
   await applyInstall({ skillIds: ['suggest', 'fastapi'], target: 'claude', cwd });
 
   // Real files live once in the shared base; the assistant folder is a link to it.
   assert.ok(existsSync(join(cwd, '.rsc/skills/fastapi/SKILL.md')), 'base holds the real file');
-  assert.ok(existsSync(join(cwd, '.claude/skills/rsc/fastapi/SKILL.md')), 'claude link resolves');
-  assert.ok(existsSync(join(cwd, '.claude/skills/rsc/suggest/SKILL.md')));
-  assert.equal(lstatSync(join(cwd, '.claude/skills/rsc/fastapi')).isSymbolicLink(), true, 'is a symlink, not a copy');
+  assert.ok(existsSync(join(cwd, '.claude/skills/fastapi/SKILL.md')), 'claude link resolves');
+  assert.ok(existsSync(join(cwd, '.claude/skills/suggest/SKILL.md')));
+  assert.equal(lstatSync(join(cwd, '.claude/skills/fastapi')).isSymbolicLink(), true, 'is a symlink, not a copy');
 
   const settings = JSON.parse(readFileSync(join(cwd, '.claude/settings.json'), 'utf8'));
-  assert.ok(JSON.stringify(settings.hooks.SessionStart).includes('skills/rsc/suggest'));
+  assert.ok(JSON.stringify(settings.hooks.SessionStart).includes('skills/suggest'));
 
   assert.ok(listInstalled({ target: 'claude', cwd }).includes('fastapi'));
 
@@ -94,26 +115,26 @@ test('claude: project-local install links to .rsc base, wires hook, list/uninsta
 
   const preview = await uninstall({ skillIds: ['fastapi'], target: 'claude', cwd, dryRun: true });
   assert.ok(preview.length > 0);
-  assert.ok(existsSync(join(cwd, '.claude/skills/rsc/fastapi/SKILL.md')), 'dry-run keeps files');
+  assert.ok(existsSync(join(cwd, '.claude/skills/fastapi/SKILL.md')), 'dry-run keeps files');
 
   await uninstall({ skillIds: ['fastapi'], target: 'claude', cwd });
-  assert.ok(!existsSync(join(cwd, '.claude/skills/rsc/fastapi')), 'link removed');
+  assert.ok(!existsSync(join(cwd, '.claude/skills/fastapi')), 'link removed');
   assert.ok(existsSync(join(cwd, '.rsc/skills/fastapi/SKILL.md')), 'shared base survives uninstall');
   assert.ok(!listInstalled({ target: 'claude', cwd }).includes('fastapi'));
 });
 
-test('claude: SessionStart runs session-start.sh and materializes it executable', async () => {
+test('claude: SessionStart runs session-start.mjs via node (Windows-safe), materialized', async () => {
   const cwd = mkdtempSync(join(tmpdir(), 'rsc-cwd-'));
   await applyInstall({ skillIds: ['suggest'], target: 'claude', cwd });
 
   const settings = JSON.parse(readFileSync(join(cwd, '.claude/settings.json'), 'utf8'));
   const cmd = settings.hooks.SessionStart[0].hooks[0].command;
-  assert.ok(cmd.includes('.rsc/session-start.sh'), 'hook runs the script');
-  assert.ok(cmd.includes('skills/rsc/suggest'), 'passes suggest SKILL.md as arg');
+  assert.ok(cmd.startsWith('node '), 'invoked via node, not bash, so it runs on Windows');
+  assert.ok(cmd.includes('.rsc/session-start.mjs'), 'hook runs the node script');
+  assert.ok(cmd.includes('skills/suggest'), 'passes suggest SKILL.md as arg');
 
-  const script = join(cwd, '.rsc/session-start.sh');
+  const script = join(cwd, '.rsc/session-start.mjs');
   assert.ok(existsSync(script), 'script materialized into .rsc/');
-  assert.ok(statSync(script).mode & 0o111, 'script is executable');
 });
 
 test('claude: wires worklog checkpoint on PreCompact + SessionEnd, materialized + idempotent', async () => {
@@ -124,15 +145,13 @@ test('claude: wires worklog checkpoint on PreCompact + SessionEnd, materialized 
   const settings = JSON.parse(readFileSync(join(cwd, '.claude/settings.json'), 'utf8'));
   for (const event of ['PreCompact', 'SessionEnd']) {
     assert.equal(settings.hooks[event].length, 1, `exactly one ${event} entry`);
-    assert.ok(
-      settings.hooks[event][0].hooks[0].command.includes('.rsc/worklog-checkpoint.sh'),
-      `${event} runs the worklog checkpoint script`,
-    );
+    const cmd = settings.hooks[event][0].hooks[0].command;
+    assert.ok(cmd.startsWith('node '), `${event} invoked via node (Windows-safe)`);
+    assert.ok(cmd.includes('.rsc/worklog-checkpoint.mjs'), `${event} runs the worklog checkpoint script`);
   }
 
-  const script = join(cwd, '.rsc/worklog-checkpoint.sh');
-  assert.ok(existsSync(script), 'worklog-checkpoint.sh materialized into .rsc/');
-  assert.ok(statSync(script).mode & 0o111, 'worklog-checkpoint.sh is executable');
+  const script = join(cwd, '.rsc/worklog-checkpoint.mjs');
+  assert.ok(existsSync(script), 'worklog-checkpoint.mjs materialized into .rsc/');
 });
 
 test('claude: re-install migrates a legacy cat-style SessionStart in place (no dupes)', async () => {
@@ -146,7 +165,29 @@ test('claude: re-install migrates a legacy cat-style SessionStart in place (no d
 
   const settings = JSON.parse(readFileSync(join(cwd, '.claude/settings.json'), 'utf8'));
   assert.equal(settings.hooks.SessionStart.length, 1, 'exactly one SessionStart entry');
-  assert.ok(settings.hooks.SessionStart[0].hooks[0].command.includes('.rsc/session-start.sh'), 'migrated to script form');
+  assert.ok(settings.hooks.SessionStart[0].hooks[0].command.includes('.rsc/session-start.mjs'), 'migrated to node script form');
+});
+
+test('claude: re-install migrates bash-era .sh hooks to node .mjs (no dupes)', async () => {
+  const cwd = mkdtempSync(join(tmpdir(), 'rsc-cwd-'));
+  mkdirSync(join(cwd, '.claude'), { recursive: true });
+  writeFileSync(join(cwd, '.claude/settings.json'), JSON.stringify({
+    hooks: {
+      SessionStart: [{ hooks: [{ type: 'command', command: 'bash "/x/.rsc/session-start.sh" "/x/s" "/x"' }] }],
+      PreCompact: [{ hooks: [{ type: 'command', command: 'bash "/x/.rsc/worklog-checkpoint.sh" "/x"' }] }],
+      SessionEnd: [{ hooks: [{ type: 'command', command: 'bash "/x/.rsc/worklog-checkpoint.sh" "/x"' }] }],
+    },
+  }, null, 2));
+
+  await applyInstall({ skillIds: ['suggest'], target: 'claude', cwd });
+
+  const settings = JSON.parse(readFileSync(join(cwd, '.claude/settings.json'), 'utf8'));
+  assert.equal(settings.hooks.SessionStart.length, 1, 'no dupe SessionStart');
+  assert.ok(settings.hooks.SessionStart[0].hooks[0].command.includes('session-start.mjs'), 'SessionStart migrated to node');
+  assert.ok(!JSON.stringify(settings.hooks).includes('session-start.sh'), 'old bash session-start entry gone');
+  assert.equal(settings.hooks.PreCompact.length, 1, 'no dupe PreCompact');
+  assert.ok(settings.hooks.PreCompact[0].hooks[0].command.includes('worklog-checkpoint.mjs'), 'worklog migrated to node');
+  assert.ok(!JSON.stringify(settings.hooks).includes('worklog-checkpoint.sh'), 'old bash worklog entries gone');
 });
 
 test('claude: a user SessionStart hook is preserved through wiring', async () => {
@@ -161,7 +202,7 @@ test('claude: a user SessionStart hook is preserved through wiring', async () =>
   const settings = JSON.parse(readFileSync(join(cwd, '.claude/settings.json'), 'utf8'));
   const cmds = settings.hooks.SessionStart.map((e) => e.hooks[0].command);
   assert.ok(cmds.some((c) => c === 'echo mine'), 'user hook untouched');
-  assert.ok(cmds.some((c) => c.includes('.rsc/session-start.sh')), 'rsc hook added');
+  assert.ok(cmds.some((c) => c.includes('.rsc/session-start.mjs')), 'rsc hook added');
 });
 
 test('codex: appends always-on block to AGENTS.md and links the base', async () => {
@@ -187,7 +228,7 @@ test('two assistants share a single base copy (no duplication)', async () => {
   await applyInstall({ skillIds: ['suggest', 'go'], target: 'codex', cwd });
   const after = statSync(join(cwd, '.rsc/skills/go/SKILL.md')).ino;
   assert.equal(before, after, 'base file reused, not recreated, across assistants');
-  assert.ok(existsSync(join(cwd, '.claude/skills/rsc/go/SKILL.md')));
+  assert.ok(existsSync(join(cwd, '.claude/skills/go/SKILL.md')));
   assert.ok(existsSync(join(cwd, '.codex/rsc/go/SKILL.md')));
 });
 

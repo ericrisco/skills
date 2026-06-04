@@ -5,7 +5,8 @@ import { planInstall } from '../scripts/install-plan.js';
 test('plan copies each skill dir for claude target', () => {
   const plan = planInstall({ skillIds: ['fastapi'], target: 'claude', home: '/home/u' });
   const skillStep = plan.find((p) => p.kind === 'skill' && p.id === 'fastapi');
-  assert.ok(skillStep.to.includes('.claude/skills/rsc/fastapi'));
+  assert.ok(skillStep.to.includes('.claude/skills/fastapi') && !skillStep.to.includes('skills/rsc/'),
+    'claude skills land flat at .claude/skills/<id>/ so Claude Code discovers them');
 });
 
 test('plan wires hook when suggest is included', () => {
