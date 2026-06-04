@@ -1,9 +1,14 @@
-import { readFileSync, writeFileSync, existsSync, mkdirSync, copyFileSync, chmodSync } from 'node:fs';
+import { readFileSync, writeFileSync, existsSync, mkdirSync, copyFileSync, chmodSync, rmSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { linkOrCopy } from './index.js';
 
 export function writeSkill(id, fromDir, toPath) {
+  // Migrate away from the legacy nested layout (.claude/skills/rsc/<id>) that
+  // Claude Code never discovered — it only reads .claude/skills/<name>/SKILL.md.
+  // toPath is now .claude/skills/<id>; drop the stale rsc/ sibling if present.
+  const legacy = join(dirname(toPath), 'rsc');
+  if (existsSync(legacy)) rmSync(legacy, { recursive: true, force: true });
   return linkOrCopy(fromDir, toPath);
 }
 

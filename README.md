@@ -273,7 +273,7 @@ duplicated. The wizard asks which ones; `--target a,b` does it non-interactively
 
 | Target | Skill destination (→ `.rsc/skills/<id>/`) | Always-on detector |
 | --- | --- | --- |
-| `claude` | `.claude/skills/rsc/<id>/` → symlink | SessionStart hook in `.claude/settings.json` |
+| `claude` | `.claude/skills/<id>/` → symlink (copy on Windows) | SessionStart hook in `.claude/settings.json` |
 | `codex` | `.codex/rsc/<id>/` → symlink | block in `AGENTS.md` |
 | `copilot` | `.github/rsc/<id>/` → symlink | block in `.github/copilot-instructions.md` |
 | `cursor` | `.cursor/rules/<id>.mdc` (converted) | always-apply rule |

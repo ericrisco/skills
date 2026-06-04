@@ -73,18 +73,39 @@ test('targetPaths exposes the project root', () => {
   assert.equal(paths.projectRoot, cwd);
 });
 
+test('claude: skills install at the discoverable flat path .claude/skills/<id>/ (not nested under rsc/)', async () => {
+  const cwd = mkdtempSync(join(tmpdir(), 'rsc-flat-'));
+  await applyInstall({ skillIds: ['fastapi'], target: 'claude', cwd });
+  // Claude Code discovers project skills at .claude/skills/<name>/SKILL.md — one level.
+  // A skill nested at .claude/skills/rsc/<id>/ is NOT discovered (that was the Windows bug).
+  assert.ok(existsSync(join(cwd, '.claude/skills/fastapi/SKILL.md')),
+    'skill must sit one level under .claude/skills/ so Claude Code discovers it');
+  assert.ok(!existsSync(join(cwd, '.claude/skills/rsc/fastapi/SKILL.md')),
+    'must NOT be nested under an rsc/ subfolder');
+});
+
+test('claude: install migrates away the legacy nested .claude/skills/rsc/ layout', async () => {
+  const cwd = mkdtempSync(join(tmpdir(), 'rsc-mig-'));
+  // Simulate an old (broken) install that wrote skills under the nested rsc/ folder.
+  mkdirSync(join(cwd, '.claude/skills/rsc/oldskill'), { recursive: true });
+  writeFileSync(join(cwd, '.claude/skills/rsc/oldskill/SKILL.md'), 'stale');
+  await applyInstall({ skillIds: ['fastapi'], target: 'claude', cwd });
+  assert.ok(!existsSync(join(cwd, '.claude/skills/rsc')), 'legacy rsc/ folder removed on install');
+  assert.ok(existsSync(join(cwd, '.claude/skills/fastapi/SKILL.md')), 'new flat skill present');
+});
+
 test('claude: project-local install links to .rsc base, wires hook, list/uninstall work', async () => {
   const cwd = mkdtempSync(join(tmpdir(), 'rsc-cwd-'));
   await applyInstall({ skillIds: ['suggest', 'fastapi'], target: 'claude', cwd });
 
   // Real files live once in the shared base; the assistant folder is a link to it.
   assert.ok(existsSync(join(cwd, '.rsc/skills/fastapi/SKILL.md')), 'base holds the real file');
-  assert.ok(existsSync(join(cwd, '.claude/skills/rsc/fastapi/SKILL.md')), 'claude link resolves');
-  assert.ok(existsSync(join(cwd, '.claude/skills/rsc/suggest/SKILL.md')));
-  assert.equal(lstatSync(join(cwd, '.claude/skills/rsc/fastapi')).isSymbolicLink(), true, 'is a symlink, not a copy');
+  assert.ok(existsSync(join(cwd, '.claude/skills/fastapi/SKILL.md')), 'claude link resolves');
+  assert.ok(existsSync(join(cwd, '.claude/skills/suggest/SKILL.md')));
+  assert.equal(lstatSync(join(cwd, '.claude/skills/fastapi')).isSymbolicLink(), true, 'is a symlink, not a copy');
 
   const settings = JSON.parse(readFileSync(join(cwd, '.claude/settings.json'), 'utf8'));
-  assert.ok(JSON.stringify(settings.hooks.SessionStart).includes('skills/rsc/suggest'));
+  assert.ok(JSON.stringify(settings.hooks.SessionStart).includes('skills/suggest'));
 
   assert.ok(listInstalled({ target: 'claude', cwd }).includes('fastapi'));
 
@@ -94,10 +115,10 @@ test('claude: project-local install links to .rsc base, wires hook, list/uninsta
 
   const preview = await uninstall({ skillIds: ['fastapi'], target: 'claude', cwd, dryRun: true });
   assert.ok(preview.length > 0);
-  assert.ok(existsSync(join(cwd, '.claude/skills/rsc/fastapi/SKILL.md')), 'dry-run keeps files');
+  assert.ok(existsSync(join(cwd, '.claude/skills/fastapi/SKILL.md')), 'dry-run keeps files');
 
   await uninstall({ skillIds: ['fastapi'], target: 'claude', cwd });
-  assert.ok(!existsSync(join(cwd, '.claude/skills/rsc/fastapi')), 'link removed');
+  assert.ok(!existsSync(join(cwd, '.claude/skills/fastapi')), 'link removed');
   assert.ok(existsSync(join(cwd, '.rsc/skills/fastapi/SKILL.md')), 'shared base survives uninstall');
   assert.ok(!listInstalled({ target: 'claude', cwd }).includes('fastapi'));
 });
@@ -109,7 +130,7 @@ test('claude: SessionStart runs session-start.sh and materializes it executable'
   const settings = JSON.parse(readFileSync(join(cwd, '.claude/settings.json'), 'utf8'));
   const cmd = settings.hooks.SessionStart[0].hooks[0].command;
   assert.ok(cmd.includes('.rsc/session-start.sh'), 'hook runs the script');
-  assert.ok(cmd.includes('skills/rsc/suggest'), 'passes suggest SKILL.md as arg');
+  assert.ok(cmd.includes('skills/suggest'), 'passes suggest SKILL.md as arg');
 
   const script = join(cwd, '.rsc/session-start.sh');
   assert.ok(existsSync(script), 'script materialized into .rsc/');
@@ -187,7 +208,7 @@ test('two assistants share a single base copy (no duplication)', async () => {
   await applyInstall({ skillIds: ['suggest', 'go'], target: 'codex', cwd });
   const after = statSync(join(cwd, '.rsc/skills/go/SKILL.md')).ino;
   assert.equal(before, after, 'base file reused, not recreated, across assistants');
-  assert.ok(existsSync(join(cwd, '.claude/skills/rsc/go/SKILL.md')));
+  assert.ok(existsSync(join(cwd, '.claude/skills/go/SKILL.md')));
   assert.ok(existsSync(join(cwd, '.codex/rsc/go/SKILL.md')));
 });
 
