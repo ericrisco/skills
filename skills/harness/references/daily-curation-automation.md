@@ -14,7 +14,10 @@ cron via the `schedule` skill pointed at this prompt.
 
 Run once per day, at a quiet hour, to keep the second brain alive:
 
-- process pending `raw/worklog/` and `inbox/` material into `wiki/`
+- run the **Auto-Ingest Sweep**: process `inbox/`, then scan the workspace (minus
+  `.rscignore`) for un-ingested documents, ingest the clearly-documentary folders,
+  record them in `wiki/.ingested.json`, and propose the ambiguous ones
+- process pending `raw/worklog/` material into `wiki/`
 - strengthen weak / low-score pages; fill one open gap
 - repair links and the graph (resolve broken wikilinks, add `## Related` where proper nouns recur)
 - mark `stale` pages whose sources moved on
@@ -26,17 +29,21 @@ Daily, at a quiet hour when the user is unlikely to be editing the vault.
 
 ## Scope (paths)
 
-`raw/worklog/`, `inbox/`, `raw/`, `wiki/`, `wiki/harness/`.
+The **workspace root** (for Auto-Ingest discovery, bounded by `.rscignore`),
+`raw/worklog/`, `inbox/`, `raw/`, `wiki/`, `wiki/.ingested.json`, `wiki/harness/`.
 
 ## Prompt
 
 ```text
 Run the daily curation pass for this 02-DOCS second brain.
 
-Use the harness wiki-protocol.md as the contract. Compile pending raw/worklog/
-and inbox/ material into wiki/ pages (update existing before creating new),
-keep frontmatter + wikilinks consistent, append significant decisions to
-wiki/harness/decisions.md, refresh the .base-backed navigation, recompute
+Use the harness wiki-protocol.md as the contract. First run the Auto-Ingest Sweep:
+process inbox/, then scan the workspace (minus .rscignore) for un-ingested documents,
+ingest the clearly-documentary folders (copy originals, never move), record them in
+wiki/.ingested.json, and list ambiguous folders as proposals (do not grab them).
+Then compile pending raw/worklog/ material into wiki/ pages (update existing before
+creating new), keep frontmatter + wikilinks consistent, append significant decisions
+to wiki/harness/decisions.md, refresh the .base-backed navigation, recompute
 scores.json + the score: property, and append a dated entry to wiki/log.md.
 
 Be conservative. If the topic map no longer fits, record a recommendation in
