@@ -47,13 +47,13 @@
   ],
   "license": "MIT",
   "author": "Eric Risco",
-  "homepage": "https://github.com/ericrisco/skills#readme",
+  "homepage": "https://github.com/ericrisco/rsc-harness#readme",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/ericrisco/skills.git"
+    "url": "git+https://github.com/ericrisco/rsc-harness.git"
   },
   "bugs": {
-    "url": "https://github.com/ericrisco/skills/issues"
+    "url": "https://github.com/ericrisco/rsc-harness/issues"
   },
   "publishConfig": {
     "access": "public"

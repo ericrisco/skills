@@ -71,7 +71,7 @@ Run it inside any project and describe what you want. Working on the catalog
 itself? Clone and link:
 
 ```bash
-git clone https://github.com/ericrisco/skills.git ~/rsc-skills
+git clone https://github.com/ericrisco/rsc-harness.git ~/rsc-skills
 cd ~/rsc-skills && npm install && npm link
 ```
 
