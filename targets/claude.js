@@ -71,7 +71,20 @@ export function wireHook(paths) {
   );
   settings.hooks.PreToolUse.push({ matcher: 'Bash', hooks: [{ type: 'command', command: sgCmd }] });
 
+  // Danger guard: a PreToolUse(Bash) hook that DENIES irreversible foot-gun commands
+  // (rm -rf, git push --force, DROP/TRUNCATE, DELETE/UPDATE without WHERE, dd to /dev,
+  // curl|bash, …) when the user-profile says the user is NON-technical (default-safe
+  // when no profile exists yet; never guards a fully `technical` user). Materialized +
+  // node-run (Windows-safe), idempotent, fail-open, opt-out via .rsc/.no-danger-guard.
+  const dgDest = join(paths.projectRoot, '.rsc', 'danger-guard.mjs');
+  copyFileSync(join(HERE, 'danger-guard.mjs'), dgDest);
+  const dgCmd = `node "${dgDest}" "${paths.projectRoot}"`;
+  settings.hooks.PreToolUse = settings.hooks.PreToolUse.filter(
+    (e) => !JSON.stringify(e).includes('.rsc/danger-guard.'),
+  );
+  settings.hooks.PreToolUse.push({ matcher: 'Bash', hooks: [{ type: 'command', command: dgCmd }] });
+
   mkdirSync(dirname(file), { recursive: true });
   writeFileSync(file, JSON.stringify(settings, null, 2) + '\n');
-  return [file, scriptDest, wlDest, sgDest];
+  return [file, scriptDest, wlDest, sgDest, dgDest];
 }
