@@ -81,6 +81,16 @@ git diff main...HEAD | grep -icE 'api[_-]?key|secret|password|token|BEGIN .*PRIV
   | sed 's/^/secret-hits: /'
 ```
 
+### Automated guard (PreToolUse) — you cannot quietly abandon a feature
+
+When rsc is installed for Claude Code, a `PreToolUse` hook (`.rsc/ship-guard.mjs`) enforces this
+phase at the one deterministic moment it matters: it **denies** any Bash command that switches to
+`main`/`master` or merges while the current feature branch has **uncommitted changes** or **commits
+that were never pushed**. The denial reason names the branch and routes you here. The guard is
+local-only (no network), **fail-open** (any ambiguity allows the command), and can be disabled per
+project with `.rsc/.no-ship-guard`. It guarantees the commit → push step; opening the PR is still
+this skill's job (and its hard rule). If the guard blocks you, do not work around it — run ship.
+
 ## The three landing options — always present exactly three
 
 This mirrors the harness "siempre 3 opciones" pattern. Gather the one fact that changes the answer (does this repo use PRs / require review on `main`?), then present **exactly three** with an honest recommendation matched to the workflow and the accompaniment level.

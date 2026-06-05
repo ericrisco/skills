@@ -176,6 +176,17 @@ async function main() {
       for (const o of toOutcomes(ids)) say(`${o.id}\t${o.label}`);
       return;
     }
+    case 'audit': {
+      const report = audit();
+      const written = writeAuditReport(report);
+      say(report.summary.headline);
+      for (const o of report.overlaps) say(`  ~ overlap: ${o.a} ↔ ${o.b} (${o.sharedTags.join(', ')})`);
+      for (const h of report.heavyDomains) say(`  ! heavy: ${h.domain} — ${h.count} skills`);
+      for (const n of report.noFootprint) say(`  ? no footprint: ${n.id} (${n.reason})`);
+      if (written.length) say(`\nReport: ${written[0]}`);
+      else say('\n(no harness wiki here — printed above only; run `harness` to keep a written record)');
+      return;
+    }
     case 'list':
       return void say(listInstalled({ target }).join('\n') || '(nothing installed)');
     case 'doctor':
@@ -202,7 +213,7 @@ async function main() {
     }
     default:
       say(`rsc: unknown command '${cmd}'.`);
-      say('Use: npx @ericrisco/rsc | add <id...> | install --profile <p> | consult "<text>" | list | registry refresh | doctor | uninstall <id>');
+      say('Use: npx @ericrisco/rsc | add <id...> | install --profile <p> | consult "<text>" | list | audit | registry refresh | doctor | uninstall <id>');
   }
 }
 

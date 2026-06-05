@@ -57,7 +57,21 @@ export function wireHook(paths) {
     settings.hooks[event].push({ hooks: [{ type: 'command', command: wlCmd }] });
   }
 
+  // Ship guard: a PreToolUse(Bash) hook that DENIES switching to / merging the trunk
+  // while the current feature branch has uncommitted or unpushed work — forcing the
+  // commit → push → PR close (the `ship` skill). Materialized + node-run (Windows-safe),
+  // registered idempotently, fail-open, opt-out via .rsc/.no-ship-guard. Other
+  // (non-rsc) PreToolUse hooks are preserved.
+  const sgDest = join(paths.projectRoot, '.rsc', 'ship-guard.mjs');
+  copyFileSync(join(HERE, 'ship-guard.mjs'), sgDest);
+  const sgCmd = `node "${sgDest}" "${paths.projectRoot}"`;
+  settings.hooks.PreToolUse ||= [];
+  settings.hooks.PreToolUse = settings.hooks.PreToolUse.filter(
+    (e) => !JSON.stringify(e).includes('.rsc/ship-guard.'),
+  );
+  settings.hooks.PreToolUse.push({ matcher: 'Bash', hooks: [{ type: 'command', command: sgCmd }] });
+
   mkdirSync(dirname(file), { recursive: true });
   writeFileSync(file, JSON.stringify(settings, null, 2) + '\n');
-  return [file, scriptDest, wlDest];
+  return [file, scriptDest, wlDest, sgDest];
 }
