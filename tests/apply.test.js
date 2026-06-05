@@ -331,3 +331,106 @@ test('unknown target throws', async () => {
   const cwd = mkdtempSync(join(tmpdir(), 'rsc-cwd-'));
   await assert.rejects(() => applyInstall({ skillIds: ['suggest'], target: 'nope', cwd }), /unknown target/);
 });
+
+// ---- ship guard (PreToolUse) -------------------------------------------------
+
+test('claude: wires ship-guard on PreToolUse(Bash), materialized + idempotent', async () => {
+  const cwd = mkdtempSync(join(tmpdir(), 'rsc-cwd-'));
+  await applyInstall({ skillIds: ['suggest'], target: 'claude', cwd });
+  await applyInstall({ skillIds: ['suggest'], target: 'claude', cwd }); // re-install → no dupes
+
+  const settings = JSON.parse(readFileSync(join(cwd, '.claude/settings.json'), 'utf8'));
+  const guards = settings.hooks.PreToolUse.filter((e) => JSON.stringify(e).includes('ship-guard'));
+  assert.equal(guards.length, 1, 'exactly one ship-guard PreToolUse entry');
+  assert.equal(guards[0].matcher, 'Bash', 'matches Bash tool calls');
+  const cmd = guards[0].hooks[0].command;
+  assert.ok(cmd.startsWith('node '), 'invoked via node (Windows-safe)');
+  assert.ok(cmd.includes('.rsc/ship-guard.mjs'), 'runs the ship-guard script');
+  assert.ok(existsSync(join(cwd, '.rsc/ship-guard.mjs')), 'ship-guard.mjs materialized into .rsc/');
+});
+
+// ---- session-start: git-required banner --------------------------------------
+
+test('session-start: git-required banner when no .git and no opt-out', () => {
+  const root = mkdtempSync(join(tmpdir(), 'rsc-ss-'));
+  assert.ok(runSessionStart(root).includes('rsc git required'), 'nudges git init');
+});
+
+test('session-start: no git banner once the project is under git', () => {
+  const root = mkdtempSync(join(tmpdir(), 'rsc-ss-'));
+  mkdirSync(join(root, '.git'), { recursive: true });
+  assert.ok(!runSessionStart(root).includes('rsc git required'));
+});
+
+test('session-start: .rsc/.no-git silences the git banner', () => {
+  const root = mkdtempSync(join(tmpdir(), 'rsc-ss-'));
+  mkdirSync(join(root, '.rsc'), { recursive: true });
+  writeFileSync(join(root, '.rsc/.no-git'), '');
+  assert.ok(!runSessionStart(root).includes('rsc git required'));
+});
+
+// ---- session-start: context7 MCP banner (active rsc projects only) -----------
+
+function withProfile(root) {
+  mkdirSync(join(root, '02-DOCS/wiki/harness'), { recursive: true });
+  writeFileSync(join(root, '02-DOCS/wiki/harness/user-profile.md'), 'technical_level: technical\n');
+}
+
+test('session-start: context7 banner when a profile exists and no MCP is wired', () => {
+  const root = mkdtempSync(join(tmpdir(), 'rsc-ss-'));
+  withProfile(root);
+  assert.ok(runSessionStart(root).includes('rsc context7 MCP'));
+});
+
+test('session-start: no context7 banner before there is a profile', () => {
+  const root = mkdtempSync(join(tmpdir(), 'rsc-ss-'));
+  assert.ok(!runSessionStart(root).includes('rsc context7 MCP'), 'gated on an active rsc project');
+});
+
+test('session-start: no context7 banner once .mcp.json wires context7', () => {
+  const root = mkdtempSync(join(tmpdir(), 'rsc-ss-'));
+  withProfile(root);
+  writeFileSync(join(root, '.mcp.json'), JSON.stringify({ mcpServers: { context7: { url: 'x' } } }));
+  assert.ok(!runSessionStart(root).includes('rsc context7 MCP'));
+});
+
+test('session-start: .rsc/.no-context7 silences the context7 banner', () => {
+  const root = mkdtempSync(join(tmpdir(), 'rsc-ss-'));
+  withProfile(root);
+  mkdirSync(join(root, '.rsc'), { recursive: true });
+  writeFileSync(join(root, '.rsc/.no-context7'), '');
+  assert.ok(!runSessionStart(root).includes('rsc context7 MCP'));
+});
+
+// ---- session-start: periodic skill-audit nudge -------------------------------
+
+test('session-start: skill-audit nudge when a profile exists and no audit has run', () => {
+  const root = mkdtempSync(join(tmpdir(), 'rsc-ss-'));
+  withProfile(root);
+  assert.ok(runSessionStart(root).includes('rsc skill audit'));
+});
+
+test('session-start: a fresh audit stamp silences the skill-audit nudge', () => {
+  const root = mkdtempSync(join(tmpdir(), 'rsc-ss-'));
+  withProfile(root);
+  mkdirSync(join(root, '.rsc'), { recursive: true });
+  writeFileSync(join(root, '.rsc/audit.json'), JSON.stringify({ lastRun: new Date().toISOString() }));
+  assert.ok(!runSessionStart(root).includes('rsc skill audit'));
+});
+
+test('session-start: a stale audit stamp re-fires the nudge', () => {
+  const root = mkdtempSync(join(tmpdir(), 'rsc-ss-'));
+  withProfile(root);
+  mkdirSync(join(root, '.rsc'), { recursive: true });
+  const old = new Date(Date.now() - 30 * 86400000).toISOString(); // 30 days ago > 14-day cadence
+  writeFileSync(join(root, '.rsc/audit.json'), JSON.stringify({ lastRun: old }));
+  assert.ok(runSessionStart(root).includes('rsc skill audit'));
+});
+
+test('session-start: .rsc/.no-audit silences the skill-audit nudge', () => {
+  const root = mkdtempSync(join(tmpdir(), 'rsc-ss-'));
+  withProfile(root);
+  mkdirSync(join(root, '.rsc'), { recursive: true });
+  writeFileSync(join(root, '.rsc/.no-audit'), '');
+  assert.ok(!runSessionStart(root).includes('rsc skill audit'));
+});

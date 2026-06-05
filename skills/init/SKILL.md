@@ -137,6 +137,22 @@ npx @ericrisco/rsc add <skill> [<skill> ...]
 
 Install only skills their answers justify — same discipline as "no speculative tools". Full skill map, sample printouts per scenario, and the requirements-first decision pattern → `references/recommend-skills.md`.
 
+### Phase 3.5 — GROUND THE PROJECT (git · live docs · skill audit)
+
+Three quick, enforced setup checks once the skills are installed. The SessionStart hook nudges each
+of these too; doing them here means the user starts clean.
+
+1. **Version control is required.** If the workspace has no `.git/`, offer `git init` (recommended —
+   the SDD chain and the ship guard assume git). If the user declines, write an empty `.rsc/.no-git`
+   so the decision is persisted and neither you nor the hook asks again. Log the decision.
+2. **Offer Context7 (live library docs).** For a software project, offer to wire the Context7 MCP
+   once: `claude mcp add --transport http context7 https://mcp.context7.com/mcp`. If they don't want
+   it, write `.rsc/.no-context7`. (It gives version-correct docs instead of guessing from memory.)
+3. **Run a skill audit.** After installing, run `npx @ericrisco/rsc audit`. It inventories the skills
+   installed for this project and on the machine, and flags possible overlap or skills with no
+   footprint here — so the project starts with the right set, not a pile. It re-runs on a cadence via
+   the SessionStart nudge. Summarize the result at the user's accompaniment level.
+
 ### Phase 4 — HANDOFF
 
 Tell the user to install `harness` (`npx @ericrisco/rsc add harness`) and then run the **`harness`** skill to actually scaffold the `01-TOOLS/` + `02-DOCS/` workspace. `init` stops here — it has set the profile, recorded the discovery, and recommended the skills. `harness` reads the profile and builds the structure.
