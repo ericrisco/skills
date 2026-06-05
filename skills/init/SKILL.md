@@ -152,6 +152,13 @@ of these too; doing them here means the user starts clean.
    installed for this project and on the machine, and flags possible overlap or skills with no
    footprint here — so the project starts with the right set, not a pile. It re-runs on a cadence via
    the SessionStart nudge. Summarize the result at the user's accompaniment level.
+4. **Danger guard follows `technical_level`.** When you record `technical_level: non-technical` (or
+   `mixed`, or while no profile exists yet), a `PreToolUse` guard (`.rsc/danger-guard.mjs`) **blocks**
+   irreversible foot-gun commands (`rm -rf`, `git push --force`, `git reset --hard`, `DROP`/`TRUNCATE`,
+   `DELETE`/`UPDATE` with no `WHERE`, `dd` to a device, `curl | bash`, …) and asks for a safer
+   alternative. A fully `technical` user is never guarded. It only turns off if the **user explicitly
+   asks** to allow dangerous commands — then write `.rsc/.no-danger-guard`. Mention this protection
+   exists when you set a non-technical level so the user is not surprised by a block.
 
 ### Phase 4 — HANDOFF
 
