@@ -28,6 +28,19 @@ export function wireHook(paths, sourceMd) {
   return [paths.hookTarget];
 }
 
+// Inverse of wireHook: remove the marked rsc-suggest block from the shared
+// instructions file, leaving the user's own content intact. No-op when absent.
+export function unwireHook(paths) {
+  if (!existsSync(paths.hookTarget)) return [];
+  const doc = readFileSync(paths.hookTarget, 'utf8');
+  if (!doc.includes(MARK_START)) return [];
+  const cleaned = doc
+    .replace(new RegExp(`\\n*${MARK_START}[\\s\\S]*?${MARK_END}\\n*`), '\n')
+    .replace(/\n{3,}/g, '\n\n');
+  writeFileSync(paths.hookTarget, cleaned);
+  return [paths.hookTarget];
+}
+
 function stripFrontmatter(md) {
   return md.replace(/^---\n[\s\S]*?\n---\n?/, '');
 }

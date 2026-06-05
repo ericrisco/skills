@@ -125,3 +125,13 @@ export function writeSkill(target, id, fromDir, toPath) {
 export function wireHook(target, paths, sourceMd) {
   return ADAPTER[SPEC[target].adapter].wireHook(paths, sourceMd);
 }
+
+// Inverse of wireHook — remove rsc's always-on surface for a target (settings.json
+// hook entries / AGENTS-block / cursor rule file). Returns the paths it touched.
+export function unwireHook(target, paths) {
+  const adapter = ADAPTER[SPEC[target].adapter];
+  return adapter.unwireHook ? adapter.unwireHook(paths) : [];
+}
+
+// Every known target id — used by `purge` to sweep all assistants, installed or not.
+export const TARGET_IDS = Object.keys(SPEC);
