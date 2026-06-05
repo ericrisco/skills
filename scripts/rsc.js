@@ -8,6 +8,7 @@ import { applyInstall, listInstalled, uninstall } from './install-apply.js';
 import { doctor } from './doctor.js';
 import { say, select, pickFrom, banner, confirm } from './lib/ui.js';
 import { refreshRegistry, registryStatus } from './lib/registry.js';
+import { audit, writeAuditReport } from './audit.js';
 import { DOMAINS } from './lib/domains.js';
 
 const argv = process.argv.slice(2);

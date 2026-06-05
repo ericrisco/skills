@@ -47,3 +47,41 @@ Originals are copied, never moved; deleting an emptied folder needs explicit con
 `);
   }
 }
+
+// Update check: compare the installed version (.rsc/.version, written at install)
+// against the latest published on npm, and nudge the agent to offer an update.
+// Fail-silent (offline / missing baseline / parse error → nothing). Disable with
+// RSC_NO_UPDATE_CHECK=1. RSC_LATEST overrides the npm lookup (tests / mirrors).
+function isNewer(a, b) {
+  const pa = String(a).split('.').map(Number);
+  const pb = String(b).split('.').map(Number);
+  for (let i = 0; i < 3; i++) {
+    if ((pa[i] || 0) > (pb[i] || 0)) return true;
+    if ((pa[i] || 0) < (pb[i] || 0)) return false;
+  }
+  return false;
+}
+
+if (!process.env.RSC_NO_UPDATE_CHECK) {
+  try {
+    const installed = readFileSync(join(root, '.rsc', '.version'), 'utf8').trim();
+    let latest = process.env.RSC_LATEST;
+    if (!latest) {
+      const ctrl = new AbortController();
+      const timer = setTimeout(() => ctrl.abort(), 1500);
+      const res = await fetch('https://registry.npmjs.org/@ericrisco%2frsc/latest', { signal: ctrl.signal });
+      clearTimeout(timer);
+      latest = (await res.json()).version;
+    }
+    if (installed && latest && isNewer(latest, installed)) {
+      process.stdout.write(`
+===== rsc update available =====
+rsc ${latest} is out — you have ${installed}.
+ACTION: tell the user a new version is available and, if they say yes, run:
+  npx @ericrisco/rsc@latest
+(That reinstalls and refreshes the skill content to the latest.)
+================================
+`);
+    }
+  } catch { /* offline / no baseline / parse error → stay silent */ }
+}

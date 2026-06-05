@@ -12,10 +12,13 @@ import { targetPaths } from '../targets/index.js';
 const SESSION_START = join(dirname(fileURLToPath(import.meta.url)), '..', 'targets', 'session-start.mjs');
 const CLI_VERSION = JSON.parse(readFileSync(join(dirname(fileURLToPath(import.meta.url)), '..', 'package.json'), 'utf8')).version;
 
-function runSessionStart(root) {
+function runSessionStart(root, env = {}) {
   const suggest = join(root, 'suggest-SKILL.md');
   writeFileSync(suggest, '# rsc-suggest — detect & install\nalways-on body\n');
-  return spawnSync('node', [SESSION_START, suggest, root], { encoding: 'utf8' }).stdout;
+  // Default: skip the update check so unrelated tests never hit the network.
+  // Update tests opt in by passing RSC_NO_UPDATE_CHECK:'' + RSC_LATEST:'<v>'.
+  const merged = { ...process.env, RSC_NO_UPDATE_CHECK: '1', ...env };
+  return spawnSync('node', [SESSION_START, suggest, root], { encoding: 'utf8', env: merged }).stdout;
 }
 
 test('session-start: emits suggest body + banner when no profile and no opt-out', () => {
@@ -66,6 +69,38 @@ test('session-start: no auto-ingest nudge without a harness wiki', () => {
   writeFileSync(join(root, '02-DOCS/inbox/invoice.pdf'), '%PDF-1.4');
   const out = runSessionStart(root);
   assert.ok(!out.includes('rsc auto-ingest'), 'no wiki → nothing to ingest into yet');
+});
+
+test('session-start: update banner when a newer version is available', () => {
+  const root = mkdtempSync(join(tmpdir(), 'rsc-upd-'));
+  mkdirSync(join(root, '.rsc'), { recursive: true });
+  writeFileSync(join(root, '.rsc/.version'), '0.1.0\n');
+  const out = runSessionStart(root, { RSC_NO_UPDATE_CHECK: '', RSC_LATEST: '0.2.0' });
+  assert.ok(out.includes('rsc update available'), 'notifies when a newer version exists');
+  assert.ok(out.includes('0.2.0') && out.includes('0.1.0'), 'shows latest and installed versions');
+  assert.ok(out.includes('npx @ericrisco/rsc@latest'), 'gives the update command');
+});
+
+test('session-start: no update banner when installed is current', () => {
+  const root = mkdtempSync(join(tmpdir(), 'rsc-upd-'));
+  mkdirSync(join(root, '.rsc'), { recursive: true });
+  writeFileSync(join(root, '.rsc/.version'), '0.2.0\n');
+  const out = runSessionStart(root, { RSC_NO_UPDATE_CHECK: '', RSC_LATEST: '0.2.0' });
+  assert.ok(!out.includes('rsc update available'), 'no banner when up to date');
+});
+
+test('session-start: RSC_NO_UPDATE_CHECK silences the update check', () => {
+  const root = mkdtempSync(join(tmpdir(), 'rsc-upd-'));
+  mkdirSync(join(root, '.rsc'), { recursive: true });
+  writeFileSync(join(root, '.rsc/.version'), '0.1.0\n');
+  const out = runSessionStart(root, { RSC_NO_UPDATE_CHECK: '1', RSC_LATEST: '9.9.9' });
+  assert.ok(!out.includes('rsc update available'), 'opt-out disables the check');
+});
+
+test('session-start: no update banner without a .rsc/.version baseline', () => {
+  const root = mkdtempSync(join(tmpdir(), 'rsc-upd-'));
+  const out = runSessionStart(root, { RSC_NO_UPDATE_CHECK: '', RSC_LATEST: '9.9.9' });
+  assert.ok(!out.includes('rsc update available'), 'no baseline → no banner (stay silent)');
 });
 
 test('targetPaths exposes the project root', () => {
