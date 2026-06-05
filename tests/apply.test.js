@@ -10,6 +10,7 @@ import { doctor } from '../scripts/doctor.js';
 import { targetPaths } from '../targets/index.js';
 
 const SESSION_START = join(dirname(fileURLToPath(import.meta.url)), '..', 'targets', 'session-start.mjs');
+const CLI_VERSION = JSON.parse(readFileSync(join(dirname(fileURLToPath(import.meta.url)), '..', 'package.json'), 'utf8')).version;
 
 function runSessionStart(root) {
   const suggest = join(root, 'suggest-SKILL.md');
@@ -82,6 +83,31 @@ test('claude: skills install at the discoverable flat path .claude/skills/<id>/ 
     'skill must sit one level under .claude/skills/ so Claude Code discovers it');
   assert.ok(!existsSync(join(cwd, '.claude/skills/rsc/fastapi/SKILL.md')),
     'must NOT be nested under an rsc/ subfolder');
+});
+
+test('install records the CLI version in .rsc/.version', async () => {
+  const cwd = mkdtempSync(join(tmpdir(), 'rsc-ver-'));
+  await applyInstall({ skillIds: ['fastapi'], target: 'claude', cwd });
+  assert.equal(readFileSync(join(cwd, '.rsc/.version'), 'utf8').trim(), CLI_VERSION);
+});
+
+test('reinstall after a version change refreshes the base content (reinstall == update)', async () => {
+  const cwd = mkdtempSync(join(tmpdir(), 'rsc-ref-'));
+  await applyInstall({ skillIds: ['fastapi'], target: 'claude', cwd });
+  // simulate an older install whose base drifted from the current bundled version
+  writeFileSync(join(cwd, '.rsc/.version'), '0.0.1\n');
+  writeFileSync(join(cwd, '.rsc/skills/fastapi/STALE.txt'), 'old content');
+  await applyInstall({ skillIds: ['fastapi'], target: 'claude', cwd });
+  assert.ok(!existsSync(join(cwd, '.rsc/skills/fastapi/STALE.txt')), 'stale base file removed on refresh');
+  assert.equal(readFileSync(join(cwd, '.rsc/.version'), 'utf8').trim(), CLI_VERSION, 'version bumped to current');
+});
+
+test('same-version reinstall does not refresh the base', async () => {
+  const cwd = mkdtempSync(join(tmpdir(), 'rsc-same-'));
+  await applyInstall({ skillIds: ['fastapi'], target: 'claude', cwd });
+  writeFileSync(join(cwd, '.rsc/skills/fastapi/KEEP.txt'), 'mine');
+  await applyInstall({ skillIds: ['fastapi'], target: 'claude', cwd }); // same CLI version
+  assert.ok(existsSync(join(cwd, '.rsc/skills/fastapi/KEEP.txt')), 'base untouched when version unchanged');
 });
 
 test('claude: install migrates away the legacy nested .claude/skills/rsc/ layout', async () => {
