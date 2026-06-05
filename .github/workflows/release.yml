@@ -8,6 +8,9 @@ name: release
 #
 # Requires repo secret NPM_TOKEN (npm automation token). Needs main to allow
 # the GITHUB_TOKEN to push (no protection rule blocking Actions, or use a PAT).
+#
+# After publishing to npm it also cuts a GitHub Release for the new tag, with
+# notes auto-generated from the commits/PRs since the previous tag.
 
 on:
   push:
@@ -69,3 +72,11 @@ jobs:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
       - name: Push version commit + tag
         run: git push --follow-tags origin main
+
+      # --- cut a GitHub Release for the new tag --------------------------------
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VERSION="$(node -p "require('./package.json').version")"
+          gh release create "v$VERSION" --title "v$VERSION" --generate-notes
