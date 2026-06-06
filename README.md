@@ -150,6 +150,11 @@ rsc consult "I want to launch a SaaS"  # recommend only, no install
 rsc registry refresh                 # write .rsc/skill-registry.{json,md}
 rsc list                             # what rsc has installed
 rsc doctor                           # health check (state, hook, counts)
+rsc sync --target claude,codex       # refresh managed skills/hooks from the current package version
+rsc backups                          # list project-local snapshots
+rsc restore latest --dry-run         # preview restoring the newest snapshot
+rsc restore <snapshot-id>            # restore a project-local snapshot
+rsc upgrade --dry-run                # show npm upgrade + sync commands
 rsc uninstall postgresdb --dry-run   # preview a removal
 ```
 
