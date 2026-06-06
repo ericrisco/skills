@@ -4,12 +4,14 @@ import { detectTarget, TARGETS } from '../targets/index.js';
 import { detectRepo } from './detect-repo.js';
 import { rank } from './consult.js';
 import { expandRecommends, toOutcomes, hasOutcome } from './lib/recommend.js';
-import { applyInstall, listInstalled, uninstall } from './install-apply.js';
+import { applyInstall, listInstalled, uninstall, syncInstalled } from './install-apply.js';
 import { doctor } from './doctor.js';
 import { say, select, pickFrom, banner, confirm } from './lib/ui.js';
 import { refreshRegistry, registryStatus } from './lib/registry.js';
 import { audit, writeAuditReport } from './audit.js';
 import { DOMAINS } from './lib/domains.js';
+import { listBackups, restoreBackup } from './lib/backups.js';
+import { runUpgrade } from './lib/upgrade.js';
 
 const argv = process.argv.slice(2);
 const cmd = argv[0];
@@ -191,6 +193,43 @@ async function main() {
       return void say(listInstalled({ target }).join('\n') || '(nothing installed)');
     case 'doctor':
       return void say(JSON.stringify(doctor({ target }), null, 2));
+    case 'sync': {
+      const dry = argv.includes('--dry-run');
+      for (const t of targets) {
+        const result = await syncInstalled({ target: t, dryRun: dry });
+        const verb = dry ? 'Would sync' : 'Synced';
+        say(`${verb} ${t}: ${result.synced.length ? result.synced.join(', ') : '(nothing to sync)'}`);
+        if (dry && result.paths?.length) {
+          for (const p of result.paths) say(`  ${p}`);
+        }
+      }
+      return;
+    }
+    case 'backups': {
+      const backups = listBackups();
+      if (!backups.length) return void say('(no backups)');
+      for (const b of backups) {
+        say(`${b.id}\t${b.operation}\t${b.target}\t${b.entries.length} files\t${b.createdAt}`);
+      }
+      return;
+    }
+    case 'restore': {
+      const dry = argv.includes('--dry-run');
+      const id = argv.slice(1).find((a) => !a.startsWith('--'));
+      const result = restoreBackup({ id, dryRun: dry });
+      say(`${dry ? 'Would restore' : 'Restored'} ${result.snapshot.id}`);
+      for (const p of result.changed) say(`  ${p}`);
+      return;
+    }
+    case 'upgrade': {
+      const dry = argv.includes('--dry-run');
+      const global = argv.includes('--global');
+      const result = runUpgrade({ targets, dryRun: dry, global });
+      if (result.ran) say('Upgraded global @ericrisco/rsc. Restart your shell if needed.');
+      else say(`${dry ? 'Would run' : 'Upgrade guide'}: ${result.plan.installCommand}`);
+      say(`After upgrade: ${result.plan.syncCommand}`);
+      return;
+    }
     case 'registry': {
       const sub = argv[1];
       if (sub === 'refresh') {
@@ -213,7 +252,7 @@ async function main() {
     }
     default:
       say(`rsc: unknown command '${cmd}'.`);
-      say('Use: npx @ericrisco/rsc | add <id...> | install --profile <p> | consult "<text>" | list | audit | registry refresh | doctor | uninstall <id>');
+      say('Use: npx @ericrisco/rsc | add <id...> | install --profile <p> | consult "<text>" | list | audit | registry refresh | doctor | sync | backups | restore <id|latest> | upgrade | uninstall <id>');
   }
 }
 
