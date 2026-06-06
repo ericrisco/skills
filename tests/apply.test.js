@@ -212,6 +212,16 @@ test('uninstall creates a backup that restoreBackup can use to recover target wi
   assert.ok(existsSync(join(cwd, '.claude/skills/fastapi/SKILL.md')));
 });
 
+test('uninstall of a skill that is not installed is a no-op', async () => {
+  const cwd = mkdtempSync(join(tmpdir(), 'rsc-uninstall-missing-'));
+
+  const removed = await uninstall({ skillIds: ['fastapi'], target: 'claude', cwd });
+
+  assert.deepEqual(removed, []);
+  assert.deepEqual(listBackups({ cwd }), []);
+  assert.equal(existsSync(join(cwd, '.claude/skills/.rsc-state.json')), false);
+});
+
 test('syncInstalled dry-run reports managed paths without mutating stale base files', async () => {
   const cwd = mkdtempSync(join(tmpdir(), 'rsc-sync-dry-'));
   await applyInstall({ skillIds: ['fastapi'], target: 'claude', cwd });

@@ -101,6 +101,7 @@ export async function uninstall({ skillIds, target, home, cwd = process.cwd(), d
       removed.push(f);
     }
   }
+  if (!removed.length) return removed;
   if (dryRun) return removed;
   createBackup({ cwd, operation: 'uninstall', target, paths: managedPaths, cliVersion: CLI_VERSION });
   for (const id of skillIds) {
