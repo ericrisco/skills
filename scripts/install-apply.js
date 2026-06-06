@@ -5,6 +5,7 @@ import { fileURLToPath } from 'node:url';
 import { planInstall } from './install-plan.js';
 import { targetPaths, writeSkill, wireHook, baseDir } from '../targets/index.js';
 import { readState, writeState } from './lib/state.js';
+import { createBackup } from './lib/backups.js';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const CLI_VERSION = JSON.parse(readFileSync(join(ROOT, 'package.json'), 'utf8')).version;
@@ -32,10 +33,37 @@ function ensureBase(id, cwd, refresh) {
   return dest;
 }
 
-export async function applyInstall({ skillIds, target, home, cwd = process.cwd() }) {
+function generatedHookFiles({ target, cwd }) {
+  if (target !== 'claude') return [];
+  return [
+    join(cwd, '.rsc', 'session-start.mjs'),
+    join(cwd, '.rsc', 'worklog-checkpoint.mjs'),
+    join(cwd, '.rsc', 'ship-guard.mjs'),
+    join(cwd, '.rsc', 'danger-guard.mjs'),
+  ];
+}
+
+function managedPathsForInstall({ skillIds, target, home, cwd }) {
   const paths = targetPaths(target, home, cwd);
   const plan = planInstall({ skillIds, target, home, cwd });
+  const out = [paths.stateFile, versionFile(cwd)];
+  for (const step of plan) {
+    if (step.kind === 'skill') {
+      out.push(step.to, baseDir(step.id, cwd));
+    } else if (step.kind === 'hook') {
+      out.push(step.to, ...generatedHookFiles({ target, cwd }));
+    }
+  }
+  return [...new Set(out)];
+}
+
+export async function applyInstall({ skillIds, target, home, cwd = process.cwd(), operation = 'install', dryRun = false }) {
+  const paths = targetPaths(target, home, cwd);
+  const plan = planInstall({ skillIds, target, home, cwd });
+  const managedPaths = managedPathsForInstall({ skillIds, target, home, cwd });
+  if (dryRun) return { dryRun: true, skills: skillIds, paths: managedPaths };
   const state = readState(paths.stateFile);
+  const backup = createBackup({ cwd, operation, target, paths: managedPaths, cliVersion: CLI_VERSION });
   // Refresh bases when installing a different version than they were materialized at
   // (or a pre-versioning install where the marker is absent). Same version → no-op.
   const refresh = readBaseVersion(cwd) !== CLI_VERSION;
@@ -52,7 +80,7 @@ export async function applyInstall({ skillIds, target, home, cwd = process.cwd()
   writeState(paths.stateFile, state);
   mkdirSync(dirname(versionFile(cwd)), { recursive: true });
   writeFileSync(versionFile(cwd), CLI_VERSION + '\n');
-  return state;
+  return { ...state, backup };
 }
 
 export function listInstalled({ target, home, cwd = process.cwd() }) {
@@ -64,17 +92,43 @@ export async function uninstall({ skillIds, target, home, cwd = process.cwd(), d
   const paths = targetPaths(target, home, cwd);
   const state = readState(paths.stateFile);
   const removed = [];
+  const managedPaths = [paths.stateFile];
   for (const id of skillIds) {
     const entry = state.skills[id];
     if (!entry) continue;
     for (const f of entry.files) {
+      managedPaths.push(f);
       removed.push(f);
-      if (!dryRun && existsSync(f)) rmSync(f, { recursive: true, force: true });
     }
-    if (!dryRun) delete state.skills[id];
   }
-  if (!dryRun) writeState(paths.stateFile, state);
+  if (dryRun) return removed;
+  createBackup({ cwd, operation: 'uninstall', target, paths: managedPaths, cliVersion: CLI_VERSION });
+  for (const id of skillIds) {
+    const entry = state.skills[id];
+    if (!entry) continue;
+    for (const f of entry.files) {
+      if (existsSync(f)) rmSync(f, { recursive: true, force: true });
+    }
+    delete state.skills[id];
+  }
+  writeState(paths.stateFile, state);
   return removed;
+}
+
+export async function syncInstalled({ target, home, cwd = process.cwd(), dryRun = false }) {
+  const paths = targetPaths(target, home, cwd);
+  const state = readState(paths.stateFile);
+  const ids = Object.keys(state.skills || {});
+  if (!ids.length) return dryRun ? { dryRun: true, synced: [], paths: [] } : { synced: [], backup: null };
+  if (dryRun) {
+    return {
+      dryRun: true,
+      synced: ids,
+      paths: managedPathsForInstall({ skillIds: ids, target, home, cwd }),
+    };
+  }
+  const nextState = await applyInstall({ skillIds: ids, target, home, cwd, operation: 'sync' });
+  return { synced: ids, backup: nextState.backup };
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {
