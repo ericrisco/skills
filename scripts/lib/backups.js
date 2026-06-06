@@ -10,7 +10,7 @@ import {
   symlinkSync,
   writeFileSync,
 } from 'node:fs';
-import { dirname, join, relative, sep } from 'node:path';
+import { dirname, isAbsolute, join, relative, sep } from 'node:path';
 
 const SCHEMA_VERSION = 1;
 
@@ -147,5 +147,8 @@ function safeRelative(cwd, absPath) {
 }
 
 function safeJoin(cwd, relPath) {
+  if (!relPath || isAbsolute(relPath) || relPath.split('/').includes('..')) {
+    throw new Error(`path is outside project root: ${relPath}`);
+  }
   return join(cwd, ...relPath.split('/'));
 }

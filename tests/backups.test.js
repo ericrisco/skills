@@ -11,7 +11,7 @@ import {
 } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { createBackup, listBackups, restoreBackup } from '../scripts/lib/backups.js';
+import { backupsDir, createBackup, listBackups, restoreBackup } from '../scripts/lib/backups.js';
 
 function tmp() {
   return mkdtempSync(join(tmpdir(), 'rsc-backup-'));
@@ -101,4 +101,22 @@ test('createBackup records symlinks as symlinks', () => {
 
   assert.equal(snap.entries[0].kind, 'symlink');
   assert.equal(lstatSync(link).isSymbolicLink(), true);
+});
+
+test('restoreBackup rejects manifest paths outside the project root', () => {
+  const cwd = tmp();
+  const root = join(backupsDir(cwd), 'bad-snapshot');
+  mkdirSync(root, { recursive: true });
+  writeFileSync(join(root, 'manifest.json'), JSON.stringify({
+    schemaVersion: 1,
+    id: 'bad-snapshot',
+    createdAt: '2026-06-06T10:00:00.000Z',
+    operation: 'restore',
+    target: 'codex',
+    cwd,
+    cliVersion: '0.0.0-test',
+    entries: [{ path: '../outside.txt', existed: false, kind: 'missing' }],
+  }, null, 2));
+
+  assert.throws(() => restoreBackup({ cwd, id: 'bad-snapshot', dryRun: true }), /outside project root/);
 });
