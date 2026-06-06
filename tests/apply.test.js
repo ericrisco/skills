@@ -237,6 +237,17 @@ test('syncInstalled refreshes installed skills and creates a sync backup', async
   assert.equal(listBackups({ cwd })[0].operation, 'sync');
 });
 
+test('doctor reports backup readiness and latest snapshot', async () => {
+  const cwd = mkdtempSync(join(tmpdir(), 'rsc-doctor-backups-'));
+  await applyInstall({ skillIds: ['fastapi'], target: 'claude', cwd });
+
+  const health = doctor({ target: 'claude', cwd });
+
+  assert.equal(health.backups.exists, true);
+  assert.equal(health.backups.count, 1);
+  assert.ok(health.backups.latest.includes('install-claude'));
+});
+
 test('claude: SessionStart runs session-start.mjs via node (Windows-safe), materialized', async () => {
   const cwd = mkdtempSync(join(tmpdir(), 'rsc-cwd-'));
   await applyInstall({ skillIds: ['suggest'], target: 'claude', cwd });
