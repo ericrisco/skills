@@ -32,6 +32,9 @@ should_trigger:
   - prompt: "We have an existing repo and no SDD config yet. Start the SDD flow properly before we write a spec."
     why: "The dispatcher should notice the missing runtime calibration and route to sdd-init before specify on non-trivial work."
 
+  - prompt: "I want planning and review to run on the strongest model but implementation on a cheaper one. Set that up for our SDD flow."
+    why: "Per-phase model routing is an SDD concern the dispatcher owns: it should name the tier system (heavy/balanced/light), point at the models block in 02-DOCS/wiki/sdd/config.yaml written by sdd-init, and note it is opt-in — not start coding."
+
 should_not_trigger:
   - prompt: "Write the spec for the new export-to-CSV feature."
     route_to: "specify"
@@ -76,3 +79,12 @@ capability:
       - "Still requires a verification step after the change (the method serves shipping, not ceremony, but evidence before claiming done remains)"
       - "Does not abandon the method for genuinely risky work — distinguishes trivial from non-trivial and is honest about which this is"
       - "If git authorship comes up, notes ship enforces Eric-only authorship (no Co-Authored-By Claude, no generated-with footer)"
+
+  - scenario: "A user asks: 'Can SDD use a cheaper model for the boring phases and the strong one for the hard ones? How do I turn that on?' Show how the dispatcher explains per-phase model routing."
+    must_include:
+      - "Names the three tiers — heavy (deep reasoning), balanced (execution), light (mechanical) — and that each phase has a default tier"
+      - "States the default quality-biased mapping: heavy on constitution/plan/analyze/review/debug, balanced on specify/clarify/tasks/implement/verify, light on ship/worktrees/sdd-init"
+      - "Says routing is OFF by default (models.enabled:false) and lives in the models block of 02-DOCS/wiki/sdd/config.yaml, written by sdd-init; turning it on is the user's choice"
+      - "Explains the two application layers: programmatic (dispatching Task/parallel subagents on the tier's model, e.g. Claude Code) and advisory (announcing the recommended switch at the phase boundary, gated by the accompaniment dial)"
+      - "Is honest about limits: never switches unasked, never claims a model switch an assistant cannot make, and skips routing on trivial one-line changes"
+      - "Points to references/model-routing.md for the full protocol, per-assistant mechanism, and provider→model table rather than inventing model names inline"

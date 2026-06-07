@@ -1,6 +1,6 @@
 ---
 name: sdd-init
-description: "Use when calibrating an existing repo before running the rsc SDD flow: detecting stack, package manager, test runners, lint/type/build commands, monorepo signals, artifact store, execution mode, review budget, strict TDD capability, and project skill registry. Triggers: 'calibrate this repo for SDD', 'run sdd init', 'detect my test runner before implementing', 'set up SDD config', 'prepare this repo for spec-driven development'. NOT first-contact user/workspace bootstrap (init), NOT 01-TOOLS/02-DOCS scaffolding (harness), NOT writing a feature spec (specify)."
+description: "Use when calibrating an existing repo before running the rsc SDD flow: detecting stack, package manager, test runners, lint/type/build commands, monorepo signals, artifact store, execution mode, review budget, strict TDD capability, and project skill registry. Triggers: 'calibrate this repo for SDD', 'run sdd init', 'detect my test runner before implementing', 'set up SDD config', 'prepare this repo for spec-driven development', 'configure per-phase model routing', 'assign models per SDD phase', 'set up cheaper model for implementation'. NOT first-contact user/workspace bootstrap (init), NOT 01-TOOLS/02-DOCS scaffolding (harness), NOT writing a feature spec (specify)."
 tags: [sdd, init, config, testing, registry]
 recommends: [sdd, specify, implement, verify]
 profiles: [core, full]
@@ -38,6 +38,8 @@ Ask only when the answer changes behavior. At L0/L1 infer defaults and show them
 | `artifact_store` | `02-DOCS/wiki/sdd` | Keep RSC artifacts in `02-DOCS`; do not create an `openspec/` parallel tree. |
 | `review_budget.line_budget` | `400` | Lower for solo tight review; higher only with explicit approval. |
 | `delivery_strategy.default` | `ask-on-risk` | `ask-on-risk`, `single-pr`, `autochain`, `exception`. |
+| `models.enabled` | `false` | Per-phase model routing is opt-in. Leave off unless the user asks for it; flipping it on is their call. |
+| `models.provider` | `anthropic` | Which provider the tiers resolve to. Set from the detected assistant when obvious, else `anthropic`. See `../sdd/references/model-routing.md` for other providers. |
 
 ## Detection
 
@@ -48,7 +50,8 @@ Use the repo detector exposed by the CLI code (`detectRepoProfile`) or reproduce
 - scripts: `test`, `lint`, `typecheck`, `build`;
 - runners: Vitest, Jest, Playwright, pytest, `go test`, `flutter test`;
 - monorepo signals;
-- recommended apply and verify commands.
+- recommended apply and verify commands;
+- the active assistant/provider when it's obvious from the environment (Claude Code, Codex, Gemini…), to seed `models.provider` — default `anthropic` when unsure. This only sets the *concrete model names*; routing itself stays off until the user opts in.
 
 If any runner is detected, set `testing.strict_tdd: true`. Strict TDD means implement phases must do red -> green -> triangulate edge cases -> refactor, with command evidence. If no runner is detected, set it false and record the gap rather than pretending.
 
@@ -118,9 +121,38 @@ phase_rules:
   implement: requires analyze pass, strict_tdd when testing.strict_tdd is true
   verify: requires spec tasks evidence
   archive: requires verify record and review/ship outcome
+models:
+  enabled: false              # opt-in master switch; false = honor session model, announce nothing
+  provider: anthropic         # which provider the tiers below resolve to
+  tiers:
+    heavy: claude-opus-4-8
+    balanced: claude-sonnet-4-6
+    light: claude-haiku-4-5-20251001
+  phases:
+    constitution: heavy
+    specify: balanced
+    clarify: balanced
+    plan: heavy
+    tasks: balanced
+    analyze: heavy
+    implement: balanced
+    verify: balanced
+    review: heavy
+    ship: light
+    debug: heavy
+    worktrees: light
+    sdd-init: light
+  overrides: {}               # per-phase tier overrides set by the user
 ```
 
-Preserve user edits if the file exists: update detected facts and leave comments/custom policy fields intact when possible. If preservation is risky, write a proposed replacement next to it as `config.proposed.yaml` and ask.
+The `models` block is the **per-phase model routing** profile: each phase declares a tier
+(`heavy`/`balanced`/`light`) and the tiers resolve to concrete models for `provider`. It ships
+**off** (`enabled: false`) — write it so the user can opt in, never switch models behind their
+back. The full protocol (how phases apply it, the per-assistant switch mechanism, the
+provider→model table) lives in `../sdd/references/model-routing.md`. Keep this block byte-for-byte
+in sync with that reference.
+
+Preserve user edits if the file exists: update detected facts and leave comments/custom policy fields intact when possible. **Never flip `models.enabled` or drop `models.overrides` on re-calibration** — those are user choices; preserve them verbatim and only refresh `tiers`/`provider` if the user asks. If preservation is risky, write a proposed replacement next to it as `config.proposed.yaml` and ask.
 
 ## Result Envelope
 
@@ -139,7 +171,8 @@ End with the standard SDD result envelope:
     "fallback": [],
     "compact_rules": [
       "Read config.yaml before choosing commands.",
-      "Use .rsc/skill-registry.json as the cheap skill index."
+      "Use .rsc/skill-registry.json as the cheap skill index.",
+      "Per-phase model routing ships off (models.enabled:false); never switch models unasked."
     ]
   },
   "evidence": ["npx @ericrisco/rsc registry refresh", "detected test commands recorded"]
