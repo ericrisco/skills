@@ -1,6 +1,6 @@
 ---
 name: sdd
-description: "Use when you want a disciplined, spec-driven path from a feature idea to shipped, verified software — the rsc-sdd dispatcher / front door. It states the SDD method, reads the accompaniment dial from 02-DOCS, and routes to the right phase skill: constitution -> specify -> clarify -> plan -> tasks -> analyze -> implement -> verify -> review -> ship, with debug / worktrees / parallel callable on demand. Use it to START a feature, when unsure which SDD phase you are in, or to govern the whole flow. Triggers: 'spec-driven development', 'sdd', 'build this feature properly', 'start a new feature', 'I have an idea, take it to production', 'which phase am I in', 'run the sdd flow', 'desarrollo dirigido por especificación', 'monta esta feature bien', 'de la idea a producción'. NOT itself a single phase (it dispatches), NOT the workspace harness (harness), NOT a stack build skill."
+description: "Use when you want a disciplined, spec-driven path from a feature idea to shipped, verified software — the rsc-sdd dispatcher / front door. It states the SDD method, reads the accompaniment dial from 02-DOCS, and routes to the right phase skill: constitution -> specify -> clarify -> plan -> tasks -> analyze -> implement -> verify -> review -> ship, with debug / worktrees / parallel callable on demand. Use it to START a feature, when unsure which SDD phase you are in, or to govern the whole flow. Triggers: 'spec-driven development', 'sdd', 'build this feature properly', 'start a new feature', 'I have an idea, take it to production', 'which phase am I in', 'run the sdd flow', 'desarrollo dirigido por especificación', 'monta esta feature bien', 'de la idea a producción', 'per-phase model routing', 'use a cheaper model for implementation', 'qué modelo por fase'. NOT itself a single phase (it dispatches), NOT the workspace harness (harness), NOT a stack build skill."
 tags: [sdd, spec, workflow, plan]
 recommends: [sdd-init, constitution, specify]
 profiles: [core, full]
@@ -46,23 +46,27 @@ constitution ─(once per project)─┐
                                           debug · worktrees · parallel
 ```
 
-| Phase | Owns | Writes | Sibling skill |
-| --- | --- | --- | --- |
-| **sdd-init** | Technical runtime calibration: stack, tests, commands, registry, budgets | `02-DOCS/wiki/sdd/config.yaml`, `.rsc/skill-registry.*` | `../sdd-init/SKILL.md` |
-| **proposal** | Optional pre-execution briefing for ambiguous/architectural/risky work | `02-DOCS/wiki/sdd/proposals/<slug>.md` | handled by `../specify/SKILL.md` when needed |
-| **constitution** | Project non-negotiables: stack canon, quality bars, conventions | `02-DOCS/wiki/sdd/constitution.md` | `../constitution/SKILL.md` |
-| **specify** | Turn a fuzzy intent into a spec — what & why, no how | `02-DOCS/wiki/sdd/specs/<slug>.md` | `../specify/SKILL.md` |
-| **clarify** | Surface ambiguities / edge cases, ask, bake answers back in | updates the spec | `../clarify/SKILL.md` |
-| **plan** | Technical plan: architecture, interfaces, data flow, tests, risks | `02-DOCS/wiki/sdd/plans/<slug>.md` | `../plan/SKILL.md` |
-| **tasks** | Break the plan into ordered, independently-verifiable tasks | task list in the plan artifact | `../tasks/SKILL.md` |
-| **analyze** | Consistency gate: constitution ↔ spec ↔ plan ↔ tasks (report only) | a gap report | `../analyze/SKILL.md` |
-| **implement** | Execute tasks with checkpoints; TDD discipline embedded | logs to `02-DOCS/wiki/sdd/decisions.md` | `../implement/SKILL.md` |
-| **verify** | Post-build gate: run the stack's checks + done-checks + acceptance | evidence | `../verify/SKILL.md` |
-| **review** | Adversarial code review — give and receive with rigor | review notes | `../review/SKILL.md` |
-| **ship** | Close the branch: PR / merge / cleanup. **Git authorship = Eric** | the merge/PR and archive bundle | `../ship/SKILL.md` |
-| **debug** | Root-cause diagnosis: reproduce → isolate → fix → verify | a diagnosis | `../debug/SKILL.md` |
-| **worktrees** | Isolate feature work in a branch/worktree before executing a plan | an isolated workspace | `../worktrees/SKILL.md` |
-| **parallel** | Fan out independent tasks across subagents, gather results | merged results | `../parallel/SKILL.md` |
+| Phase | Owns | Writes | Tier | Sibling skill |
+| --- | --- | --- | --- | --- |
+| **sdd-init** | Technical runtime calibration: stack, tests, commands, registry, budgets | `02-DOCS/wiki/sdd/config.yaml`, `.rsc/skill-registry.*` | light | `../sdd-init/SKILL.md` |
+| **proposal** | Optional pre-execution briefing for ambiguous/architectural/risky work | `02-DOCS/wiki/sdd/proposals/<slug>.md` | — | handled by `../specify/SKILL.md` when needed |
+| **constitution** | Project non-negotiables: stack canon, quality bars, conventions | `02-DOCS/wiki/sdd/constitution.md` | heavy | `../constitution/SKILL.md` |
+| **specify** | Turn a fuzzy intent into a spec — what & why, no how | `02-DOCS/wiki/sdd/specs/<slug>.md` | balanced | `../specify/SKILL.md` |
+| **clarify** | Surface ambiguities / edge cases, ask, bake answers back in | updates the spec | balanced | `../clarify/SKILL.md` |
+| **plan** | Technical plan: architecture, interfaces, data flow, tests, risks | `02-DOCS/wiki/sdd/plans/<slug>.md` | heavy | `../plan/SKILL.md` |
+| **tasks** | Break the plan into ordered, independently-verifiable tasks | task list in the plan artifact | balanced | `../tasks/SKILL.md` |
+| **analyze** | Consistency gate: constitution ↔ spec ↔ plan ↔ tasks (report only) | a gap report | heavy | `../analyze/SKILL.md` |
+| **implement** | Execute tasks with checkpoints; TDD discipline embedded | logs to `02-DOCS/wiki/sdd/decisions.md` | balanced | `../implement/SKILL.md` |
+| **verify** | Post-build gate: run the stack's checks + done-checks + acceptance | evidence | balanced | `../verify/SKILL.md` |
+| **review** | Adversarial code review — give and receive with rigor | review notes | heavy | `../review/SKILL.md` |
+| **ship** | Close the branch: PR / merge / cleanup. **Git authorship = Eric** | the merge/PR and archive bundle | light | `../ship/SKILL.md` |
+| **debug** | Root-cause diagnosis: reproduce → isolate → fix → verify | a diagnosis | heavy | `../debug/SKILL.md` |
+| **worktrees** | Isolate feature work in a branch/worktree before executing a plan | an isolated workspace | light | `../worktrees/SKILL.md` |
+| **parallel** | Fan out independent tasks across subagents, gather results | merged results | per-unit | `../parallel/SKILL.md` |
+
+> The **Tier** column is the *default* model tier each phase routes to when **per-phase model
+> routing** is enabled — see "Per-phase model routing" below. It is off by default and changes
+> nothing about the chain or the gates; it only decides which model does the work.
 
 > If a phase skill above does not yet exist in this repo, the chain still holds — do that phase's work inline following the method here, and skip the broken handoff. Never invent a sibling that is not installed.
 
@@ -104,6 +108,24 @@ Before dispatching, read `02-DOCS/wiki/harness/user-profile.md` and adapt — ex
 | **L3** "acompañamiento total" | Explain the phase, why it matters, what it produces. | Ask broadly, teach the SDD reasoning, narrate every decision. |
 
 If there is no profile yet, default to **non-technical + ask the two harness gauging questions** (technical level, accompaniment level) before dispatching, and persist them — that is the harness's job and `sdd` honors it.
+
+## Per-phase model routing (opt-in)
+
+Different phases reward different models: architecture and adversarial review want the strongest
+one; scaffolding and git plumbing don't. SDD can route each phase to a **tier** — `heavy`
+(deep reasoning), `balanced` (execution), `light` (mechanical) — that resolves to a concrete
+model in `02-DOCS/wiki/sdd/config.yaml` under `models`. The default mapping is the **Tier**
+column above (quality-biased: heavy on constitution/plan/analyze/review/debug, balanced on
+execution, light on ship/worktrees/sdd-init).
+
+It is **off by default** (`models.enabled: false`). When the user opts in, each phase applies it
+two ways: **programmatically** — dispatching `Task`/`parallel` subagents on the tier's model
+(real routing, e.g. Claude Code) — and **advisorily** — announcing the recommended switch at the
+phase boundary, gated by the accompaniment dial, for inline work and assistants that can't switch
+programmatically. Never switch unasked, never claim a switch a tool can't make, and skip routing
+on trivial one-line changes. The `sdd` dispatcher itself never routes (staying on the session
+model); `parallel` has no fixed tier (each unit inherits the tier of its work). Full protocol,
+per-assistant mechanism, and the provider→model table: `references/model-routing.md`.
 
 ## Where the artifacts live (and why it matters)
 
@@ -158,6 +180,7 @@ Every SDD phase ends with the same parseable block so the dispatcher can chain p
   "artifact": "path/to/artifact-or-none",
   "next_recommended": "sdd-init|specify|clarify|plan|tasks|analyze|implement|verify|review|ship",
   "risk": "low|medium|high",
+  "model": { "tier": "heavy|balanced|light", "resolved": "model-id", "routing": "on|off" },
   "skill_resolution": {
     "used": [],
     "missing": [],
@@ -195,6 +218,8 @@ Include current phase, active artifacts, last verdict, completed tasks, next ste
 | "Run constitution again for this feature." | Constitution is once per project. If it exists, read it as guardrails and move on. |
 | "Ship now, I'll add Co-Authored-By: Claude." | `ship` enforces Eric-only authorship. No Claude co-author, no generated-with footer. |
 | "Invoke the `release` phase." | There is no such phase. Never invent a sibling — the chain is the chain. |
+| "Routing sounds useful, I'll switch to the heavy model on my own." | Routing is opt-in (`models.enabled:false`). Don't switch models unless the user turned it on. |
+| "I'll tell them I switched to Opus." (on an assistant with no per-subagent model) | Announce the recommended tier; never claim a switch the tool can't make. Honesty over magic. |
 
 ## Start here
 
