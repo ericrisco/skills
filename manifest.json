@@ -3666,7 +3666,7 @@
     },
     {
       "id": "sdd",
-      "description": "Use when you want a disciplined, spec-driven path from a feature idea to shipped, verified software — the rsc-sdd dispatcher / front door. It states the SDD method, reads the accompaniment dial from 02-DOCS, and routes to the right phase skill: constitution -> specify -> clarify -> plan -> tasks -> analyze -> implement -> verify -> review -> ship, with debug / worktrees / parallel callable on demand. Use it to START a feature, when unsure which SDD phase you are in, or to govern the whole flow. Triggers: 'spec-driven development', 'sdd', 'build this feature properly', 'start a new feature', 'I have an idea, take it to production', 'which phase am I in', 'run the sdd flow', 'desarrollo dirigido por especificación', 'monta esta feature bien', 'de la idea a producción'. NOT itself a single phase (it dispatches), NOT the workspace harness (harness), NOT a stack build skill.",
+      "description": "Use when you want a disciplined, spec-driven path from a feature idea to shipped, verified software — the rsc-sdd dispatcher / front door. It states the SDD method, reads the accompaniment dial from 02-DOCS, and routes to the right phase skill: constitution -> specify -> clarify -> plan -> tasks -> analyze -> implement -> verify -> review -> ship, with debug / worktrees / parallel callable on demand. Use it to START a feature, when unsure which SDD phase you are in, or to govern the whole flow. Triggers: 'spec-driven development', 'sdd', 'build this feature properly', 'start a new feature', 'I have an idea, take it to production', 'which phase am I in', 'run the sdd flow', 'desarrollo dirigido por especificación', 'monta esta feature bien', 'de la idea a producción', 'per-phase model routing', 'use a cheaper model for implementation', 'qué modelo por fase'. NOT itself a single phase (it dispatches), NOT the workspace harness (harness), NOT a stack build skill.",
       "tags": [
         "sdd",
         "spec",
@@ -3685,7 +3685,7 @@
     },
     {
       "id": "sdd-init",
-      "description": "Use when calibrating an existing repo before running the rsc SDD flow: detecting stack, package manager, test runners, lint/type/build commands, monorepo signals, artifact store, execution mode, review budget, strict TDD capability, and project skill registry. Triggers: 'calibrate this repo for SDD', 'run sdd init', 'detect my test runner before implementing', 'set up SDD config', 'prepare this repo for spec-driven development'. NOT first-contact user/workspace bootstrap (init), NOT 01-TOOLS/02-DOCS scaffolding (harness), NOT writing a feature spec (specify).",
+      "description": "Use when calibrating an existing repo before running the rsc SDD flow: detecting stack, package manager, test runners, lint/type/build commands, monorepo signals, artifact store, execution mode, review budget, strict TDD capability, and project skill registry. Triggers: 'calibrate this repo for SDD', 'run sdd init', 'detect my test runner before implementing', 'set up SDD config', 'prepare this repo for spec-driven development', 'configure per-phase model routing', 'assign models per SDD phase', 'set up cheaper model for implementation'. NOT first-contact user/workspace bootstrap (init), NOT 01-TOOLS/02-DOCS scaffolding (harness), NOT writing a feature spec (specify).",
       "tags": [
         "sdd",
         "init",
