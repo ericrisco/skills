@@ -5,7 +5,8 @@ import { tmpdir } from 'node:os';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { spawnSync } from 'node:child_process';
-import { applyInstall, listInstalled, uninstall } from '../scripts/install-apply.js';
+import { applyInstall, listInstalled, uninstall, syncInstalled } from '../scripts/install-apply.js';
+import { listBackups, restoreBackup } from '../scripts/lib/backups.js';
 import { doctor } from '../scripts/doctor.js';
 import { targetPaths } from '../targets/index.js';
 
@@ -182,6 +183,79 @@ test('claude: project-local install links to .rsc base, wires hook, list/uninsta
   assert.ok(!existsSync(join(cwd, '.claude/skills/fastapi')), 'link removed');
   assert.ok(existsSync(join(cwd, '.rsc/skills/fastapi/SKILL.md')), 'shared base survives uninstall');
   assert.ok(!listInstalled({ target: 'claude', cwd }).includes('fastapi'));
+});
+
+test('install creates a backup before overwriting managed hook files', async () => {
+  const cwd = mkdtempSync(join(tmpdir(), 'rsc-install-backup-'));
+  mkdirSync(join(cwd, '.claude'), { recursive: true });
+  writeFileSync(join(cwd, '.claude/settings.json'), JSON.stringify({
+    hooks: { SessionStart: [{ hooks: [{ type: 'command', command: 'echo mine' }] }] },
+  }, null, 2));
+
+  await applyInstall({ skillIds: ['suggest'], target: 'claude', cwd });
+
+  const backups = listBackups({ cwd });
+  assert.equal(backups[0].operation, 'install');
+  assert.equal(backups[0].target, 'claude');
+  assert.ok(backups[0].entries.some((e) => e.path === '.claude/settings.json' && e.existed));
+});
+
+test('uninstall creates a backup that restoreBackup can use to recover target wiring', async () => {
+  const cwd = mkdtempSync(join(tmpdir(), 'rsc-uninstall-backup-'));
+  await applyInstall({ skillIds: ['fastapi'], target: 'claude', cwd });
+
+  await uninstall({ skillIds: ['fastapi'], target: 'claude', cwd });
+  assert.equal(existsSync(join(cwd, '.claude/skills/fastapi')), false);
+
+  restoreBackup({ cwd, id: 'latest' });
+
+  assert.ok(existsSync(join(cwd, '.claude/skills/fastapi/SKILL.md')));
+});
+
+test('uninstall of a skill that is not installed is a no-op', async () => {
+  const cwd = mkdtempSync(join(tmpdir(), 'rsc-uninstall-missing-'));
+
+  const removed = await uninstall({ skillIds: ['fastapi'], target: 'claude', cwd });
+
+  assert.deepEqual(removed, []);
+  assert.deepEqual(listBackups({ cwd }), []);
+  assert.equal(existsSync(join(cwd, '.claude/skills/.rsc-state.json')), false);
+});
+
+test('syncInstalled dry-run reports managed paths without mutating stale base files', async () => {
+  const cwd = mkdtempSync(join(tmpdir(), 'rsc-sync-dry-'));
+  await applyInstall({ skillIds: ['fastapi'], target: 'claude', cwd });
+  writeFileSync(join(cwd, '.rsc/.version'), '0.0.1\n');
+  writeFileSync(join(cwd, '.rsc/skills/fastapi/STALE.txt'), 'old');
+
+  const preview = await syncInstalled({ target: 'claude', cwd, dryRun: true });
+
+  assert.ok(preview.paths.some((p) => p.includes('.claude/skills/fastapi')));
+  assert.ok(existsSync(join(cwd, '.rsc/skills/fastapi/STALE.txt')));
+});
+
+test('syncInstalled refreshes installed skills and creates a sync backup', async () => {
+  const cwd = mkdtempSync(join(tmpdir(), 'rsc-sync-'));
+  await applyInstall({ skillIds: ['fastapi'], target: 'claude', cwd });
+  writeFileSync(join(cwd, '.rsc/.version'), '0.0.1\n');
+  writeFileSync(join(cwd, '.rsc/skills/fastapi/STALE.txt'), 'old');
+
+  const result = await syncInstalled({ target: 'claude', cwd });
+
+  assert.deepEqual(result.synced, ['fastapi']);
+  assert.ok(!existsSync(join(cwd, '.rsc/skills/fastapi/STALE.txt')));
+  assert.equal(listBackups({ cwd })[0].operation, 'sync');
+});
+
+test('doctor reports backup readiness and latest snapshot', async () => {
+  const cwd = mkdtempSync(join(tmpdir(), 'rsc-doctor-backups-'));
+  await applyInstall({ skillIds: ['fastapi'], target: 'claude', cwd });
+
+  const health = doctor({ target: 'claude', cwd });
+
+  assert.equal(health.backups.exists, true);
+  assert.equal(health.backups.count, 1);
+  assert.ok(health.backups.latest.includes('install-claude'));
 });
 
 test('claude: SessionStart runs session-start.mjs via node (Windows-safe), materialized', async () => {
