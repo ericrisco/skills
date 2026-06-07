@@ -150,6 +150,10 @@ mitigation or the spike that would retire it. Separately, log any decision still
 the riskiest plan. Significant design decisions taken during planning also get appended to
 `02-DOCS/wiki/sdd/decisions.md` (the SDD decisions log), so later phases can trace the *why*.
 
+## Model tier — `heavy` (opt-in routing)
+
+This phase's default model tier is **`heavy`** — architecture, interfaces, data flow and risks are the heaviest cognitive load in the chain. Routing is **off** unless `models.enabled: true` in `02-DOCS/wiki/sdd/config.yaml`. When on: resolve this phase's tier (`models.overrides` wins over `models.phases`), map it to a model via `models.tiers`, and apply per `../sdd/references/model-routing.md` — announce the switch per the accompaniment dial when it differs from the session model, and dispatch any `Task`/`parallel` subagents on that model. Routing off or no profile → honor the session model silently. Never fake a switch a tool can't make; skip routing on a one-line change.
+
 ## Adapting to the dial
 
 Read `02-DOCS/wiki/harness/user-profile.md` and match the artifact and your narration to it:
