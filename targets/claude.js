@@ -14,6 +14,29 @@ export function writeSkill(id, fromDir, toPath) {
   return linkOrCopy(fromDir, toPath);
 }
 
+// Inverse of wireHook: drop every rsc-wired hook entry (any command pointing at a
+// .rsc/ script — session-start, worklog-checkpoint, ship-guard, danger-guard, … —
+// plus the legacy cat-form) from settings.json, across all events. User hooks and
+// other settings are preserved. Empty event arrays (and an empty hooks object) are
+// pruned so we don't leave noise behind.
+export function unwireHook(paths) {
+  const file = paths.hookTarget;
+  if (!existsSync(file)) return [];
+  let settings;
+  try { settings = JSON.parse(readFileSync(file, 'utf8')); } catch { return []; }
+  if (!settings.hooks) return [];
+  for (const event of Object.keys(settings.hooks)) {
+    settings.hooks[event] = (settings.hooks[event] || []).filter((e) => {
+      const s = JSON.stringify(e);
+      return !s.includes('.rsc/') && !s.includes('skills/rsc/suggest');
+    });
+    if (settings.hooks[event].length === 0) delete settings.hooks[event];
+  }
+  if (Object.keys(settings.hooks).length === 0) delete settings.hooks;
+  writeFileSync(file, JSON.stringify(settings, null, 2) + '\n');
+  return [file];
+}
+
 // SessionStart runs a project-local session-start.mjs via `node`: it prints
 // suggest's always-on body, an onboarding banner when the workspace has no harness
 // profile yet, and an auto-ingest nudge when the inbox has un-ingested material. We

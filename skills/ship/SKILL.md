@@ -186,6 +186,10 @@ The commit is the durable record. Make it describe the change and tie it to the 
 - **Body:** *why*, not a restatement of the diff. Reference the spec slug and any decision logged in `decisions.md`.
 - **Footer:** issue/PR refs only. **No `Co-Authored-By` for any AI. No "generated with" line.** This is where the violation usually sneaks in — leave the footer clean.
 
+## Model tier — `light` (opt-in routing)
+
+This phase's default model tier is **`light`** — closing the branch (PR / merge / cleanup) is mechanical. Routing is **off** unless `models.enabled: true` in `02-DOCS/wiki/sdd/config.yaml`. When on: resolve this phase's tier (`models.overrides` wins over `models.phases`), map it to a model via `models.tiers`, and apply per `../sdd/references/model-routing.md` — announce the switch per the accompaniment dial when it differs from the session model, and dispatch any `Task`/`parallel` subagents on that model. Routing off or no profile → honor the session model silently. Never fake a switch a tool can't make; skip routing on a one-line change. The Eric-only authorship rule is independent of the model and never relaxes.
+
 ## Accompaniment dial (L0..L3)
 
 Read the level from `02-DOCS/wiki/harness/user-profile.md`. It changes the narration, **never** the safety checklist or the authorship rule.

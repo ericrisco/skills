@@ -4,7 +4,7 @@ import { detectTarget, TARGETS } from '../targets/index.js';
 import { detectRepo } from './detect-repo.js';
 import { rank } from './consult.js';
 import { expandRecommends, toOutcomes, hasOutcome } from './lib/recommend.js';
-import { applyInstall, listInstalled, uninstall, syncInstalled } from './install-apply.js';
+import { applyInstall, listInstalled, uninstall, syncInstalled, purge } from './install-apply.js';
 import { doctor } from './doctor.js';
 import { say, select, pickFrom, banner, confirm } from './lib/ui.js';
 import { refreshRegistry, registryStatus } from './lib/registry.js';
@@ -19,6 +19,15 @@ const cmd = argv[0];
 function flag(name) {
   const i = argv.indexOf(`--${name}`);
   return i >= 0 ? (argv[i + 1] || true) : undefined;
+}
+
+// Remove everything rsc installed in this project (skills, hooks, .rsc/), across
+// every assistant. Keeps 02-DOCS/ unless --with-docs. `purge` / `uninstall --all`.
+async function runPurge(dryRun, withDocs) {
+  const removed = await purge({ cwd: process.cwd(), withDocs, dryRun });
+  say(`${dryRun ? 'Would remove' : 'Removed'} ${removed.length} path(s):`);
+  for (const r of removed) say(`  - ${r}`);
+  if (!withDocs) say('\nKept 02-DOCS/ (your knowledge base). Add --with-docs to remove it too.');
 }
 
 async function recommendIds(query, { labeledOnly = false } = {}) {
@@ -246,13 +255,17 @@ async function main() {
     }
     case 'uninstall': {
       const dry = argv.includes('--dry-run');
+      // `uninstall --all` is an alias for a full purge.
+      if (argv.includes('--all')) return void (await runPurge(dry, argv.includes('--with-docs')));
       const ids = argv.slice(1).filter((a) => !a.startsWith('--'));
       const removed = await uninstall({ skillIds: ids, target, dryRun: dry });
       return void say((dry ? 'Would remove:\n' : 'Removed:\n') + (removed.join('\n') || '(nothing)'));
     }
+    case 'purge':
+      return void (await runPurge(argv.includes('--dry-run'), argv.includes('--with-docs')));
     default:
       say(`rsc: unknown command '${cmd}'.`);
-      say('Use: npx @ericrisco/rsc | add <id...> | install --profile <p> | consult "<text>" | list | audit | registry refresh | doctor | sync | backups | restore <id|latest> | upgrade | uninstall <id>');
+      say('Use: npx @ericrisco/rsc | add <id...> | install --profile <p> | consult "<text>" | list | audit | registry refresh | doctor | sync | backups | restore <id|latest> | upgrade | uninstall <id> | purge');
   }
 }
 

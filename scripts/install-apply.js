@@ -3,7 +3,7 @@ import { rmSync, existsSync, cpSync, mkdirSync, readFileSync, writeFileSync } fr
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { planInstall } from './install-plan.js';
-import { targetPaths, writeSkill, wireHook, baseDir } from '../targets/index.js';
+import { targetPaths, writeSkill, wireHook, unwireHook, baseDir, TARGET_IDS } from '../targets/index.js';
 import { readState, writeState } from './lib/state.js';
 import { createBackup } from './lib/backups.js';
 
@@ -130,6 +130,36 @@ export async function syncInstalled({ target, home, cwd = process.cwd(), dryRun 
   }
   const nextState = await applyInstall({ skillIds: ids, target, home, cwd, operation: 'sync' });
   return { synced: ids, backup: nextState.backup };
+}
+
+// Remove EVERYTHING rsc put in this project: installed skills across all targets,
+// the wired hooks (settings.json entries / AGENTS-blocks / cursor rules), and the
+// shared `.rsc/` (base + hook scripts + version marker). `02-DOCS/` is the user's
+// own knowledge — kept unless `withDocs` is set. Returns the paths touched.
+// Note: backups live under `.rsc/backups/`, which this removes — so purge does not
+// snapshot (a pre-purge backup would delete itself). It is the deliberate escape hatch.
+export async function purge({ home, cwd = process.cwd(), withDocs = false, dryRun = false } = {}) {
+  const removed = [];
+  const drop = (p, recursive = false) => {
+    if (!existsSync(p)) return;
+    removed.push(p);
+    if (!dryRun) rmSync(p, { recursive, force: true });
+  };
+  for (const target of TARGET_IDS) {
+    const paths = targetPaths(target, home, cwd);
+    if (existsSync(paths.stateFile)) {
+      const state = readState(paths.stateFile);
+      for (const id of Object.keys(state.skills || {})) {
+        for (const f of state.skills[id].files || []) drop(f, true);
+      }
+      drop(paths.stateFile);
+    }
+    // unwireHook mutates files, so only run it for real (dry runs skip it).
+    if (!dryRun) removed.push(...unwireHook(target, paths));
+  }
+  drop(join(cwd, '.rsc'), true);
+  if (withDocs) drop(join(cwd, '02-DOCS'), true);
+  return removed;
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {
