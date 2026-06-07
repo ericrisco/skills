@@ -1,0 +1,10 @@
+filters:
+  and:
+    - type == "article"
+views:
+  - type: table
+    name: All Articles
+    order: [file.name, topic, status, score, updated]
+    sort:
+      - property: score
+        direction: DESC

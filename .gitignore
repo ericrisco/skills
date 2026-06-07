@@ -18,9 +18,9 @@ __pycache__/
 # docs/ is local scratch (specs, notes) — not part of the distributable catalog
 docs/
 
-# 02-DOCS/ at the repo root is stray harness/skill scratch produced when skills run
-# (brand guides, content briefs, sdd specs) — not part of the distributable catalog
-02-DOCS/
+# 02-DOCS/ is the harness "company brain" — tracked on purpose, not ignored.
+# Its own 02-DOCS/.gitignore excludes only per-run/ephemeral surfaces
+# (dashboard.html, audits/*.html, inbox/_processed/, Obsidian per-machine state).
 
 node_modules/
 coverage/

@@ -1,0 +1,10 @@
+filters:
+  and:
+    - type == "worklog"
+views:
+  - type: table
+    name: Worklog
+    order: [file.name, topic, date, status]
+    sort:
+      - property: date
+        direction: DESC

@@ -1,0 +1,6 @@
+{
+  "attachmentFolderPath": "attachments",
+  "newLinkFormat": "shortest",
+  "useMarkdownLinks": false,
+  "userIgnoreFilters": ["raw/_originals/", "inbox/_processed/", "audits/"]
+}

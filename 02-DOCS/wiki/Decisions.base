@@ -1,0 +1,10 @@
+filters:
+  and:
+    - type == "decision"
+views:
+  - type: table
+    name: Decisions
+    order: [file.name, topic, status, updated]
+    sort:
+      - property: updated
+        direction: DESC
