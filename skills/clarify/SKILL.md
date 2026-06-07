@@ -88,6 +88,10 @@ How you ask determines whether you get a usable answer.
 - **One batch, ranked, then stop.** Don't drip questions one at a time over many turns unless the dial is L3. Don't dump thirty at once. Ask the few that matter, together.
 - **Quote the spec.** Anchor each question to the exact line or section it came from, so the user sees *why* it's open.
 
+## Model tier — `balanced` (opt-in routing)
+
+This phase's default model tier is **`balanced`** — it ranks and asks the few high-leverage questions, not architecture. Routing is **off** unless `models.enabled: true` in `02-DOCS/wiki/sdd/config.yaml`. When on: resolve this phase's tier (`models.overrides` wins over `models.phases`), map it to a model via `models.tiers`, and apply per `../sdd/references/model-routing.md` — announce the switch per the accompaniment dial when it differs from the session model, and dispatch any `Task`/`parallel` subagents on that model. Routing off or no profile → honor the session model silently. Never fake a switch a tool can't make; skip routing on a one-line change.
+
 ## The accompaniment dial
 
 Read the level from `02-DOCS/wiki/harness/user-profile.md` and adapt **how many questions and how you frame them** — clarify is question-heavy, so the dial matters here more than almost anywhere:

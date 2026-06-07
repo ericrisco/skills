@@ -25,6 +25,10 @@ further questions.
 This is a process skill. It writes no runtime code. It produces one artifact: an
 ordered, checkable task list appended to the plan it was built from.
 
+## Model tier — `balanced` (opt-in routing)
+
+This phase's default model tier is **`balanced`** — it decomposes an approved plan into verifiable tasks: structured work, not architecture. Routing is **off** unless `models.enabled: true` in `02-DOCS/wiki/sdd/config.yaml`. When on: resolve this phase's tier (`models.overrides` wins over `models.phases`), map it to a model via `models.tiers`, and apply per `../sdd/references/model-routing.md` — announce the switch per the accompaniment dial when it differs from the session model, and dispatch any `Task`/`parallel` subagents on that model. Routing off or no profile → honor the session model silently. Never fake a switch a tool can't make; skip routing on a one-line change.
+
 ## Read the harness profile first
 
 Before producing anything, read `02-DOCS/wiki/harness/user-profile.md` for the
