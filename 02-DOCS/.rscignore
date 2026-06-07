@@ -1,0 +1,17 @@
+# 02-DOCS/.rscignore — paths the Auto-Ingest Sweep must NEVER scan as a knowledge source.
+# Tracked (the team shares it). Append your own patterns below.
+node_modules/
+.git/
+.next/
+dist/
+build/
+.venv/
+__pycache__/
+.dart_tool/
+.pytest_cache/
+.ruff_cache/
+01-TOOLS/
+02-DOCS/inbox/_processed/
+02-DOCS/raw/
+02-DOCS/wiki/
+.DS_Store

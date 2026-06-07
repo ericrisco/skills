@@ -1,0 +1,55 @@
+date,pillar,cluster,format,owner,stage,brief_link,atomization,mix
+2026-07-02,Cash visibility,cash-position-basics,linkedin-post,ana,idea,,,evergreen
+2026-07-03,Paying & moving money,transfer-cutoffs,x-thread,leo,idea,,,evergreen
+2026-07-07,Cash visibility,forecasting-cash-flow,flagship-guide,ana,brief,02-DOCS/wiki/content/briefs/cash-flow-forecast-guide.md,planned,evergreen
+2026-07-08,Cash visibility,forecasting-cash-flow,linkedin-carousel,mara,idea,,,evergreen
+2026-07-09,Cash visibility,forecasting-cash-flow,video-short,mara,idea,,,evergreen
+2026-07-10,Cash visibility,forecasting-cash-flow,x-thread,leo,idea,,,evergreen
+2026-07-11,Trust security & opacity,legacy-bank-opacity,linkedin-post,tom,idea,,,experimental
+2026-07-14,Cash visibility,bank-reconciliation,video-short,mara,idea,,,evergreen
+2026-07-15,Runway & treasury,q3-cash-benchmarks,reactive-open,,idea,,,reactive-open
+2026-07-16,Cash visibility,forecasting-cash-flow,newsletter-issue,leo,idea,,,evergreen
+2026-07-17,Paying & moving money,payroll-ops,linkedin-post,ana,idea,,,evergreen
+2026-07-21,The close & reconciliation,month-end-close,update-article,leo,idea,,,evergreen
+2026-07-22,Proof,customer-results,case-study,tom,brief,02-DOCS/wiki/content/briefs/proof-runway-saved.md,planned,evergreen
+2026-07-23,Cash visibility,cash-position-basics,quote-graphic,mara,idea,,,evergreen
+2026-07-24,Runway & treasury,runway-management,linkedin-post,ana,idea,,,evergreen
+2026-07-28,Trust security & opacity,fees-and-cutoffs,reactive-open,,idea,,,reactive-open
+2026-07-29,Paying & moving money,vendor-payments,x-thread,leo,idea,,,timely
+2026-07-30,Cash visibility,forecasting-cash-flow,video-short,mara,idea,,,evergreen
+2026-07-31,Runway & treasury,idle-cash-yield,linkedin-post,ana,idea,,,timely
+2026-08-04,Runway & treasury,runway-management,linkedin-post,ana,idea,,,evergreen
+2026-08-05,The close & reconciliation,bank-reconciliation,x-thread,leo,idea,,,evergreen
+2026-08-06,Runway & treasury,treasury-for-small-teams,flagship-guide,ana,brief,02-DOCS/wiki/content/briefs/treasury-small-teams-guide.md,planned,evergreen
+2026-08-07,Runway & treasury,treasury-for-small-teams,linkedin-carousel,mara,idea,,,evergreen
+2026-08-08,Runway & treasury,treasury-for-small-teams,video-short,mara,idea,,,evergreen
+2026-08-11,Runway & treasury,treasury-for-small-teams,x-thread,leo,idea,,,evergreen
+2026-08-12,Runway & treasury,idle-cash-yield,linkedin-post,ana,idea,,,timely
+2026-08-13,Trust security & opacity,where-cash-is-held,video-short,mara,idea,,,experimental
+2026-08-14,Runway & treasury,treasury-for-small-teams,newsletter-issue,leo,idea,,,evergreen
+2026-08-18,Paying & moving money,payroll-ops,update-article,leo,idea,,,evergreen
+2026-08-19,Runway & treasury,treasury-for-small-teams,quote-graphic,mara,idea,,,evergreen
+2026-08-20,Proof,customer-results,case-study,tom,brief,02-DOCS/wiki/content/briefs/proof-faster-close.md,planned,evergreen
+2026-08-21,Cash visibility,forecasting-cash-flow,linkedin-post,ana,idea,,,evergreen
+2026-08-25,Runway & treasury,back-to-budget-season,reactive-open,,idea,,,timely
+2026-08-26,The close & reconciliation,multi-entity,x-thread,leo,idea,,,evergreen
+2026-08-27,Runway & treasury,treasury-for-small-teams,video-short,mara,idea,,,evergreen
+2026-08-28,Trust security & opacity,legacy-bank-opacity,linkedin-post,tom,idea,,,experimental
+2026-09-01,The close & reconciliation,month-end-close,linkedin-post,ana,idea,,,evergreen
+2026-09-02,The close & reconciliation,audit-readiness,x-thread,leo,idea,,,timely
+2026-09-03,The close & reconciliation,month-end-close,flagship-guide,ana,brief,02-DOCS/wiki/content/briefs/month-end-close-guide.md,planned,evergreen
+2026-09-04,The close & reconciliation,month-end-close,linkedin-carousel,mara,idea,,,evergreen
+2026-09-08,The close & reconciliation,month-end-close,video-short,mara,idea,,,evergreen
+2026-09-09,The close & reconciliation,month-end-close,x-thread,leo,idea,,,evergreen
+2026-09-10,The close & reconciliation,multi-entity,linkedin-post,ana,idea,,,evergreen
+2026-09-11,The close & reconciliation,month-end-close,newsletter-issue,leo,idea,,,evergreen
+2026-09-15,Cash visibility,forecasting-cash-flow,reactive-open,,idea,,,reactive-open
+2026-09-16,The close & reconciliation,audit-readiness,video-short,mara,idea,,,timely
+2026-09-17,Proof,customer-results,case-study,tom,brief,02-DOCS/wiki/content/briefs/proof-multi-entity.md,planned,evergreen
+2026-09-18,The close & reconciliation,month-end-close,quote-graphic,mara,idea,,,evergreen
+2026-09-22,Trust security & opacity,fees-and-cutoffs,linkedin-post,tom,idea,,,experimental
+2026-09-23,Cash visibility,bank-reconciliation,update-article,leo,idea,,,evergreen
+2026-09-24,The close & reconciliation,month-end-close,video-short,mara,idea,,,evergreen
+2026-09-25,Q3-close,quarter-wrap,reactive-open,,idea,,,timely
+2026-09-29,Paying & moving money,transfer-cutoffs,linkedin-post,ana,idea,,,evergreen
+2026-09-30,Runway & treasury,runway-management,x-thread,leo,idea,,,evergreen
