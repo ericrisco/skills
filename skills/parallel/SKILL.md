@@ -65,12 +65,15 @@ SUBAGENT BRIEF (one per unit)
 - Compact rules — 4-5 actionable rules digested from those skills for THIS unit
 - Skill fallback — what to do if a referenced skill is unavailable
 - Interface    — any contract it must conform to, FROZEN before dispatch (see the rule below)
+- Model tier   — the tier this unit runs on, by the KIND of work it does (only when routing is enabled — see below)
 - Report-back  — what to return: the diff, the test output, decisions worth logging, skill_resolution
 ```
 
 **Freeze shared contracts before you dispatch, never during.** If two units both touch the same API shape, type, or schema, that interface is a *dependency*, not something to negotiate in flight. Define it in the serial spine first, hand the frozen version to every unit, and only then fan out. Cross-talk between live subagents is the smell that the partition was wrong.
 
 Each subagent still owns its own discipline inside its scope — TDD via `implement`, the stack skill's test mechanics, decision logging. This skill does not relax any of that; it just runs several of them at once.
+
+**Per-unit model tier (when routing is enabled).** `parallel` has *no fixed tier* — this is the most concrete place per-phase model routing pays off. When `models.enabled: true` in `02-DOCS/wiki/sdd/config.yaml`, give each unit the tier of the *kind of work it does*, not one tier for the whole fan-out: an implement-type unit → `balanced`, a scan/research/boilerplate unit → `light`, a unit doing genuine design or root-cause reasoning → `heavy`. Resolve the tier to a concrete model via `models.tiers` and **dispatch that subagent on that model** (e.g. Claude Code's `model` field on the Task/subagent) — real routing, independent of the session model. If routing is off or no profile exists, dispatch on the session model and say nothing. Full protocol: `../sdd/references/model-routing.md`.
 
 ### Skill resolution feedback
 
@@ -137,6 +140,7 @@ Be honest about this — most task lists are *mostly* serial with a few disjoint
 | "The brief says 'see the other agent's output' — close enough." | That's a dependency, not independence. Serialize, or freeze the output first. |
 | "Combined suite is red, probably the slower unit — I'll tweak it." | Don't guess at the seam. Reproduce and isolate with debug. |
 | "I just want an isolated branch, so I'll use parallel." | That's isolation, not concurrency. Use worktrees. |
+| "Routing's on, so I'll run the whole fan-out on one tier." | `parallel` has no fixed tier — give each unit the tier of its own work (scan→light, build→balanced, design→heavy). |
 
 ## Red flags — stop and re-plan the partition
 
@@ -172,6 +176,7 @@ End with:
   "artifact": "02-DOCS/wiki/sdd/progress/<slug>.md",
   "next_recommended": "implement",
   "risk": "low|medium|high",
+  "model": { "per_unit": [{ "unit": "users-repo", "tier": "balanced", "resolved": "model-id" }], "routing": "on|off" },
   "skill_resolution": {
     "used": ["parallel"],
     "missing": [],
