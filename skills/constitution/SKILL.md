@@ -15,6 +15,10 @@ A constitution is small, durable, and enforceable. It is **not** a wiki of every
 
 This skill produces `02-DOCS/wiki/sdd/constitution.md` and one Knowledge-map row in the root `CLAUDE.md`. It reconciles with — never duplicates — the stack conventions the harness keeps under `02-DOCS/wiki/stack/*`.
 
+## Model tier — `heavy` (opt-in routing)
+
+This phase's default model tier is **`heavy`** — it sets the project's non-negotiables, the highest-leverage decisions in the repo. Routing is **off** unless `models.enabled: true` in `02-DOCS/wiki/sdd/config.yaml`. When on: resolve this phase's tier (`models.overrides` wins over `models.phases`), map it to a model via `models.tiers`, and apply per `../sdd/references/model-routing.md` — announce the switch per the accompaniment dial when it differs from the session model, and dispatch any `Task`/`parallel` subagents on that model. Routing off or no profile → honor the session model silently. Never fake a switch a tool can't make; skip routing on a one-line change.
+
 ## Honor the accompaniment dial first
 
 Before asking anything, read `02-DOCS/wiki/harness/user-profile.md` and match its `technical_level` and `accompaniment_level`. The constitution interview adapts:

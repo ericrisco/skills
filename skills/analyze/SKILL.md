@@ -36,6 +36,10 @@ Do NOT use when (route elsewhere):
 - A test is failing or behavior is wrong → `debug`.
 - You intend to fix what you find right now → that is `implement`/`clarify`/`plan`/`tasks` work, not analyze. Analyze only reports.
 
+## Model tier — `heavy` (opt-in routing)
+
+This phase's default model tier is **`heavy`** — it is the adversarial consistency gate across constitution ↔ spec ↔ plan ↔ tasks. Routing is **off** unless `models.enabled: true` in `02-DOCS/wiki/sdd/config.yaml`. When on: resolve this phase's tier (`models.overrides` wins over `models.phases`), map it to a model via `models.tiers`, and apply per `../sdd/references/model-routing.md` — announce the switch per the accompaniment dial when it differs from the session model, and dispatch any `Task`/`parallel` subagents on that model. Routing off or no profile → honor the session model silently. Never fake a switch a tool can't make; skip routing on a one-line change.
+
 ## Read the accompaniment dial first
 
 Before reporting, read `02-DOCS/wiki/harness/user-profile.md` for the technical + accompaniment level (the harness dial, L0..L3). It shapes how the report reads — not what gets checked. The six analyses always run in full; verbosity flexes:
