@@ -23,8 +23,9 @@ export function hasOutcome(id) {
 }
 
 export function expandRecommends(manifest, chosen) {
-  const set = new Set(chosen);
+  const set = new Set();
   for (const id of chosen) {
+    set.add(id);
     const s = skillById(manifest, id);
     for (const r of s?.recommends || []) set.add(r);
   }
