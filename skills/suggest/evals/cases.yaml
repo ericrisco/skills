@@ -6,6 +6,15 @@ skill: suggest
 # skill that already owns the task.
 
 should_trigger:
+  - prompt: "Quiero montar una pagina web para vender cursos online."
+    why: "Mid-conversation project-start intent — the detector should consult the catalog and propose the first missing skill from the startup queue (usually `nextjs` after the base install, or `init` in a bare install) before building."
+
+  - prompt: "Automatiza el flujo de leads desde el formulario hasta mi CRM."
+    why: "Mid-conversation automation/integration intent — the detector should consult the catalog and propose the first missing automation or connector skill before designing the workflow."
+
+  - prompt: "Write a cold email sequence to sell my SaaS to agencies."
+    why: "Mid-conversation creation/marketing intent — the detector should consult the catalog and propose the first missing email or marketing skill before writing generic copy."
+
   - prompt: "Ayúdame a montar la tabla de pedidos en la base de datos."
     why: "A database task with no DB skill present — the detector should propose `npx @ericrisco/rsc add postgresdb` before diving in."
 
@@ -49,3 +58,21 @@ capability:
       - "On confirmation, runs `npx @ericrisco/rsc add postgresdb` via Bash, then continues the original task"
       - "Checks what is already installed (npx @ericrisco/rsc list) and never proposes a skill the user already has"
       - "Makes at most one suggestion and does not interrupt the flow for nice-to-haves"
+
+  - scenario: "Mid-conversation, after base install, the user says 'quiero montar una pagina web para vender cursos online'. `init`, `harness`, `orient`, and `suggest` are already installed; `nextjs` is not. Show how rsc-suggest behaves."
+    must_include:
+      - "Treats the message as in-agent capability intent, not as a CLI-only consult task"
+      - "Runs `npx @ericrisco/rsc list` before recommending so installed `init`/`harness` are skipped"
+      - "Runs `npx @ericrisco/rsc consult \"quiero montar una pagina web para vender cursos online\"` or equivalent exact-intent consult"
+      - "Names `nextjs` as the first missing useful skill for the website work"
+      - "Asks one short confirmation before installing and does not auto-install"
+      - "On confirmation, runs `npx @ericrisco/rsc add nextjs`, then resumes the original website task"
+
+  - scenario: "Mid-conversation, the user says 'Automatiza el flujo de leads desde el formulario hasta mi CRM'. The base skills are installed, but `automation-flows` and CRM/connector skills are not. Show how rsc-suggest behaves."
+    must_include:
+      - "Treats the message as in-agent capability intent for automation/integration, not only as a coding task"
+      - "Runs `npx @ericrisco/rsc list` before recommending"
+      - "Runs `npx @ericrisco/rsc consult \"Automatiza el flujo de leads desde el formulario hasta mi CRM\"` or equivalent exact-intent consult"
+      - "Names the first missing useful automation/connector skill from the consult results"
+      - "Asks one short confirmation before installing and does not auto-install"
+      - "On confirmation, runs `npx @ericrisco/rsc add <id>` for that one missing skill, then resumes the automation task"

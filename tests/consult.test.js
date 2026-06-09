@@ -19,3 +19,46 @@ test('empty query returns []', async () => {
   const m = loadManifest();
   assert.deepEqual(await rank(m, '   '), []);
 });
+
+test('ranks suggest for multilingual skill recommendation intent queries', async () => {
+  const m = loadManifest();
+  const queries = [
+    'vull que detecti la intenció de recomanar skills',
+    'quiero instalar la skill adecuada según mi intención',
+    'recommend the right skill for this task',
+    'recommande la bonne compétence pour cette tâche',
+    'consiglia la skill giusta per questo lavoro',
+    'recomenda a habilidade certa para esta tarefa',
+    'empfiehl die richtige skill fuer diese aufgabe',
+  ];
+
+  for (const query of queries) {
+    const ranked = await rank(m, query);
+    assert.ok(
+      ranked.slice(0, 3).some((r) => r.id === 'suggest'),
+      `${query} should rank suggest near the top; got ${ranked.slice(0, 6).map((r) => r.id).join(', ')}`,
+    );
+  }
+});
+
+test('low-confidence metadata matches do not produce accidental recommendations', async () => {
+  const m = loadManifest();
+  const ranked = await rank(m, 'vull millorar com es recomanen skills segons la intenció de l usuari');
+  assert.ok(ranked.length > 0);
+  assert.notEqual(ranked[0].score, 1);
+  assert.ok(ranked.slice(0, 3).some((r) => r.id === 'suggest'));
+});
+
+test('generic recommendation wording does not hijack non-skill intent', async () => {
+  const m = loadManifest();
+  const ranked = await rank(m, 'recommend a pricing strategy for my SaaS');
+  assert.equal(ranked[0].id, 'pricing');
+});
+
+test('ranks project bootstrap intent for starting a web project', async () => {
+  const m = loadManifest();
+  const ranked = await rank(m, 'quiero montar una pagina web para vender cursos online');
+  const ids = ranked.slice(0, 4).map((r) => r.id);
+  assert.ok(ids.includes('init'), `expected init in top 4; got ${ids.join(', ')}`);
+  assert.ok(ids.includes('nextjs'), `expected nextjs in top 4; got ${ids.join(', ')}`);
+});

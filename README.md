@@ -75,6 +75,13 @@ git clone https://github.com/ericrisco/rsc-harness.git ~/rsc-skills
 cd ~/rsc-skills && npm install && npm link
 ```
 
+> **Run it inside the project you're equipping — not inside this repo.** The
+> catalog's own `package.json` is named `@ericrisco/rsc`, so `npx @ericrisco/rsc`
+> *from within a `rsc-harness` clone* resolves to the local (unlinked) bin and
+> dies with `sh: rsc: command not found`. Working on the catalog itself? Use
+> `node scripts/rsc.js …`, the `npm link` above, or pin the published build with
+> `npx @ericrisco/rsc@latest …`.
+
 The first run asks **which assistants** you want — Claude Code, Codex, Copilot,
 Cursor, Gemini, Windsurf, Cline and 11 more (pick any combination) — and installs
 the **floor**:
@@ -156,6 +163,36 @@ rsc restore latest --dry-run         # preview restoring the newest snapshot
 rsc restore <snapshot-id>            # restore a project-local snapshot
 rsc upgrade --dry-run                # show npm upgrade + sync commands
 rsc uninstall postgresdb --dry-run   # preview a removal
+```
+
+---
+
+## Update
+
+`rsc` is an npm package, so updating is two steps — bump the package, then
+re-sync what's already wired into your project:
+
+```bash
+npm install -g @ericrisco/rsc@latest   # global install: pull the newest catalog
+rsc sync                               # refresh managed skills + hooks (auto-detects your assistant)
+```
+
+Not sure what a bump touches? Preview the exact commands without writing anything:
+
+```bash
+rsc upgrade --dry-run                  # prints the npm install + rsc sync lines for your target
+```
+
+Running through `npx` (no global install)? There's nothing to upgrade —
+`npx @ericrisco/rsc@latest` always fetches the latest published catalog; just run
+`rsc sync` afterwards if the project already has skills installed.
+
+Every sync snapshots the project first, so a bad update is always reversible:
+
+```bash
+rsc backups                            # list project-local snapshots
+rsc restore latest --dry-run           # preview restoring the newest
+rsc restore <snapshot-id>              # restore it
 ```
 
 ---

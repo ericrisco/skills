@@ -399,6 +399,10 @@ test('cross-target: onboarding gate text rides suggest into a non-claude target'
   const agents = readFileSync(join(cwd, 'AGENTS.md'), 'utf8');
   assert.ok(agents.includes('Onboarding gate'), 'gate section injected cross-target');
   assert.ok(agents.includes('.no-harness'), 'opt-out marker documented in the injected block');
+  assert.ok(agents.includes('Mid-task capability intent'), 'capability-intent detector injected cross-target');
+  assert.ok(agents.includes('quiero montar una pagina web'), 'plain-language startup trigger documented in the injected block');
+  assert.ok(agents.includes('automatiza este flujo'), 'technology/automation trigger documented in the injected block');
+  assert.ok(agents.includes('write a cold email sequence'), 'creation/marketing trigger documented in the injected block');
 });
 
 test('unknown target throws', async () => {
