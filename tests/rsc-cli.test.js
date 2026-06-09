@@ -36,6 +36,24 @@ test('rsc consult prioritizes explicit query over repo hints', () => {
   assert.ok(result.stdout.split('\n')[0].startsWith('modal\t'), result.stdout);
 });
 
+test('rsc consult recommends bootstrap and web skills for a new website intent', () => {
+  const result = spawnSync(process.execPath, [join(ROOT, 'scripts/rsc.js'), 'consult', 'quiero montar una pagina web para vender cursos online'], {
+    cwd: ROOT,
+    encoding: 'utf8',
+  });
+  assert.equal(result.status, 0, result.stderr);
+  const ids = result.stdout.trim().split('\n').map((line) => line.split('\t')[0]);
+  assert.equal(ids[0], 'init', result.stdout);
+  assert.ok(ids.includes('init'), result.stdout);
+  assert.ok(ids.includes('harness'), result.stdout);
+  assert.ok(ids.includes('nextjs'), result.stdout);
+  assert.ok(!ids.includes('angular'), result.stdout);
+  assert.ok(!ids.includes('solid-js'), result.stdout);
+  assert.ok(!ids.includes('svelte'), result.stdout);
+  assert.ok(!ids.includes('sdd-init'), result.stdout);
+});
+
+
 test('rsc backups lists project-local snapshots', () => {
   const cwd = mkdtempSync(join(tmpdir(), 'rsc-cli-backups-'));
   const install = spawnSync(process.execPath, [join(ROOT, 'scripts/rsc.js'), 'add', 'fastapi', '--target', 'claude'], {
