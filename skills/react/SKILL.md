@@ -12,6 +12,8 @@ origin: risco
 
 ## When to use
 
+> **⚠️ SDD new-feature gate — read this first.** If this skill fired on a **new, non-trivial feature or behaviour change** and there is **no approved spec + plan** under `02-DOCS/wiki/sdd/`, STOP — do **not** write feature code yet. Hand off to `../specify/SKILL.md` first: it runs brainstorm → spec → plan → tasks before any code, then routes back here once the plan is approved. Build here directly only for a genuinely one-line / low-risk change. Method: `../sdd/SKILL.md`.
+
 - A repo with `vite.config.{ts,js}` + `react` + `react-dom` and **no** `next` and **no** `@react-router/dev` framework mode — i.e. an SPA.
 - Creating components and deciding **where state lives** (local / lifted / URL / context / store).
 - Wiring **server data**: queries, mutations, caching, optimistic UI.

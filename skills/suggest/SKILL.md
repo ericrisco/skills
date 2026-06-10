@@ -8,7 +8,44 @@ profiles: [minimal, core, full]
 
 # rsc-suggest — detect & install the skill the task needs
 
-You are always loaded. Your only job: keep the session equipped — nothing else.
+You are always loaded — your body is injected into context at the start of **every** session, and again after every compaction, so you are the one piece guaranteed to be present *before any other skill is matched*. That makes you the **always-on layer**. You do two jobs, in this order:
+
+1. **Route new-feature intent into SDD before any code is written** — the new-feature gate below. This is your first duty; it runs before everything else.
+2. **Keep the session equipped** — detect when the task needs an rsc skill that is **not installed**, name it, and install it on confirm.
+
+---
+
+## The new-feature gate (always-on — runs before any other skill)
+
+This is the **highest-precedence rule in the session.** It fires on **every** user turn, in **any language**, and runs **before you plan, answer, or invoke ANY other skill — no matter how many skills are installed or how strongly one of them matches the request.** That covers the stack skills (`nextjs`, `react`, `fastapi`, `flutter`, `go`, `postgresdb`, `building-agents`, `design`) **and any other skill that would build, create, scaffold, generate, or produce the feature** (e.g. `chatbot`, `course-builder`, `marketing`, automation/connector skills). A skill matching the request does **not** override this gate — it runs *inside* the SDD chain, after the plan is approved. There is no skill with priority over this check.
+
+**The rule (non-negotiable).** The moment the user wants to **build, add, or change a feature**, you MUST route it into SDD via `specify` **first**. **No feature code is written — by ANY skill — until a spec AND a plan exist and the user has approved them.** A stack skill that matched the same request does **not** get to skip this: it builds only *after* the plan is approved.
+
+**Where does this turn go? When unsure, choose `specify` — the safe default.**
+
+| The turn is… | Route to |
+| --- | --- |
+| A new feature / capability / integration / UI, a behaviour change, a data-model or architecture change, "it should also…", anything non-trivial | **`specify`** → `clarify` → `plan` → `tasks` → `implement` (which fans work out to subagents via `parallel`) |
+| A genuinely one-line / low-risk change: typo, copy tweak, config bump, rename, non-breaking dependency bump | Just do it inline, then verify — and **say out loud** you are skipping the chain |
+| A bug fix that restores intended behaviour | **`debug`**, then resume |
+| Ambiguous / in-between / you cannot tell | **`specify`** — a skipped spec is where drift hides |
+
+**Triggers — detect the *intent*, never a fixed phrase, in ANY language.** What fires the gate is the **meaning**, not the words: the user wants something to exist or behave differently than it does now — build, add, create, change, replace, integrate, "it should also…", "wouldn't it be nice if…". This is judged **semantically**, so it holds in **any language** — Catalan, Spanish, English, Portuguese, French, Italian, German, Basque, Galician, or anything else, including a language with no example below. The lists that follow are **illustrative examples, NOT a checklist**: never wait for one of these phrases to appear before firing. If the meaning is feature-shaped, the gate fires — full stop.
+- **CA:** "m'agradaria afegir/posar…", "vull fer/posar…", "es podria…", "i si…".
+- **ES:** "quiero añadir/montar…", "me gustaría…", "se me ha ocurrido", "¿y si…?".
+- **EN:** "I want to add…", "let's build…", "it should also…".
+- A **URL plus a description of desired behaviour** ("on this page I'd like…") **is** a feature request — in any language.
+
+**Stop rationalizing — every one of these is wrong:**
+- *"I understand the feature, I'll just build it."* → That is the exact failure SDD prevents. Spec first; the artifact is the contract.
+- *"A more specific skill matched (a stack skill, `chatbot`, `course-builder`, marketing…), so it takes precedence."* → **No skill outranks this gate.** Any builder skill **defers** to `specify` for new features and runs *inside* the chain, after the plan is approved. Route first.
+- *"The user gave lots of detail / a URL, so they want code now."* → Detail feeds the spec, not the editor.
+- *"The dial is L0, so I'll skip the gate to stay terse."* → L0 changes how many words and questions, **never** whether the gate fires.
+- *"It's phrased in a language I have no example for, so maybe it isn't a feature request."* → The trigger lists are examples, not a closed set. Judge the **meaning**, not the keywords; any language with build/add/change intent fires the gate identically.
+
+If `specify` / `sdd` are **not installed**, fall through to the install detector below and offer to add them *before* routing. The gate decides **where the turn goes**; the detector below only handles **missing** skills. Full method and phase map: `../sdd/SKILL.md`.
+
+---
 
 When the current task would clearly benefit from an rsc skill that is **not installed**:
 

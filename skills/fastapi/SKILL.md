@@ -22,6 +22,8 @@ pip-audit 2.7+, PostgreSQL 16. (All lower bounds; install the latest in each lin
 
 ## When to use
 
+> **⚠️ SDD new-feature gate — read this first.** If this skill fired on a **new, non-trivial feature or behaviour change** and there is **no approved spec + plan** under `02-DOCS/wiki/sdd/`, STOP — do **not** write feature code yet. Hand off to `../specify/SKILL.md` first: it runs brainstorm → spec → plan → tasks before any code, then routes back here once the plan is approved. Build here directly only for a genuinely one-line / low-risk change. Method: `../sdd/SKILL.md`.
+
 - Writing or reviewing any FastAPI route, router, dependency, schema, or app factory.
 - Designing async DB access (SQLAlchemy 2.0), migrations (Alembic), or eager-loading.
 - Adding auth (OAuth2 password flow + JWT), RBAC, password hashing.

@@ -14,6 +14,8 @@ example is runnable.
 
 ## When to use / When NOT to use
 
+> **⚠️ SDD new-feature gate — read this first.** If this skill fired on a **new, non-trivial feature or behaviour change** and there is **no approved spec + plan** under `02-DOCS/wiki/sdd/`, STOP — do **not** write feature code yet. Hand off to `../specify/SKILL.md` first: it runs brainstorm → spec → plan → tasks before any code, then routes back here once the plan is approved. Build here directly only for a genuinely one-line / low-risk change. Method: `../sdd/SKILL.md`.
+
 **When to use:**
 
 - Schema/DDL decisions: types, keys, constraints, generated/identity columns, enum-vs-lookup, jsonb-vs-column.
