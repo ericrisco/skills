@@ -18,9 +18,8 @@ __pycache__/
 # docs/ is local scratch (specs, notes) — not part of the distributable catalog
 docs/
 
-# 02-DOCS/ is the harness "company brain" — tracked on purpose, not ignored.
-# Its own 02-DOCS/.gitignore excludes only per-run/ephemeral surfaces
-# (dashboard.html, audits/*.html, inbox/_processed/, Obsidian per-machine state).
+# 02-DOCS/ is the harness "company brain" — local-only, never tracked in this repo.
+02-DOCS/
 
 node_modules/
 coverage/
