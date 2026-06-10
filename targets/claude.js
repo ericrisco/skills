@@ -107,7 +107,24 @@ export function wireHook(paths) {
   );
   settings.hooks.PreToolUse.push({ matcher: 'Bash', hooks: [{ type: 'command', command: dgCmd }] });
 
+  // New-feature gate: a UserPromptSubmit hook that re-injects the SDD new-feature gate as
+  // the most-recent instruction on every user turn. SessionStart injects the full gate (the
+  // `suggest` body) once; this keeps the precedence rule salient regardless of how many
+  // skills are installed or how long the session runs (otherwise a strongly-matched stack
+  // skill can pull the model to code despite the gate being in context). UserPromptSubmit
+  // stdout is added to context, so a plain print suffices. Materialized + node-run
+  // (Windows-safe), idempotent, fail-open, opt-out via .rsc/.no-feature-gate. Other
+  // (non-rsc) UserPromptSubmit hooks are preserved.
+  const fgDest = join(paths.projectRoot, '.rsc', 'userprompt-gate.mjs');
+  copyFileSync(join(HERE, 'userprompt-gate.mjs'), fgDest);
+  const fgCmd = `node "${fgDest}" "${paths.projectRoot}"`;
+  settings.hooks.UserPromptSubmit ||= [];
+  settings.hooks.UserPromptSubmit = settings.hooks.UserPromptSubmit.filter(
+    (e) => !JSON.stringify(e).includes('.rsc/userprompt-gate.'),
+  );
+  settings.hooks.UserPromptSubmit.push({ hooks: [{ type: 'command', command: fgCmd }] });
+
   mkdirSync(dirname(file), { recursive: true });
   writeFileSync(file, JSON.stringify(settings, null, 2) + '\n');
-  return [file, scriptDest, wlDest, sgDest, dgDest];
+  return [file, scriptDest, wlDest, sgDest, dgDest, fgDest];
 }

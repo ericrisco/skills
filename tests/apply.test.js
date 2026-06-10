@@ -185,6 +185,30 @@ test('claude: project-local install links to .rsc base, wires hook, list/uninsta
   assert.ok(!listInstalled({ target: 'claude', cwd }).includes('fastapi'));
 });
 
+test('claude: install wires the UserPromptSubmit new-feature gate (idempotent, opt-out honored)', async () => {
+  const cwd = mkdtempSync(join(tmpdir(), 'rsc-fg-'));
+  await applyInstall({ skillIds: ['suggest'], target: 'claude', cwd });
+
+  const settings = JSON.parse(readFileSync(join(cwd, '.claude/settings.json'), 'utf8'));
+  assert.ok(JSON.stringify(settings.hooks.UserPromptSubmit || []).includes('userprompt-gate.mjs'),
+    'UserPromptSubmit hook wired');
+  assert.ok(existsSync(join(cwd, '.rsc/userprompt-gate.mjs')), 'gate script materialized');
+
+  // Re-install must not duplicate the rsc entry.
+  await applyInstall({ skillIds: ['suggest'], target: 'claude', cwd });
+  const after = JSON.parse(readFileSync(join(cwd, '.claude/settings.json'), 'utf8'));
+  const count = (after.hooks.UserPromptSubmit || [])
+    .filter((e) => JSON.stringify(e).includes('userprompt-gate')).length;
+  assert.equal(count, 1, 'exactly one rsc UserPromptSubmit entry after re-install');
+
+  // The materialized script emits the gate; the opt-out marker silences it.
+  const emit = spawnSync('node', [join(cwd, '.rsc/userprompt-gate.mjs'), cwd], { encoding: 'utf8' });
+  assert.ok(emit.stdout.includes('new-feature gate'), 'script emits the gate reminder');
+  writeFileSync(join(cwd, '.rsc/.no-feature-gate'), '');
+  const silenced = spawnSync('node', [join(cwd, '.rsc/userprompt-gate.mjs'), cwd], { encoding: 'utf8' });
+  assert.equal(silenced.stdout.trim(), '', 'opt-out marker silences the gate');
+});
+
 test('install creates a backup before overwriting managed hook files', async () => {
   const cwd = mkdtempSync(join(tmpdir(), 'rsc-install-backup-'));
   mkdirSync(join(cwd, '.claude'), { recursive: true });

@@ -18,6 +18,8 @@ Build production LLM agents that are model-agnostic by construction — a thin p
 
 ## When to use / When NOT to use
 
+> **⚠️ SDD new-feature gate — read this first.** If this skill fired on a **new, non-trivial feature or behaviour change** and there is **no approved spec + plan** under `02-DOCS/wiki/sdd/`, STOP — do **not** write feature code yet. Hand off to `../specify/SKILL.md` first: it runs brainstorm → spec → plan → tasks before any code, then routes back here once the plan is approved. Build here directly only for a genuinely one-line / low-risk change. Method: `../sdd/SKILL.md`.
+
 **Use when:** starting any production-bound LLM feature; code is hardwired to one SDK and you want to swap/route/fallback models; adding tools/function calling, structured output, or streaming; standing up RAG over Postgres/`pgvector` or an external store; building an eval harness / CI quality gate; adding tracing, cost tracking, caching, or routing/cascades; building or hardening an MCP server.
 
 **Do NOT use when:**

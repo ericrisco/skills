@@ -32,6 +32,30 @@ npx @ericrisco/rsc            # plain-language wizard — no jargon, installs wh
 
 ---
 
+## 🤖 For agents: "install this harness"
+
+If you're an AI coding agent (Claude Code, Cursor, Copilot, Codex, Gemini…) and your user
+asked you to **install rsc / this harness / these skills**, run this in the **root of the
+project they're equipping** — not inside a clone of this repo (see the note under *Install*):
+
+```bash
+npx @ericrisco/rsc@latest
+```
+
+That launches a plain-language wizard: it asks **which assistants** to target and **what the
+user wants**, reads the repo, then installs the floor (`orient` + `rsc-suggest` + `harness` +
+`init`) plus only the skills that fit — one at a time. No global install and no API key needed.
+
+- **Choose assistants non-interactively:** `npx @ericrisco/rsc@latest --target claude` (comma-separate for several).
+- **Already installed, just refreshing skills + hooks:** `rsc sync` (or re-run the command above).
+- **Add one skill by id:** `rsc add <id>` · **browse the catalog:** `rsc consult "<what you want>"` or `rsc list`.
+
+From then on it's self-driving: `rsc-suggest` proposes the next skill as tasks appear, and in
+Claude Code a hook re-asserts the spec-first **new-feature gate** on every turn — so a feature
+request routes through `specify` before any skill writes code.
+
+---
+
 ## Why this exists
 
 Most skill packs dump hundreds of files into your context and call it a day. This
@@ -86,8 +110,10 @@ The first run asks **which assistants** you want — Claude Code, Codex, Copilot
 Cursor, Gemini, Windsurf, Cline and 11 more (pick any combination) — and installs
 the **floor**:
 `orient` + `rsc-suggest` (always-on) + `harness` + `init`. In Claude Code it
-also wires a `SessionStart` hook so your assistant proposes new skills on its
-own from then on.
+also wires a `SessionStart` hook (so your assistant proposes new skills on its
+own) and a `UserPromptSubmit` hook that re-asserts the **SDD new-feature gate**
+on every turn — so a feature request, in any language, routes through `specify`
+first, before any skill writes code. Opt out per project with `.rsc/.no-feature-gate`.
 
 Everything stays **in the project**, and the real skill files are written
 **once** to `.rsc/skills/<id>/`. Each assistant you pick gets a lightweight
