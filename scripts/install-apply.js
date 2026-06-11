@@ -14,22 +14,37 @@ const CLI_VERSION = JSON.parse(readFileSync(join(ROOT, 'package.json'), 'utf8'))
 // materialized at — the single, target-agnostic source of truth for "installed
 // skills version" (read by the SessionStart update check too).
 const versionFile = (cwd) => join(cwd, '.rsc', '.version');
-function readBaseVersion(cwd) {
-  try { return readFileSync(versionFile(cwd), 'utf8').trim(); } catch { return undefined; }
+
+// Per-skill base version. A single global `.rsc/.version` cannot represent a
+// partially-refreshed base set, which broke multi-target sync: the first target's pass
+// bumped `.rsc/.version`, so later targets saw "current" and skipped refreshing their
+// exclusive skills' bases. Tracking the version each base was materialized at makes the
+// refresh decision per skill, independent of target ordering. (Absent file → every base
+// is treated as stale and refreshed once, which self-heals installs from before this.)
+const baseVersionsFile = (cwd) => join(cwd, '.rsc', '.base-versions.json');
+function readBaseVersions(cwd) {
+  try { return JSON.parse(readFileSync(baseVersionsFile(cwd), 'utf8')); } catch { return {}; }
+}
+function writeBaseVersions(cwd, versions) {
+  mkdirSync(dirname(baseVersionsFile(cwd)), { recursive: true });
+  writeFileSync(baseVersionsFile(cwd), JSON.stringify(versions, null, 2) + '\n');
 }
 
-// Materialize the real skill files into the project-local base. Normally copied
-// once and reused; when `refresh` is set (a different CLI version than the base was
-// materialized at) the base is re-copied so a reinstall actually updates content.
-// Skills are read-only catalog (user customization lives in 02-DOCS/CLAUDE.md), so
-// overwriting on a version change is safe.
-function ensureBase(id, cwd, refresh) {
+// Materialize the real skill files into the project-local base. Copied once and reused;
+// when the recorded base version for THIS skill differs from the CLI version, the base is
+// re-copied so a reinstall/sync actually updates content. Tracked per skill (see
+// baseVersionsFile) so a multi-target sync refreshes every target's bases, not just the
+// first target's. Skills are read-only catalog (user customization lives in 02-DOCS), so
+// overwriting on a version change is safe. Mutates `baseVersions` with the new mark.
+function ensureBase(id, cwd, baseVersions) {
   const dest = baseDir(id, cwd);
-  if (refresh && existsSync(dest)) rmSync(dest, { recursive: true, force: true });
+  const stale = baseVersions[id] !== CLI_VERSION;
+  if (stale && existsSync(dest)) rmSync(dest, { recursive: true, force: true });
   if (!existsSync(dest)) {
     mkdirSync(dirname(dest), { recursive: true });
     cpSync(join(ROOT, 'skills', id), dest, { recursive: true });
   }
+  baseVersions[id] = CLI_VERSION;
   return dest;
 }
 
@@ -46,7 +61,7 @@ function generatedHookFiles({ target, cwd }) {
 function managedPathsForInstall({ skillIds, target, home, cwd }) {
   const paths = targetPaths(target, home, cwd);
   const plan = planInstall({ skillIds, target, home, cwd });
-  const out = [paths.stateFile, versionFile(cwd)];
+  const out = [paths.stateFile, versionFile(cwd), baseVersionsFile(cwd)];
   for (const step of plan) {
     if (step.kind === 'skill') {
       out.push(step.to, baseDir(step.id, cwd));
@@ -64,18 +79,21 @@ export async function applyInstall({ skillIds, target, home, cwd = process.cwd()
   if (dryRun) return { dryRun: true, skills: skillIds, paths: managedPaths };
   const state = readState(paths.stateFile);
   const backup = createBackup({ cwd, operation, target, paths: managedPaths, cliVersion: CLI_VERSION });
-  // Refresh bases when installing a different version than they were materialized at
-  // (or a pre-versioning install where the marker is absent). Same version → no-op.
-  const refresh = readBaseVersion(cwd) !== CLI_VERSION;
+  // Decide base refresh per skill (see baseVersionsFile): a base is re-materialized when
+  // its recorded version differs from the CLI version. Robust to multi-target installs/
+  // syncs — a single global marker would be bumped by the first target and make later
+  // targets skip refreshing their exclusive skills' bases.
+  const baseVersions = readBaseVersions(cwd);
   for (const step of plan) {
     if (step.kind === 'skill') {
-      const base = ensureBase(step.id, cwd, refresh);
+      const base = ensureBase(step.id, cwd, baseVersions);
       const files = await writeSkill(target, step.id, base, step.to);
       state.skills[step.id] = { files, base };
     } else if (step.kind === 'hook') {
-      await wireHook(target, paths, join(ensureBase('suggest', cwd, refresh), 'SKILL.md'));
+      await wireHook(target, paths, join(ensureBase('suggest', cwd, baseVersions), 'SKILL.md'));
     }
   }
+  writeBaseVersions(cwd, baseVersions);
   state.version = CLI_VERSION;
   writeState(paths.stateFile, state);
   mkdirSync(dirname(versionFile(cwd)), { recursive: true });
