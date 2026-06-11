@@ -131,6 +131,7 @@ test('reinstall after a version change refreshes the base content (reinstall == 
   const cwd = mkdtempSync(join(tmpdir(), 'rsc-ref-'));
   await applyInstall({ skillIds: ['fastapi'], target: 'claude', cwd });
   // simulate an older install whose base drifted from the current bundled version
+  writeFileSync(join(cwd, '.rsc/.base-versions.json'), JSON.stringify({ fastapi: '0.0.1' }) + '\n');
   writeFileSync(join(cwd, '.rsc/.version'), '0.0.1\n');
   writeFileSync(join(cwd, '.rsc/skills/fastapi/STALE.txt'), 'old content');
   await applyInstall({ skillIds: ['fastapi'], target: 'claude', cwd });
@@ -144,6 +145,25 @@ test('same-version reinstall does not refresh the base', async () => {
   writeFileSync(join(cwd, '.rsc/skills/fastapi/KEEP.txt'), 'mine');
   await applyInstall({ skillIds: ['fastapi'], target: 'claude', cwd }); // same CLI version
   assert.ok(existsSync(join(cwd, '.rsc/skills/fastapi/KEEP.txt')), 'base untouched when version unchanged');
+});
+
+test('multi-target sync refreshes bases for the second target\'s exclusive skills', async () => {
+  const cwd = mkdtempSync(join(tmpdir(), 'rsc-multi-'));
+  // fastapi via claude, nextjs only via codex — both share one .rsc/skills base.
+  await applyInstall({ skillIds: ['fastapi'], target: 'claude', cwd });
+  await applyInstall({ skillIds: ['nextjs'], target: 'codex', cwd });
+  // Simulate the real upgrade: both bases (and the global marker) at an older version.
+  writeFileSync(join(cwd, '.rsc/.version'), '0.0.1\n');
+  writeFileSync(join(cwd, '.rsc/.base-versions.json'), JSON.stringify({ fastapi: '0.0.1', nextjs: '0.0.1' }) + '\n');
+  writeFileSync(join(cwd, '.rsc/skills/fastapi/STALE.txt'), 'x');
+  writeFileSync(join(cwd, '.rsc/skills/nextjs/STALE.txt'), 'x');
+  // Re-apply claude first (its pass bumps .rsc/.version to current), then codex.
+  await applyInstall({ skillIds: ['fastapi'], target: 'claude', cwd });
+  await applyInstall({ skillIds: ['nextjs'], target: 'codex', cwd });
+  assert.ok(!existsSync(join(cwd, '.rsc/skills/fastapi/STALE.txt')), 'first-target base refreshed');
+  // Regression: with the old single global marker, claude's pass bumped it to current so
+  // codex's pass saw "unchanged" and skipped refreshing nextjs's base, leaving it stale.
+  assert.ok(!existsSync(join(cwd, '.rsc/skills/nextjs/STALE.txt')), 'second-target exclusive base refreshed');
 });
 
 test('claude: install migrates away the legacy nested .claude/skills/rsc/ layout', async () => {
@@ -261,6 +281,7 @@ test('syncInstalled dry-run reports managed paths without mutating stale base fi
 test('syncInstalled refreshes installed skills and creates a sync backup', async () => {
   const cwd = mkdtempSync(join(tmpdir(), 'rsc-sync-'));
   await applyInstall({ skillIds: ['fastapi'], target: 'claude', cwd });
+  writeFileSync(join(cwd, '.rsc/.base-versions.json'), JSON.stringify({ fastapi: '0.0.1' }) + '\n');
   writeFileSync(join(cwd, '.rsc/.version'), '0.0.1\n');
   writeFileSync(join(cwd, '.rsc/skills/fastapi/STALE.txt'), 'old');
 
