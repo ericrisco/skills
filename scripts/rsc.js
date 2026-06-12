@@ -187,6 +187,26 @@ async function main() {
       for (const o of toOutcomes(ids)) say(`${o.id}\t${o.label}`);
       return;
     }
+    case 'catalog': {
+      // Full catalog dump for SEMANTIC in-agent discovery: every skill as
+      // `id  <installed|available>  short description`, unranked. `consult` ranks
+      // lexically and returns nothing for natural-language / Catalan intent; `catalog`
+      // hands the agent the whole candidate set so the MODEL picks the best-fit missing
+      // skill by meaning. `--available` drops what's already installed for this target.
+      const m = loadManifest();
+      const installed = new Set(listInstalled({ target }));
+      const onlyAvailable = argv.includes('--available');
+      const short = (d) => {
+        const s = String(d || '').split('. ')[0].replace(/\s+/g, ' ').trim();
+        return s.length > 160 ? `${s.slice(0, 159)}…` : s;
+      };
+      for (const sk of [...m.skills].sort((a, b) => a.id.localeCompare(b.id))) {
+        const state = installed.has(sk.id) ? 'installed' : 'available';
+        if (onlyAvailable && state === 'installed') continue;
+        say(`${sk.id}\t${state}\t${short(sk.description)}`);
+      }
+      return;
+    }
     case 'audit': {
       const report = audit();
       const written = writeAuditReport(report);

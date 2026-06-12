@@ -62,17 +62,17 @@ capability:
   - scenario: "Mid-conversation, after base install, the user says 'quiero montar una pagina web para vender cursos online'. `init`, `harness`, `orient`, and `suggest` are already installed; `nextjs` is not. Show how rsc-suggest behaves."
     must_include:
       - "Treats the message as in-agent capability intent, not as a CLI-only consult task"
-      - "Runs `npx @ericrisco/rsc list` before recommending so installed `init`/`harness` are skipped"
-      - "Runs `npx @ericrisco/rsc consult \"quiero montar una pagina web para vender cursos online\"` or equivalent exact-intent consult"
-      - "Names `nextjs` as the first missing useful skill for the website work"
+      - "Runs `npx @ericrisco/rsc catalog --available` to see the not-installed skills (already excludes installed `init`/`harness`)"
+      - "Picks the best-fit skill by MEANING from the catalog, not by relying on lexical `consult` ranking"
+      - "Names `nextjs` as the missing useful skill for the website work"
       - "Asks one short confirmation before installing and does not auto-install"
       - "On confirmation, runs `npx @ericrisco/rsc add nextjs`, then resumes the original website task"
 
   - scenario: "Mid-conversation, the user says 'Automatiza el flujo de leads desde el formulario hasta mi CRM'. The base skills are installed, but `automation-flows` and CRM/connector skills are not. Show how rsc-suggest behaves."
     must_include:
       - "Treats the message as in-agent capability intent for automation/integration, not only as a coding task"
-      - "Runs `npx @ericrisco/rsc list` before recommending"
-      - "Runs `npx @ericrisco/rsc consult \"Automatiza el flujo de leads desde el formulario hasta mi CRM\"` or equivalent exact-intent consult"
-      - "Names the first missing useful automation/connector skill from the consult results"
+      - "Runs `npx @ericrisco/rsc catalog --available` to see the not-installed skills"
+      - "Picks the best-fit missing automation/connector skill by MEANING (not by lexical `consult` ranking, which may return nothing)"
+      - "Names that one missing automation/connector skill"
       - "Asks one short confirmation before installing and does not auto-install"
       - "On confirmation, runs `npx @ericrisco/rsc add <id>` for that one missing skill, then resumes the automation task"
