@@ -54,6 +54,29 @@ test('rsc consult recommends bootstrap and web skills for a new website intent',
 });
 
 
+test('rsc catalog dumps the full catalog with install state and descriptions', () => {
+  const result = spawnSync(process.execPath, [join(ROOT, 'scripts/rsc.js'), 'catalog'], {
+    cwd: ROOT,
+    encoding: 'utf8',
+  });
+  assert.equal(result.status, 0, result.stderr);
+  const lines = result.stdout.trim().split('\n');
+  assert.ok(lines.length >= 200, `expected the full catalog, got ${lines.length} lines`);
+  assert.ok(lines.every((l) => /^\S+\t(installed|available)\t.+/.test(l)), 'each line is id<TAB>state<TAB>description');
+  const nextjs = lines.find((l) => l.startsWith('nextjs\t'));
+  assert.ok(nextjs && /next\.js/i.test(nextjs), `nextjs row carries its description: ${nextjs}`);
+});
+
+test('rsc catalog --available hides skills already installed', () => {
+  const cwd = mkdtempSync(join(tmpdir(), 'rsc-cli-catalog-'));
+  const install = spawnSync(process.execPath, [join(ROOT, 'scripts/rsc.js'), 'add', 'fastapi', '--target', 'claude'], { cwd, encoding: 'utf8' });
+  assert.equal(install.status, 0, install.stderr);
+  const all = spawnSync(process.execPath, [join(ROOT, 'scripts/rsc.js'), 'catalog', '--target', 'claude'], { cwd, encoding: 'utf8' });
+  const avail = spawnSync(process.execPath, [join(ROOT, 'scripts/rsc.js'), 'catalog', '--available', '--target', 'claude'], { cwd, encoding: 'utf8' });
+  assert.ok(all.stdout.includes('fastapi\tinstalled\t'), 'full catalog marks fastapi installed');
+  assert.ok(!avail.stdout.split('\n').some((l) => l.startsWith('fastapi\t')), '--available drops the installed fastapi');
+});
+
 test('rsc backups lists project-local snapshots', () => {
   const cwd = mkdtempSync(join(tmpdir(), 'rsc-cli-backups-'));
   const install = spawnSync(process.execPath, [join(ROOT, 'scripts/rsc.js'), 'add', 'fastapi', '--target', 'claude'], {

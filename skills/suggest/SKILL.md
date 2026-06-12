@@ -56,8 +56,8 @@ When the current task would clearly benefit from an rsc skill that is **not inst
 Rules:
 
 - Installing changes the user's environment — always confirm first.
-- To know what exists, run `npx @ericrisco/rsc consult "<the task>"` instead of guessing.
-- For a project-level view, prefer `.rsc/skill-registry.json` when present; if it is missing or stale, suggest `npx @ericrisco/rsc registry refresh`. This is a cheap index, not a reason to load every skill.
+- To know what exists, run `npx @ericrisco/rsc catalog --available` (every NOT-installed skill as `id  available  short description`) and **pick the best fit yourself, by meaning** — see the detector below. Don't guess from memory.
+- `npx @ericrisco/rsc consult "<task>"` is only a cheap **lexical** hint: it keyword-matches and silently returns nothing for natural-language or non-English/Catalan intent (e.g. it finds no email skill for "mandar emails"). Never let it be the decider; if it's empty, scan `catalog` and judge semantically.
 - Never recommend something already installed (`npx @ericrisco/rsc list`).
 - One suggestion at a time. Don't interrupt the flow for nice-to-haves.
 
@@ -78,24 +78,29 @@ This is broader than "start a project". It includes mid-conversation requests su
 - Knowledge and research: "documenta cómo funciona esto", "crea una wiki", "procesa este inbox", "research competitors", "turn this into SOPs".
 - Other languages: any equivalent phrasing. Match the user's intent, not exact words.
 
-When a capability intent appears:
+When a capability intent appears, **you** make the match semantically — do not delegate the decision to a keyword ranker:
 
-1. Run `npx @ericrisco/rsc list` to know what is already installed.
-2. Run `npx @ericrisco/rsc consult "<the user's exact intent>"`.
-3. Read the ordered result as the install queue, but pick only the **first missing**
-   skill that is useful right now. Skip `suggest` and any installed skill.
+1. Run `npx @ericrisco/rsc catalog --available` to get every NOT-installed skill as
+   `id  available  short description`. (It already excludes what's installed.)
+2. **Read the catalog and pick the single best-fit skill by MEANING** — match the user's
+   intent to a skill's *purpose*, semantically, in any language (CA/ES/EN/…), the way you'd
+   match a request to a teammate's expertise. Judge meaning, not shared keywords:
+   "mandar emails de bienvenida" → `email-connector` even though no words overlap its tags;
+   "login con Google" → an auth/security skill, not `flutter`; "transcripció de veu" → a
+   speech/audio skill *if one exists*.
+3. If nothing in the catalog genuinely fits, **say so and move on** — don't force a weak
+   match, and don't propose a tangential skill just to have an answer. (`npx @ericrisco/rsc
+   consult "<intent>"` is available as a lexical hint, but it misses natural-language and
+   Catalan intent and is silent for many real needs — never read its silence as "no skill
+   exists." The catalog + your judgment is the source of truth.)
 4. Ask before installing: "Para esto instalaría `<id>`, que aún no tienes. ¿La instalo? (sí/no)".
-5. On yes, run `npx @ericrisco/rsc add <id>` and then continue the original request.
+5. On yes, run `npx @ericrisco/rsc add <id>` and continue the original request. One at a time.
 
-Example: if the user says "quiero montar una pagina web para vender cursos online",
-do not just start building. Check the installed list, consult that exact phrase, and
-recommend the first missing skill from the returned queue. In a base install, `init`
-and `harness` may already exist, so the first missing skill is usually `nextjs`. In a
-bare install, `init` may be first. Install one skill at a time.
-
-Example: if the user says "hazme una secuencia de cold emails para vender mi SaaS",
-consult that exact phrase and recommend the first missing email/marketing skill rather
-than writing generic copy with no specialist loaded.
+Example: "quiero montar una pagina web para vender cursos online" → scan the catalog and
+pick the web stack skill (usually `nextjs`) by meaning; don't start building before offering it.
+Example: "hazme una secuencia de cold emails para vender mi SaaS" → pick the email/outreach
+skill (`cold-outreach` / `email-connector`) because it *means* email outreach — not because
+the keywords happen to match (they often won't).
 
 ## Onboarding gate (first contact)
 
